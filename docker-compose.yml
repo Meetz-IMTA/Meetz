@@ -1,0 +1,16 @@
+services:
+  db:
+    image: mariadb:11
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: meetz
+      MYSQL_USER: meetz
+      MYSQL_PASSWORD: meetz
+    ports:
+      - "3306:3306"
+    volumes:
+      - meetz_db:/var/lib/mysql
+
+volumes:
+  meetz_db:

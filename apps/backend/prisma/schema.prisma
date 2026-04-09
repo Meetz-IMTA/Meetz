@@ -11,3 +11,21 @@ generator client {
 datasource db {
   provider = "mysql"
 }
+
+model User {
+  id       Int     @id @default(autoincrement())
+  name     String
+  email    String  @unique
+  password String
+  events   Event[]
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  date        DateTime
+  location    String?
+  organizerId Int
+  organizer   User     @relation(fields: [organizerId], references: [id])
+}

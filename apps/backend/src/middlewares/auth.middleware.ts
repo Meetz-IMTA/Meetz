@@ -1,0 +1,19 @@
+import jwt from 'jsonwebtoken';
+import type { Request, Response, NextFunction } from 'express';
+
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) {
+    res.status(401).json({ error: 'Token manquant' });
+    return;
+  }
+
+  try {
+    const payload: any = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!);
+    req.userId = payload.userId;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Token invalide ou expiré' });
+  }
+};

@@ -6,7 +6,7 @@ import { ButtonModule } from 'primeng/button';
   selector: 'app-root',
   imports: [
     RouterOutlet,
-    ButtonModule
+    ButtonModule,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'

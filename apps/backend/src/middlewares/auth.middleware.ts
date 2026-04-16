@@ -1,11 +1,15 @@
-import jwt from 'jsonwebtoken';
-import type { Request, Response, NextFunction } from 'express';
+import jwt from "jsonwebtoken";
+import type { Request, Response, NextFunction } from "express";
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization?.split(' ')[1];
+export const authMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
-    res.status(401).json({ error: 'Token manquant' });
+    res.status(401).json({ error: "Token manquant" });
     return;
   }
 
@@ -14,6 +18,6 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     req.userId = payload.userId;
     next();
   } catch {
-    res.status(401).json({ error: 'Token invalide ou expiré' });
+    res.status(401).json({ error: "Token invalide ou expiré" });
   }
 };

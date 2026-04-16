@@ -7,9 +7,16 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "db:stop": "docker compose down"
+    "db:stop": "docker compose down",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "apps/web/**/*.{ts,html,css}": ["prettier --write"],
+    "apps/backend/**/*.ts": ["prettier --write"]
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.7.4",
     "tsx": "^4.21.0",
     "turbo": "^2.9.4",

@@ -1,22 +1,21 @@
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 import prisma from "../src/lib/prisma.js";
 
-
 async function main() {
-  const hashedPassword = await bcrypt.hash('password123', 10);
+  const hashedPassword = await bcrypt.hash("password123", 10);
 
   const user = await prisma.user.upsert({
-    where: { email: 'user1@example.com' },
+    where: { email: "user1@example.com" },
     update: {},
     create: {
-      name: 'Test User',
-      email: 'user1@example.com',
+      name: "Test User",
+      email: "user1@example.com",
       password: hashedPassword,
       isVerified: true,
     },
   });
 
-  console.log('Seed terminé :', user);
+  console.log("Seed terminé :", user);
 }
 
 main()

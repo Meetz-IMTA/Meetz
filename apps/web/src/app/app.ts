@@ -4,12 +4,9 @@ import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'app-root',
-  imports: [
-    RouterOutlet,
-    ButtonModule,
-  ],
+  imports: [RouterOutlet, ButtonModule],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
 export class App {
   protected readonly title = signal('web');

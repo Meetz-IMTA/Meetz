@@ -1,4 +1,11 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
-@import "primeicons/primeicons.css";
+@import 'primeicons/primeicons.css';
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+@layer base {
+  * {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}

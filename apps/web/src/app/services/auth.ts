@@ -11,44 +11,54 @@ export class Auth {
   constructor(private http: HttpClient) {}
 
   login(email: string, password: string) {
-    return this.http.post<{ user: any; accessToken: string; refreshToken: string }>(
-      `${this.apiUrl}/login`,
-      { email, password }
-    ).pipe(
-      tap((response) => {
-        localStorage.setItem('accessToken', response.accessToken);
-        localStorage.setItem('refreshToken', response.refreshToken);
-        localStorage.setItem('user', JSON.stringify(response.user));
-      })
-    );
-  }
-
-  register(name: string, email: string, password: string) {
-    return this.http.post<{ email: string; accessToken?: string; refreshToken?: string; user?: any }>(
-      `${this.apiUrl}/register`,
-      { name, email, password }
-    ).pipe(
-      tap((response) => {
-        if (response.accessToken && response.refreshToken && response.user) {
+    return this.http
+      .post<{
+        user: any;
+        accessToken: string;
+        refreshToken: string;
+      }>(`${this.apiUrl}/login`, { email, password })
+      .pipe(
+        tap((response) => {
           localStorage.setItem('accessToken', response.accessToken);
           localStorage.setItem('refreshToken', response.refreshToken);
           localStorage.setItem('user', JSON.stringify(response.user));
-        }
-      })
-    );
+        }),
+      );
+  }
+
+  register(name: string, email: string, password: string) {
+    return this.http
+      .post<{
+        email: string;
+        accessToken?: string;
+        refreshToken?: string;
+        user?: any;
+      }>(`${this.apiUrl}/register`, { name, email, password })
+      .pipe(
+        tap((response) => {
+          if (response.accessToken && response.refreshToken && response.user) {
+            localStorage.setItem('accessToken', response.accessToken);
+            localStorage.setItem('refreshToken', response.refreshToken);
+            localStorage.setItem('user', JSON.stringify(response.user));
+          }
+        }),
+      );
   }
 
   verifyOtp(email: string, otp: string) {
-    return this.http.post<{ user: any; accessToken: string; refreshToken: string }>(
-      `${this.apiUrl}/verify-otp`,
-      { email, otp }
-    ).pipe(
-      tap((response) => {
-        localStorage.setItem('accessToken', response.accessToken);
-        localStorage.setItem('refreshToken', response.refreshToken);
-        localStorage.setItem('user', JSON.stringify(response.user));
-      })
-    );
+    return this.http
+      .post<{
+        user: any;
+        accessToken: string;
+        refreshToken: string;
+      }>(`${this.apiUrl}/verify-otp`, { email, otp })
+      .pipe(
+        tap((response) => {
+          localStorage.setItem('accessToken', response.accessToken);
+          localStorage.setItem('refreshToken', response.refreshToken);
+          localStorage.setItem('user', JSON.stringify(response.user));
+        }),
+      );
   }
 
   logout(refreshToken: string) {
@@ -59,10 +69,9 @@ export class Auth {
   }
 
   refresh(refreshToken: string) {
-    return this.http.post<{ accessToken: string; refreshToken: string }>(
-      `${this.apiUrl}/refresh`,
-      { refreshToken }
-    );
+    return this.http.post<{ accessToken: string; refreshToken: string }>(`${this.apiUrl}/refresh`, {
+      refreshToken,
+    });
   }
 
   getAccessToken() {

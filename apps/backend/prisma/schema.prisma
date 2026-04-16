@@ -13,11 +13,15 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  name     String
-  email    String  @unique
-  password String
-  events   Event[]
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  password     String
+  refreshToken String?
+  isVerified   Boolean   @default(false)
+  otpCode      String?
+  otpExpiry    DateTime?
+  events       Event[]
 }
 
 model Event {

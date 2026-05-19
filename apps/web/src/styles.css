@@ -1,11 +1,53 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
-@import 'primeicons/primeicons.css';
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 
-@layer base {
-  * {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
+@theme {
+  --color-primary: #be123c;
+  --color-surface: #f9fafb;
+  --color-on-surface: #111827;
+  --color-on-surface-variant: #6b7280;
+
+  --font-headline: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --radius-btn: 8px;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background-color: #ffffff;
+  color: #111827;
+  font-family: 'Inter', sans-serif;
+}
+
+.vibrant-mesh {
+  background-color: #ffffff;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(190, 18, 60, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(190, 18, 60, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(245, 158, 11, 0.15) 0px, transparent 50%);
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.social-btn:hover {
+  background-color: #f9fafb;
 }

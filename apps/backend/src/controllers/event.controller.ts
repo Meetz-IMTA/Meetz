@@ -12,7 +12,9 @@ export const listEvents = async (req: Request, res: Response) => {
     const events = await getEvents();
     res.json(events);
   } catch (error) {
-    res.status(500).json({ error: "Erreur lors de la récupération des événements." });
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la récupération des événements." });
   }
 };
 
@@ -36,7 +38,11 @@ export const createEventHandler = async (req: Request, res: Response) => {
 
 export const updateEventHandler = async (req: Request, res: Response) => {
   try {
-    const event = await updateEvent(Number(req.params["id"]), req.body, req.userId!);
+    const event = await updateEvent(
+      Number(req.params["id"]),
+      req.body,
+      req.userId!,
+    );
     res.json(event);
   } catch (error: any) {
     const status = error.message.includes("Non autorisé") ? 403 : 404;

@@ -13,6 +13,9 @@ export const register = async (req: Request, res: Response) => {
     res.status(201).json(result);
   } catch (error: any) {
     console.error("Error registering user:", error);
+    res
+      .status(400)
+      .json({ message: error.message || "Erreur lors de l'inscription" });
   }
 };
 

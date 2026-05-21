@@ -193,7 +193,11 @@
                 >Mot de passe</label
               >
               @if (mode() === 'login') {
-                <a href="#" class="text-xs font-semibold text-primary hover:underline">Oublié ?</a>
+                <a
+                  routerLink="/forget-password"
+                  class="text-xs font-semibold text-primary hover:underline"
+                  >Oublié ?</a
+                >
               }
             </div>
             <input

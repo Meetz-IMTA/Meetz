@@ -19,9 +19,11 @@ model User {
   password     String
   refreshToken String?
   isVerified   Boolean   @default(false)
-  otpCode      String?
-  otpExpiry    DateTime?
-  events       Event[]
+  otpCode           String?
+  otpExpiry         DateTime?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  events            Event[]
 }
 
 model Event {

@@ -2,10 +2,11 @@ import { Component, inject, signal, ChangeDetectorRef, OnDestroy } from '@angula
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth } from '../../services/auth';
+import { AuthShell } from '../../components/auth-shell/auth-shell';
 
 @Component({
   selector: 'app-forget-password',
-  imports: [FormsModule],
+  imports: [FormsModule, AuthShell],
   templateUrl: './forget-password.html',
   styleUrl: './forget-password.css',
 })

@@ -2,12 +2,13 @@ import { Component, inject, ChangeDetectorRef, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../services/auth';
+import { AuthShell } from '../../components/auth-shell/auth-shell';
 
 type AuthMode = 'login' | 'register';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, AuthShell],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })

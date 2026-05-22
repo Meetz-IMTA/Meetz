@@ -27,11 +27,14 @@ model User {
 }
 
 model Event {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  date        DateTime
-  location    String?
-  organizerId Int
-  organizer   User     @relation(fields: [organizerId], references: [id])
+  id           Int      @id @default(autoincrement())
+  name         String
+  description  String?  @db.Text
+  date         DateTime
+  location     String?
+  category     String?
+  maxAttendees Int?
+  imageUrl     String?
+  organizerId  Int
+  organizer    User     @relation(fields: [organizerId], references: [id])
 }

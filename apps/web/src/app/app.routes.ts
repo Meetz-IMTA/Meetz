@@ -4,7 +4,9 @@ import { VerifyOtp } from './pages/verify-otp/verify-otp';
 import { ForgetPassword } from './pages/forget-password/forget-password';
 import { ResetPassword } from './pages/reset-password/reset-password';
 import { Home } from './pages/home/home';
+import { CreateEvent } from './pages/create-event/create-event';
 import { MainLayout } from './components/main-layout/main-layout';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -15,6 +17,10 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayout,
-    children: [{ path: 'home', component: Home }],
+    canActivate: [authGuard],
+    children: [
+      { path: 'home', component: Home },
+      { path: 'create-event', component: CreateEvent },
+    ],
   },
 ];

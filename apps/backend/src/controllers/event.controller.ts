@@ -1,27 +1,23 @@
 import type { Request, Response } from "express";
-import {
-  getEvents,
-  getEventById,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-} from "../services/event.service.js";
+import { getEvents, getEventById, createEvent, updateEvent, deleteEvent } from "../services/event.service.js";
+import { uploadImage } from "../lib/cloudinary.js";
 
-export const listEvents = async (req: Request, res: Response) => {
+const resolveImageUrl = async (req: Request): Promise<string | undefined> => {
+  if (req.file?.buffer) return uploadImage(req.file.buffer);
+  return req.body.imageUrl ?? undefined;
+};
+
+export const listEvents = async (_req: Request, res: Response) => {
   try {
-    const events = await getEvents();
-    res.json(events);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Erreur lors de la récupération des événements." });
+    res.json(await getEvents());
+  } catch {
+    res.status(500).json({ error: "Erreur lors de la récupération des événements." });
   }
 };
 
 export const getEvent = async (req: Request, res: Response) => {
   try {
-    const event = await getEventById(Number(req.params["id"]));
-    res.json(event);
+    res.json(await getEventById(Number(req.params["id"])));
   } catch (error: any) {
     res.status(404).json({ error: error.message });
   }
@@ -29,8 +25,8 @@ export const getEvent = async (req: Request, res: Response) => {
 
 export const createEventHandler = async (req: Request, res: Response) => {
   try {
-    const event = await createEvent(req.body, req.userId!);
-    res.status(201).json(event);
+    const imageUrl = await resolveImageUrl(req);
+    res.status(201).json(await createEvent({ ...req.body, imageUrl }, req.userId!));
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
@@ -38,12 +34,8 @@ export const createEventHandler = async (req: Request, res: Response) => {
 
 export const updateEventHandler = async (req: Request, res: Response) => {
   try {
-    const event = await updateEvent(
-      Number(req.params["id"]),
-      req.body,
-      req.userId!,
-    );
-    res.json(event);
+    const imageUrl = await resolveImageUrl(req);
+    res.json(await updateEvent(Number(req.params["id"]), { ...req.body, imageUrl }, req.userId!));
   } catch (error: any) {
     const status = error.message.includes("Non autorisé") ? 403 : 404;
     res.status(status).json({ error: error.message });

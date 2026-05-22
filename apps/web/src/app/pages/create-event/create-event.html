@@ -1,0 +1,365 @@
+<main class="p-4 md:p-8 lg:p-12 max-w-5xl mx-auto w-full">
+  <div class="mb-10">
+    <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+      Create an Event
+    </h1>
+    <p class="text-gray-500 mt-2">Share your passion with the Meetz community in Alès.</p>
+  </div>
+
+  <!-- Draft restore banner -->
+  @if (hasDraft) {
+    <div
+      class="mb-6 flex items-center justify-between gap-3 px-5 py-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800"
+    >
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-amber-500">draft</span>
+        <span class="text-sm font-medium">Vous avez un brouillon non publié.</span>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button
+          (click)="restoreDraft()"
+          class="text-xs font-bold text-amber-700 hover:text-amber-900 underline"
+        >
+          Restaurer
+        </button>
+        <span class="text-amber-300">|</span>
+        <button
+          (click)="discardDraft()"
+          class="text-xs font-bold text-amber-500 hover:text-red-600"
+        >
+          Ignorer
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Success banner -->
+  @if (successMessage) {
+    <div
+      class="mb-6 flex items-center gap-3 px-5 py-4 rounded-xl bg-green-50 border border-green-200 text-green-700 font-medium"
+    >
+      <span class="material-symbols-outlined">check_circle</span>
+      {{ successMessage }}
+    </div>
+  }
+
+  <!-- Error banner -->
+  @if (errorMessage) {
+    <div
+      class="mb-6 flex items-center gap-3 px-5 py-4 rounded-xl bg-red-50 border border-red-200 text-red-700 font-medium"
+    >
+      <span class="material-symbols-outlined">error</span>
+      {{ errorMessage }}
+    </div>
+  }
+
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+    <!-- Left column -->
+    <div class="md:col-span-8 flex flex-col gap-6">
+      <!-- Title -->
+      <div class="light-card p-6 md:p-8 rounded-xl">
+        <label
+          class="block text-gray-500 text-xs font-bold uppercase tracking-widest mb-2"
+          for="event-title"
+        >
+          Event Title <span class="text-red-500">*</span>
+        </label>
+        <input
+          [(ngModel)]="title"
+          class="w-full rounded-lg py-4 px-4 text-xl font-semibold text-gray-900 placeholder-gray-300 transition-all"
+          [class.input-error]="titleError"
+          id="event-title"
+          placeholder="e.g., Midnight Jazz Session"
+          type="text"
+        />
+        @if (titleError) {
+          <p class="mt-2 text-sm text-red-500 flex items-center gap-1">
+            <span class="material-symbols-outlined" style="font-size: 16px">warning</span>
+            {{ titleError }}
+          </p>
+        }
+      </div>
+
+      <!-- Category -->
+      <div class="light-card p-6 md:p-8 rounded-xl">
+        <label class="block text-gray-500 text-xs font-bold uppercase tracking-widest mb-4">
+          Category
+        </label>
+        <div class="flex flex-wrap gap-3">
+          @for (cat of categories; track cat.value) {
+            <button
+              class="category-chip px-5 py-2.5 rounded-full text-sm font-medium transition-all flex items-center gap-2"
+              [class.active]="selectedCategory === cat.value"
+              (click)="selectCategory(cat.value)"
+              type="button"
+            >
+              <span class="material-symbols-outlined" style="font-size: 18px">{{ cat.icon }}</span>
+              {{ cat.label }}
+            </button>
+          }
+        </div>
+        @if (selectedCategory) {
+          <p class="mt-3 text-xs text-gray-400">
+            Catégorie sélectionnée : <strong>{{ selectedCategory }}</strong>
+          </p>
+        }
+      </div>
+
+      <!-- Description -->
+      <div class="light-card p-6 md:p-8 rounded-xl">
+        <label
+          class="block text-gray-500 text-xs font-bold uppercase tracking-widest mb-4"
+          for="description"
+        >
+          Description
+        </label>
+        <textarea
+          [(ngModel)]="description"
+          class="w-full rounded-lg p-4 text-gray-700 placeholder-gray-300 resize-none"
+          id="description"
+          placeholder="What's happening at your event? Be descriptive to attract more people..."
+          rows="6"
+        ></textarea>
+        <p class="mt-2 text-xs text-gray-400 text-right">{{ description.length }} caractères</p>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="md:col-span-4 flex flex-col gap-6">
+      <!-- When -->
+      <div class="light-card p-6 rounded-xl flex flex-col gap-4">
+        <div class="flex items-center gap-3" style="color: #be123c">
+          <span class="material-symbols-outlined">schedule</span>
+          <span class="text-xs font-bold uppercase tracking-widest">
+            When? <span class="text-red-500">*</span>
+          </span>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <input
+              [(ngModel)]="date"
+              class="w-full rounded-lg p-3 text-sm text-gray-700"
+              [class.input-error]="dateError"
+              type="date"
+            />
+            @if (dateError) {
+              <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                <span class="material-symbols-outlined" style="font-size: 14px">warning</span>
+                {{ dateError }}
+              </p>
+            }
+          </div>
+          <input
+            [(ngModel)]="time"
+            class="w-full rounded-lg p-3 text-sm text-gray-700"
+            type="time"
+          />
+        </div>
+      </div>
+
+      <!-- Max Attendees -->
+      <div class="light-card p-6 rounded-xl flex flex-col gap-4">
+        <div class="flex items-center gap-3" style="color: #be123c">
+          <span class="material-symbols-outlined">groups</span>
+          <span class="text-xs font-bold uppercase tracking-widest">Max Attendees</span>
+        </div>
+        <div>
+          <input
+            [(ngModel)]="maxAttendees"
+            class="w-full rounded-lg p-3 text-sm text-gray-700"
+            [class.input-error]="maxAttendeesError"
+            id="max-attendees"
+            min="1"
+            placeholder="Nombre de participants (ex: 20)"
+            type="number"
+          />
+          @if (maxAttendeesError) {
+            <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+              <span class="material-symbols-outlined" style="font-size: 14px">warning</span>
+              {{ maxAttendeesError }}
+            </p>
+          }
+        </div>
+      </div>
+
+      <!-- Where -->
+      <div class="light-card p-6 rounded-xl flex flex-col gap-4">
+        <div class="flex items-center gap-3" style="color: #be123c">
+          <span class="material-symbols-outlined">location_on</span>
+          <span class="text-xs font-bold uppercase tracking-widest">Where?</span>
+        </div>
+
+        <!-- Search input -->
+        <div class="relative">
+          <input
+            [ngModel]="locationSearch"
+            (ngModelChange)="onLocationInput($event)"
+            (blur)="hideSuggestions()"
+            class="w-full rounded-lg p-3 pr-10 text-sm text-gray-700"
+            placeholder="Rechercher une ville, adresse..."
+          />
+
+          <!-- Right icon: spinner / clear / search -->
+          @if (isSearchingLocation) {
+            <span class="absolute right-3 top-1/2 -translate-y-1/2">
+              <span
+                class="inline-block w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"
+              ></span>
+            </span>
+          } @else if (locationSearch) {
+            <button
+              type="button"
+              (click)="clearLocation()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors"
+            >
+              <span class="material-symbols-outlined" style="font-size: 18px">close</span>
+            </button>
+          } @else {
+            <span
+              class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+              style="font-size: 18px"
+              >search</span
+            >
+          }
+
+          <!-- Suggestions dropdown -->
+          @if (showSuggestions && locationSuggestions.length > 0) {
+            <ul
+              class="location-dropdown absolute z-50 left-0 right-0 top-full mt-1 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden"
+            >
+              @for (result of locationSuggestions; track result.display_name) {
+                <li>
+                  <button
+                    type="button"
+                    (mousedown)="selectLocation(result)"
+                    class="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-rose-50 hover:text-rose-700 flex items-start gap-2 transition-colors"
+                  >
+                    <span
+                      class="material-symbols-outlined shrink-0 mt-0.5"
+                      style="font-size: 16px; color: #be123c"
+                      >location_on</span
+                    >
+                    <span class="line-clamp-2">{{ result.display_name }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <!-- Selected location chip -->
+        @if (location) {
+          <div
+            class="flex items-center gap-2 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2"
+          >
+            <span class="material-symbols-outlined" style="font-size: 14px">check_circle</span>
+            <span class="truncate font-medium">{{ location }}</span>
+          </div>
+        }
+
+        <!-- Map -->
+        <div
+          class="h-40 w-full rounded-lg overflow-hidden border border-gray-200 bg-gray-100 flex items-center justify-center"
+        >
+          @if (mapUrl) {
+            <iframe
+              [src]="mapUrl"
+              class="w-full h-full"
+              loading="lazy"
+              title="Localisation de l'événement"
+            ></iframe>
+          } @else {
+            <div class="flex flex-col items-center gap-2 text-gray-300">
+              <span class="material-symbols-outlined" style="font-size: 40px">map</span>
+              <span class="text-xs">Recherchez un lieu pour afficher la carte</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Image upload -->
+      <div>
+        <input
+          id="image-upload"
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          class="hidden"
+          (change)="onImageChange($event)"
+        />
+
+        @if (imagePreview) {
+          <div class="relative rounded-xl overflow-hidden border border-gray-200">
+            <img [src]="imagePreview" alt="Preview" class="w-full h-40 object-cover" />
+            <button
+              (click)="removeImage()"
+              type="button"
+              class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white shadow flex items-center justify-center text-gray-600 hover:text-red-600 transition-colors"
+            >
+              <span class="material-symbols-outlined" style="font-size: 18px">close</span>
+            </button>
+            <div
+              class="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-xs px-3 py-1.5 truncate"
+            >
+              {{ imageFile?.name }}
+            </div>
+          </div>
+        } @else {
+          <div
+            (click)="triggerImageUpload()"
+            class="bg-gray-50 p-6 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-4 text-center group cursor-pointer transition-all hover:border-rose-600"
+          >
+            <div
+              class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-gray-400 group-hover:text-rose-700 transition-colors border border-gray-200"
+            >
+              <span class="material-symbols-outlined" style="font-size: 32px">add_a_photo</span>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-700">Upload Header Image</p>
+              <p class="text-gray-500 mt-1" style="font-size: 11px">
+                PNG, JPG ou WebP jusqu'à 10 MB
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-col gap-3">
+        <button
+          (click)="onSubmit()"
+          class="w-full py-4 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+          [disabled]="isSubmitting"
+          style="background-color: #be123c"
+          type="button"
+        >
+          @if (isSubmitting) {
+            <span class="flex items-center justify-center gap-2">
+              <span
+                class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+              ></span>
+              Publishing...
+            </span>
+          } @else {
+            Publish Event
+          }
+        </button>
+        <button
+          (click)="saveDraft()"
+          class="w-full py-3 font-medium text-sm transition-colors rounded-lg border"
+          [class.draft-saved]="draftSaved"
+          [class.draft-default]="!draftSaved"
+          type="button"
+        >
+          @if (draftSaved) {
+            <span class="flex items-center justify-center gap-1">
+              <span class="material-symbols-outlined" style="font-size: 16px">check</span>
+              Brouillon sauvegardé
+            </span>
+          } @else {
+            Save as Draft
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+</main>

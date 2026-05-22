@@ -32,10 +32,32 @@
     <button class="p-2 rounded-full hover:bg-rose-50 text-zinc-600 transition-colors" type="button">
       <span class="material-symbols-outlined">notifications</span>
     </button>
-    <div
-      class="h-8 w-8 rounded-full bg-rose-700 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white overflow-hidden"
-    >
-      {{ userInitial }}
+    <div class="relative">
+      <button
+        type="button"
+        (click)="toggleDropdown()"
+        class="h-8 w-8 rounded-full bg-rose-700 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white overflow-hidden hover:brightness-110 transition-all"
+      >
+        {{ userInitial }}
+      </button>
+      @if (dropdownOpen()) {
+        <div
+          class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-zinc-100 py-1 z-50"
+        >
+          <div class="px-4 py-2 border-b border-zinc-100">
+            <p class="text-xs font-bold text-zinc-800 truncate">{{ userName }}</p>
+            <p class="text-[11px] text-zinc-400 truncate">{{ userEmail }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="logout()"
+            class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 font-semibold hover:bg-red-50 transition-colors"
+          >
+            <span class="material-symbols-outlined text-[18px]">logout</span>
+            Se déconnecter
+          </button>
+        </div>
+      }
     </div>
   </div>
 </header>

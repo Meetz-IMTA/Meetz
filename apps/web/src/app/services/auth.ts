@@ -61,6 +61,14 @@ export class Auth {
       );
   }
 
+  forgotPassword(email: string) {
+    return this.http.post(`${this.apiUrl}/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, password: string) {
+    return this.http.post(`${this.apiUrl}/reset-password`, { token, password });
+  }
+
   logout(refreshToken: string) {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');

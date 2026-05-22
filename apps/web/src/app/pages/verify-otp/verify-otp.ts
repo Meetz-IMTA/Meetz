@@ -2,12 +2,13 @@ import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { InputOtpModule } from 'primeng/inputotp';
 import { ButtonModule } from 'primeng/button';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { Auth } from '../../services/auth';
+import { AuthShell } from '../../components/auth-shell/auth-shell';
 
 @Component({
   selector: 'app-verify-otp',
-  imports: [FormsModule, InputOtpModule, ButtonModule],
+  imports: [FormsModule, InputOtpModule, ButtonModule, RouterLink, AuthShell],
   templateUrl: './verify-otp.html',
   styleUrl: './verify-otp.css',
 })

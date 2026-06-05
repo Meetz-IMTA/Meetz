@@ -26,7 +26,7 @@ export class MainLayout {
     { label: 'Home', icon: 'home', route: '/home' },
     { label: 'Community', icon: 'group', route: '/community' },
     { label: 'Groups', icon: 'hub', route: '/groups' },
-    { label: 'Events', icon: 'calendar_today', route: '/events' },
+    { label: 'Événements', icon: 'explore', route: '/events' },
     { label: 'Amis', icon: 'people', route: '/friends' },
     { label: 'Profil', icon: 'person', route: '/profile' },
   ];

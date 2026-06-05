@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import { defineConfig } from "prisma/config";
 
-config({ path: "../../.env" }); // chemin relatif vers la racine
+config({ path: ".env" });
 
 export default defineConfig({
   schema: "prisma/schema.prisma",

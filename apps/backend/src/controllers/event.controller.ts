@@ -5,6 +5,7 @@ import {
   createEvent,
   updateEvent,
   deleteEvent,
+  type EventFilters,
 } from "../services/event.service.js";
 import { uploadImage } from "../lib/cloudinary.js";
 
@@ -13,9 +14,15 @@ const resolveImageUrl = async (req: Request): Promise<string | undefined> => {
   return req.body.imageUrl ?? undefined;
 };
 
-export const listEvents = async (_req: Request, res: Response) => {
+export const listEvents = async (req: Request, res: Response) => {
   try {
-    res.json(await getEvents());
+    const { category, search, organizerId } = req.query;
+    const filters: EventFilters = {};
+    if (typeof category === "string") filters.category = category;
+    if (typeof search === "string") filters.search = search;
+    if (typeof organizerId === "string")
+      filters.organizerId = Number(organizerId);
+    res.json(await getEvents(filters));
   } catch {
     res
       .status(500)
@@ -25,7 +32,7 @@ export const listEvents = async (_req: Request, res: Response) => {
 
 export const getEvent = async (req: Request, res: Response) => {
   try {
-    res.json(await getEventById(Number(req.params["id"])));
+    res.json(await getEventById(Number(req.params["id"]), req.userId));
   } catch (error: any) {
     res.status(404).json({ error: error.message });
   }

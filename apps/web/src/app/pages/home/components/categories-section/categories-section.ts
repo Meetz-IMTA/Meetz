@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 interface Category {
   label: string;
@@ -9,7 +10,7 @@ interface Category {
 
 @Component({
   selector: 'app-categories-section',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './categories-section.html',
 })
 export class CategoriesSection {

@@ -12,7 +12,8 @@
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
       @for (cat of categories; track cat.label) {
         <a
-          href="#"
+          routerLink="/events"
+          [queryParams]="{ category: cat.label }"
           class="flex flex-col items-center gap-4 p-8 bg-meetz-offwhite border border-meetz-border rounded-2xl hover:bg-meetz-border hover:-translate-y-1 transition-all"
         >
           <div

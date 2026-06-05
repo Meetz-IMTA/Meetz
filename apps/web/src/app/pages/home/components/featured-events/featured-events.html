@@ -5,71 +5,28 @@
       <h2 class="text-3xl font-bold text-meetz-charcoal tracking-tight font-headline">
         Événements à la une
       </h2>
-      <div class="flex flex-wrap gap-2">
-        <button
-          *ngFor="let cat of categories"
-          type="button"
-          (click)="activeCategory = cat"
-          [class]="
-            cat === activeCategory
-              ? 'px-5 py-2 rounded-lg bg-meetz-red text-white text-sm font-semibold'
-              : 'px-5 py-2 rounded-lg bg-meetz-offwhite border border-meetz-border hover:bg-meetz-border text-meetz-charcoal/80 text-sm font-semibold transition-colors'
-          "
-        >
-          {{ cat }}
-        </button>
-      </div>
+      @if (!loading) {
+        <div class="flex flex-wrap gap-2">
+          <button
+            *ngFor="let cat of categories"
+            type="button"
+            (click)="activeCategory = cat"
+            [class]="
+              cat === activeCategory
+                ? 'px-5 py-2 rounded-lg bg-meetz-red text-white text-sm font-semibold'
+                : 'px-5 py-2 rounded-lg bg-meetz-offwhite border border-meetz-border hover:bg-meetz-border text-meetz-charcoal/80 text-sm font-semibold transition-colors'
+            "
+          >
+            {{ cat }}
+          </button>
+        </div>
+      }
     </div>
 
     <!-- Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      @for (event of filteredEvents; track event.title) {
-        <div
-          class="group bg-meetz-offwhite border border-meetz-border rounded-xl overflow-hidden hover:shadow-md transition-all cursor-pointer"
-        >
-          <div class="aspect-video relative overflow-hidden">
-            <img
-              [alt]="event.title"
-              [src]="event.image"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-            <div
-              [class]="
-                'absolute top-4 left-4 px-3 py-1 text-white text-[10px] font-bold uppercase tracking-wider rounded ' +
-                event.badgeColor
-              "
-            >
-              {{ event.category }}
-            </div>
-          </div>
-          <div class="p-6">
-            <div class="flex items-center gap-2 text-meetz-red text-xs font-bold mb-2">
-              <span class="material-symbols-outlined" style="font-size: 16px">calendar_today</span>
-              {{ event.date }}
-            </div>
-            <h3 class="text-xl font-bold text-meetz-charcoal mb-3 font-headline">
-              {{ event.title }}
-            </h3>
-            <div class="flex items-center gap-2 text-meetz-charcoal/60 text-sm mb-6">
-              <span class="material-symbols-outlined" style="font-size: 16px">location_on</span>
-              {{ event.location }}
-            </div>
-            <div class="flex items-center justify-between pt-4 border-t border-meetz-border">
-              <div class="flex -space-x-2">
-                <div class="w-8 h-8 rounded-full border-2 border-white bg-gray-200"></div>
-                <div class="w-8 h-8 rounded-full border-2 border-white bg-gray-300"></div>
-                <div
-                  class="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-bold text-meetz-charcoal/60"
-                >
-                  +{{ event.extra }}
-                </div>
-              </div>
-              <span class="text-meetz-charcoal/40 text-xs font-medium"
-                >{{ event.participants }} participants</span
-              >
-            </div>
-          </div>
-        </div>
+      @for (event of filteredEvents; track event.id) {
+        <app-event-card [event]="event" />
       }
     </div>
   </div>

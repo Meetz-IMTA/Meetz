@@ -302,7 +302,7 @@ export class CreateEvent implements OnInit, OnDestroy {
         next: () => {
           localStorage.removeItem(DRAFT_KEY);
           this.successMessage = 'Événement publié avec succès !';
-          setTimeout(() => this.router.navigate(['/home']), 1500);
+          setTimeout(() => this.router.navigate(['/events']), 1500);
         },
         error: (err) => {
           this.errorMessage = err.error?.error || 'Une erreur est survenue. Veuillez réessayer.';

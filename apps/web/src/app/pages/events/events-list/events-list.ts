@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { EventService } from '../../../services/event';
 import { EventCard } from '../../../components/event-card/event-card';
+import { Auth } from '../../../services/auth';
 import { MeetzEvent } from '../../../models/event.model';
 
 interface Category {
@@ -20,6 +21,7 @@ interface Category {
 })
 export class EventsList implements OnInit {
   private eventService = inject(EventService);
+  private auth = inject(Auth);
   private cdr = inject(ChangeDetectorRef);
 
   events: MeetzEvent[] = [];
@@ -51,9 +53,12 @@ export class EventsList implements OnInit {
   loadEvents() {
     this.isLoading = true;
     this.error = '';
+    const currentUserId = this.auth.getUser()?.id;
     this.eventService.getAll().subscribe({
       next: (events) => {
-        this.events = events;
+        this.events = currentUserId
+          ? events.filter((e) => e.organizerId !== currentUserId)
+          : events;
         this.applyFilters();
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -112,11 +117,6 @@ export class EventsList implements OnInit {
   countByCategory(value: string): number {
     if (value === 'all') return this.events.length;
     return this.events.filter((e) => e.category === value).length;
-  }
-
-  get upcomingEvents(): MeetzEvent[] {
-    const now = new Date();
-    return this.events.filter((e) => new Date(e.date) >= now).slice(0, 5);
   }
 
   formatShortDate(date: string): string {

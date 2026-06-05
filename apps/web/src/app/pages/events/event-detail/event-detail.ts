@@ -84,7 +84,7 @@ export class EventDetail implements OnInit {
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (isNaN(id)) {
-      this.router.navigate(['/home']);
+      this.router.navigate(['/events']);
       return;
     }
 
@@ -109,7 +109,7 @@ export class EventDetail implements OnInit {
   }
 
   toggleJoin() {
-    if (!this.event || this.isJoinLoading || this.isJoined) return;
+    if (!this.event || this.isJoinLoading) return;
     if (!this.isAuthenticated) {
       this.router.navigate(['/login']);
       return;
@@ -118,21 +118,27 @@ export class EventDetail implements OnInit {
     this.isJoinLoading = true;
     this.cdr.detectChanges();
 
-    this.eventService
-      .join(this.event.id)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
+    const action = this.isJoined
+      ? this.eventService.leave(this.event.id)
+      : this.eventService.join(this.event.id);
+
+    action.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        if (this.isJoined) {
+          this.isJoined = false;
+          this.participantCount -= 1;
+        } else {
           this.isJoined = true;
           this.participantCount += 1;
-          this.isJoinLoading = false;
-          this.cdr.detectChanges();
-        },
-        error: () => {
-          this.isJoinLoading = false;
-          this.cdr.detectChanges();
-        },
-      });
+        }
+        this.isJoinLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isJoinLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   private geocodeLocation(location: string) {
@@ -188,7 +194,7 @@ export class EventDetail implements OnInit {
       .delete(this.event.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.router.navigate(['/home']),
+        next: () => this.router.navigate(['/events']),
         error: () => {
           this.error = "Impossible de supprimer l'événement.";
           this.isDeleting = false;

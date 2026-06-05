@@ -52,39 +52,6 @@
         }
       </nav>
     </div>
-
-    <!-- Upcoming compact list -->
-    <div class="flex-1 overflow-y-auto p-3">
-      <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-2 mb-2">À venir</p>
-      @for (event of upcomingEvents; track event.id) {
-        <a
-          [routerLink]="['/events', event.id]"
-          class="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors mb-1 group"
-        >
-          <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-            @if (event.imageUrl) {
-              <img [src]="event.imageUrl" [alt]="event.name" class="w-full h-full object-cover" />
-            } @else {
-              <div class="w-full h-full bg-rose-50 flex items-center justify-center">
-                <span class="material-symbols-outlined text-rose-300" style="font-size: 18px"
-                  >event</span
-                >
-              </div>
-            }
-          </div>
-          <div class="min-w-0 flex-1">
-            <p
-              class="text-xs font-bold text-gray-900 group-hover:text-rose-700 transition-colors truncate"
-            >
-              {{ event.name }}
-            </p>
-            <p class="text-[10px] text-gray-400 mt-0.5">{{ formatShortDate(event.date) }}</p>
-          </div>
-        </a>
-      } @empty {
-        <p class="text-xs text-gray-400 px-2 py-2">Aucun événement à venir.</p>
-      }
-    </div>
   </aside>
 
   <!-- ── Main ── -->

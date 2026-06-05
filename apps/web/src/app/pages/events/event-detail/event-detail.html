@@ -1,0 +1,422 @@
+<!-- ── Skeleton ── -->
+@if (isLoading) {
+  <div class="detail-skeleton">
+    <div class="skeleton-hero"></div>
+    <div class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <div class="lg:col-span-2 space-y-8">
+        <div class="space-y-4">
+          <div class="skeleton-line w-1/4 h-3"></div>
+          <div class="skeleton-line w-3/4 h-8"></div>
+          <div class="skeleton-line w-1/2 h-4"></div>
+          <div class="skeleton-line w-2/3 h-4"></div>
+        </div>
+        <div class="skeleton-box h-56 rounded-xl"></div>
+      </div>
+      <div class="space-y-4">
+        <div class="skeleton-box h-36 rounded-xl"></div>
+        <div class="skeleton-box h-28 rounded-xl"></div>
+        <div class="skeleton-box h-28 rounded-xl"></div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Error ── -->
+@else if (error) {
+  <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+    <span class="material-symbols-outlined text-gray-200" style="font-size: 72px">event_busy</span>
+    <p class="text-gray-500">{{ error }}</p>
+    <a routerLink="/home" class="text-sm text-rose-700 font-semibold underline"
+      >Retour aux événements</a
+    >
+  </div>
+}
+
+<!-- ── Event ── -->
+@else if (event) {
+  <!-- HERO -->
+  <div class="relative w-full h-64 md:h-[400px] overflow-hidden bg-zinc-800">
+    @if (event.imageUrl) {
+      <img [src]="event.imageUrl" [alt]="event.name" class="w-full h-full object-cover" />
+    } @else {
+      <div class="hero-placeholder w-full h-full"></div>
+    }
+    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+
+    <!-- Back link -->
+    <a
+      routerLink="/home"
+      class="absolute top-5 left-5 md:left-8 flex items-center gap-1.5 text-white/80 hover:text-white transition-colors text-sm font-medium bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full"
+    >
+      <span class="material-symbols-outlined" style="font-size: 16px">arrow_back</span>
+      Retour
+    </a>
+
+    <!-- Hero content -->
+    <div class="absolute bottom-0 left-0 right-0">
+      <div
+        class="max-w-7xl mx-auto px-5 md:px-8 pb-6 md:pb-10 flex flex-wrap items-end justify-between gap-4 md:gap-6"
+      >
+        <!-- Left: title block -->
+        <div class="space-y-2 flex-1 min-w-0">
+          @if (event.category) {
+            <span
+              class="inline-block bg-rose-700 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-wider"
+            >
+              {{ event.category }}
+            </span>
+          }
+          <h1
+            class="text-2xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight font-headline"
+          >
+            {{ event.name }}
+          </h1>
+          <div class="flex flex-wrap items-center gap-3 md:gap-5 text-white/85 text-sm font-medium">
+            <span class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined" style="font-size: 16px">calendar_today</span>
+              {{ formattedShortDate }}
+            </span>
+            @if (event.location) {
+              <span class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined" style="font-size: 16px">location_on</span>
+                {{ shortCity }}
+              </span>
+            }
+          </div>
+        </div>
+
+        <!-- Right: CTA card -->
+        <div
+          class="bg-white/95 backdrop-blur-sm p-5 rounded-2xl w-full md:w-auto md:min-w-[260px] shadow-2xl shrink-0"
+        >
+          @if (isOwner) {
+            <p class="text-[11px] font-bold uppercase tracking-widest text-rose-700 mb-3">
+              Vous organisez cet événement
+            </p>
+            <div class="flex flex-col gap-2">
+              <a
+                [routerLink]="['/events', event.id, 'edit']"
+                class="flex items-center justify-center gap-2 w-full py-3 border-2 border-rose-700 text-rose-700 rounded-xl font-bold text-sm hover:bg-rose-50 transition-colors"
+              >
+                <span class="material-symbols-outlined" style="font-size: 16px">edit</span>
+                Modifier l'événement
+              </a>
+              <button
+                type="button"
+                (click)="confirmDelete()"
+                class="flex items-center justify-center gap-2 w-full py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 transition-colors"
+              >
+                <span class="material-symbols-outlined" style="font-size: 15px"
+                  >delete_outline</span
+                >
+                Supprimer
+              </button>
+            </div>
+          } @else {
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <p class="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">
+                  Entrée
+                </p>
+                <p class="text-xl font-extrabold text-gray-900">Libre</p>
+              </div>
+              <div class="text-right">
+                <p class="text-zinc-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">
+                  Inscrits
+                </p>
+                <p class="text-sm font-bold text-rose-700">
+                  {{ participantCount }}{{ event.maxAttendees ? ' / ' + event.maxAttendees : '' }}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              (click)="toggleJoin()"
+              [disabled]="isJoinLoading || isJoined"
+              class="w-full py-3.5 rounded-xl font-bold text-sm transition-all disabled:cursor-not-allowed"
+              [class.btn-join]="!isJoined"
+              [class.btn-joined]="isJoined"
+              [class.active:scale-[0.97]]="!isJoined"
+            >
+              @if (isJoinLoading) {
+                <span class="flex items-center justify-center gap-2">
+                  <span
+                    class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"
+                  ></span>
+                </span>
+              } @else if (isJoined) {
+                <span class="flex items-center justify-center gap-2">
+                  <span
+                    class="material-symbols-outlined"
+                    style="font-size: 16px; font-variation-settings: 'FILL' 1"
+                    >check_circle</span
+                  >
+                  Inscrit
+                </span>
+              } @else {
+                Participer
+              }
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT GRID -->
+  <div
+    class="max-w-7xl mx-auto px-5 md:px-8 py-10 grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-14"
+  >
+    <!-- ── LEFT COLUMN (2/3) ── -->
+    <div class="lg:col-span-2 space-y-10">
+      <!-- About -->
+      @if (event.description) {
+        <section>
+          <h2 class="section-title">À propos de l'événement</h2>
+          <p class="text-zinc-700 leading-relaxed text-base whitespace-pre-wrap">
+            {{ event.description }}
+          </p>
+        </section>
+      }
+
+      <!-- Location -->
+      @if (event.location) {
+        <section>
+          <h2 class="section-title">Localisation</h2>
+          <div class="rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-100 h-56 relative">
+            @if (locationMapUrl) {
+              <iframe
+                [src]="locationMapUrl"
+                class="w-full h-full"
+                loading="lazy"
+                title="Carte du lieu"
+              ></iframe>
+            } @else {
+              <div class="w-full h-full flex items-center justify-center gap-3 text-zinc-400">
+                <div
+                  class="w-5 h-5 border-2 border-zinc-300 border-t-transparent rounded-full animate-spin"
+                ></div>
+                <span class="text-sm">Chargement de la carte...</span>
+              </div>
+            }
+          </div>
+          <div class="mt-4 flex items-center gap-4">
+            <div class="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-rose-700" style="font-size: 20px"
+                >location_on</span
+              >
+            </div>
+            <div>
+              <p class="font-bold text-zinc-900 text-sm">{{ shortCity }}</p>
+              <p class="text-zinc-500 text-xs mt-0.5">{{ event.location }}</p>
+            </div>
+            <a
+              [href]="'https://www.openstreetmap.org/search?query=' + event.location"
+              target="_blank"
+              rel="noopener"
+              class="ml-auto text-xs text-rose-700 font-semibold hover:underline shrink-0"
+            >
+              Ouvrir la carte →
+            </a>
+          </div>
+        </section>
+      }
+    </div>
+
+    <!-- ── RIGHT COLUMN (1/3 sidebar) ── -->
+    <div class="space-y-6">
+      <!-- Organizer card -->
+      <div class="sidebar-card">
+        <h3 class="sidebar-label">Organisé par</h3>
+        <div class="flex items-center gap-4">
+          <div
+            class="w-12 h-12 rounded-full bg-rose-700 flex items-center justify-center text-white font-extrabold text-lg shrink-0"
+          >
+            {{ organizerInitial }}
+          </div>
+          <div class="min-w-0">
+            <p class="font-bold text-zinc-900">{{ event.organizer.name }}</p>
+            <p class="text-zinc-500 text-xs truncate">{{ event.organizer.email }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event info card -->
+      <div class="sidebar-card space-y-4">
+        <h3 class="sidebar-label">Informations</h3>
+
+        <div class="flex items-start gap-3">
+          <div class="w-9 h-9 bg-rose-50 rounded-lg flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-rose-700" style="font-size: 18px"
+              >calendar_today</span
+            >
+          </div>
+          <div>
+            <p class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-0.5">Date</p>
+            <p class="text-sm font-semibold text-zinc-900 capitalize">{{ formattedDate }}</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="w-9 h-9 bg-rose-50 rounded-lg flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-rose-700" style="font-size: 18px"
+              >schedule</span
+            >
+          </div>
+          <div>
+            <p class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-0.5">Heure</p>
+            <p class="text-sm font-semibold text-zinc-900">{{ formattedTime }}</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="w-9 h-9 bg-rose-50 rounded-lg flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-rose-700" style="font-size: 18px"
+              >groups</span
+            >
+          </div>
+          <div>
+            <p class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-0.5">
+              Participants
+            </p>
+            <p class="text-sm font-semibold text-zinc-900">
+              {{ participantCount }}{{ event.maxAttendees ? ' / ' + event.maxAttendees : '' }}
+            </p>
+          </div>
+        </div>
+
+        @if (event.location) {
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 bg-rose-50 rounded-lg flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-rose-700" style="font-size: 18px"
+                >location_on</span
+              >
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-0.5">Lieu</p>
+              <p class="text-sm font-semibold text-zinc-900 truncate">{{ shortCity }}</p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Actions card -->
+      <div class="sidebar-card">
+        <h3 class="sidebar-label">Actions</h3>
+        <div class="space-y-2">
+          @if (event.location) {
+            <a
+              [href]="'https://www.openstreetmap.org/search?query=' + event.location"
+              target="_blank"
+              rel="noopener"
+              class="feature-item"
+            >
+              <span class="material-symbols-outlined text-rose-700" style="font-size: 20px"
+                >map</span
+              >
+              <div>
+                <p class="text-sm font-bold">Voir sur la carte</p>
+                <p class="text-xs text-zinc-500">Ouvrir OpenStreetMap</p>
+              </div>
+            </a>
+          }
+          @if (!isOwner) {
+            @if (isJoined) {
+              <div class="feature-item opacity-75 cursor-default">
+                <span
+                  class="material-symbols-outlined text-emerald-600"
+                  style="font-size: 20px; font-variation-settings: 'FILL' 1"
+                  >event_available</span
+                >
+                <div>
+                  <p class="text-sm font-bold text-emerald-700">Inscription confirmée</p>
+                  <p class="text-xs text-zinc-500">Vous participez à cet événement</p>
+                </div>
+              </div>
+            } @else {
+              <button
+                type="button"
+                class="feature-item w-full text-left"
+                [disabled]="isJoinLoading"
+                (click)="toggleJoin()"
+              >
+                <span class="material-symbols-outlined text-rose-700" style="font-size: 20px"
+                  >event</span
+                >
+                <div>
+                  <p class="text-sm font-bold">Participer</p>
+                  <p class="text-xs text-zinc-500">Rejoindre cet événement</p>
+                </div>
+              </button>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-zinc-900 border-t border-zinc-800 py-10 mt-6">
+    <div
+      class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6"
+    >
+      <div>
+        <p class="text-lg font-black text-white">Meetz</p>
+        <p class="text-xs text-zinc-400 mt-1">© 2025 Meetz Alès. Connecting the community.</p>
+      </div>
+      <div class="flex flex-wrap justify-center gap-6">
+        <a class="text-xs text-zinc-400 hover:text-white transition-colors" routerLink="/home"
+          >Explorer</a
+        >
+        <a
+          class="text-xs text-zinc-400 hover:text-white transition-colors"
+          routerLink="/create-event"
+          >Créer un événement</a
+        >
+      </div>
+    </div>
+  </footer>
+}
+
+<!-- ── Delete confirm modal ── -->
+@if (showDeleteConfirm) {
+  <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-red-600">warning</span>
+        </div>
+        <h3 class="font-bold text-gray-900">Supprimer l'événement ?</h3>
+      </div>
+      <p class="text-sm text-gray-600 mb-6">
+        Cette action est irréversible. L'événement sera définitivement supprimé.
+      </p>
+      <div class="flex gap-3">
+        <button
+          type="button"
+          (click)="cancelDelete()"
+          class="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          (click)="deleteEvent()"
+          [disabled]="isDeleting"
+          class="flex-1 py-2.5 bg-red-600 rounded-xl text-sm font-bold text-white hover:bg-red-700 transition-colors disabled:opacity-60"
+        >
+          @if (isDeleting) {
+            <span class="flex items-center justify-center gap-2">
+              <span
+                class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+              ></span>
+              Suppression...
+            </span>
+          } @else {
+            Supprimer
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

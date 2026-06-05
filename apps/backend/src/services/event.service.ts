@@ -10,18 +10,52 @@ interface EventData {
   imageUrl?: string;
 }
 
-export const getEvents = () =>
+export interface EventFilters {
+  category?: string;
+  search?: string;
+  organizerId?: number;
+}
+
+export const getEvents = (filters: EventFilters = {}) =>
   prisma.event.findMany({
+    where: {
+      ...(filters.category && { category: filters.category }),
+      ...(filters.organizerId !== undefined && {
+        organizerId: filters.organizerId,
+      }),
+      ...(filters.search && {
+        OR: [
+          { name: { contains: filters.search } },
+          { description: { contains: filters.search } },
+          { location: { contains: filters.search } },
+        ],
+      }),
+    },
     include: { organizer: { select: { id: true, name: true, email: true } } },
+    orderBy: { date: "asc" },
   });
 
-export const getEventById = async (id: number) => {
+export const getEventById = async (id: number, userId?: number) => {
   const event = await prisma.event.findUnique({
     where: { id },
-    include: { organizer: { select: { id: true, name: true, email: true } } },
+    include: {
+      organizer: { select: { id: true, name: true, email: true } },
+      _count: { select: { participations: true } },
+    },
   });
   if (!event) throw new Error("Événement non trouvé.");
-  return event;
+
+  const { _count, ...rest } = event;
+
+  let isJoined = false;
+  if (userId != null) {
+    const participation = await prisma.eventParticipation.findUnique({
+      where: { userId_eventId: { userId, eventId: id } },
+    });
+    isJoined = participation != null;
+  }
+
+  return { ...rest, participantCount: _count.participations, isJoined };
 };
 
 export const createEvent = (data: EventData, organizerId: number) =>
@@ -38,10 +72,15 @@ export const createEvent = (data: EventData, organizerId: number) =>
     },
   });
 
-export const updateEvent = async (id: number, data: Partial<EventData>, userId: number) => {
+export const updateEvent = async (
+  id: number,
+  data: Partial<EventData>,
+  userId: number,
+) => {
   const event = await prisma.event.findUnique({ where: { id } });
   if (!event) throw new Error("Événement non trouvé.");
-  if (event.organizerId !== userId) throw new Error("Non autorisé à modifier cet événement.");
+  if (event.organizerId !== userId)
+    throw new Error("Non autorisé à modifier cet événement.");
 
   return prisma.event.update({
     where: { id },
@@ -51,7 +90,9 @@ export const updateEvent = async (id: number, data: Partial<EventData>, userId: 
       ...(data.date !== undefined && { date: new Date(data.date) }),
       ...(data.location !== undefined && { location: data.location }),
       ...(data.category !== undefined && { category: data.category }),
-      ...(data.maxAttendees !== undefined && { maxAttendees: data.maxAttendees ? Number(data.maxAttendees) : null }),
+      ...(data.maxAttendees !== undefined && {
+        maxAttendees: data.maxAttendees ? Number(data.maxAttendees) : null,
+      }),
       ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
     },
   });
@@ -60,6 +101,7 @@ export const updateEvent = async (id: number, data: Partial<EventData>, userId: 
 export const deleteEvent = async (id: number, userId: number) => {
   const event = await prisma.event.findUnique({ where: { id } });
   if (!event) throw new Error("Événement non trouvé.");
-  if (event.organizerId !== userId) throw new Error("Non autorisé à supprimer cet événement.");
+  if (event.organizerId !== userId)
+    throw new Error("Non autorisé à supprimer cet événement.");
   await prisma.event.delete({ where: { id } });
 };

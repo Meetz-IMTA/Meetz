@@ -1,5 +1,12 @@
 import type { Request, Response } from "express";
-import { getEvents, getEventById, createEvent, updateEvent, deleteEvent } from "../services/event.service.js";
+import {
+  getEvents,
+  getEventById,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  type EventFilters,
+} from "../services/event.service.js";
 import { uploadImage } from "../lib/cloudinary.js";
 
 const resolveImageUrl = async (req: Request): Promise<string | undefined> => {
@@ -7,17 +14,25 @@ const resolveImageUrl = async (req: Request): Promise<string | undefined> => {
   return req.body.imageUrl ?? undefined;
 };
 
-export const listEvents = async (_req: Request, res: Response) => {
+export const listEvents = async (req: Request, res: Response) => {
   try {
-    res.json(await getEvents());
+    const { category, search, organizerId } = req.query;
+    const filters: EventFilters = {};
+    if (typeof category === "string") filters.category = category;
+    if (typeof search === "string") filters.search = search;
+    if (typeof organizerId === "string")
+      filters.organizerId = Number(organizerId);
+    res.json(await getEvents(filters));
   } catch {
-    res.status(500).json({ error: "Erreur lors de la récupération des événements." });
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la récupération des événements." });
   }
 };
 
 export const getEvent = async (req: Request, res: Response) => {
   try {
-    res.json(await getEventById(Number(req.params["id"])));
+    res.json(await getEventById(Number(req.params["id"]), req.userId));
   } catch (error: any) {
     res.status(404).json({ error: error.message });
   }
@@ -26,7 +41,9 @@ export const getEvent = async (req: Request, res: Response) => {
 export const createEventHandler = async (req: Request, res: Response) => {
   try {
     const imageUrl = await resolveImageUrl(req);
-    res.status(201).json(await createEvent({ ...req.body, imageUrl }, req.userId!));
+    res
+      .status(201)
+      .json(await createEvent({ ...req.body, imageUrl }, req.userId!));
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
@@ -35,7 +52,13 @@ export const createEventHandler = async (req: Request, res: Response) => {
 export const updateEventHandler = async (req: Request, res: Response) => {
   try {
     const imageUrl = await resolveImageUrl(req);
-    res.json(await updateEvent(Number(req.params["id"]), { ...req.body, imageUrl }, req.userId!));
+    res.json(
+      await updateEvent(
+        Number(req.params["id"]),
+        { ...req.body, imageUrl },
+        req.userId!,
+      ),
+    );
   } catch (error: any) {
     const status = error.message.includes("Non autorisé") ? 403 : 404;
     res.status(status).json({ error: error.message });

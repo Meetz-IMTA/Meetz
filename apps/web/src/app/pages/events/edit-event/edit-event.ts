@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -13,15 +13,9 @@ import {
   of,
   catchError,
 } from 'rxjs';
-import { EventService } from '../../services/event';
-
-const DRAFT_KEY = 'meetz_event_draft';
-
-interface Category {
-  label: string;
-  icon: string;
-  value: string;
-}
+import { EventService } from '../../../services/event';
+import { Auth } from '../../../services/auth';
+import { MeetzEvent } from '../../../models/event.model';
 
 interface NominatimResult {
   display_name: string;
@@ -29,18 +23,30 @@ interface NominatimResult {
   lon: string;
 }
 
+interface Category {
+  label: string;
+  icon: string;
+  value: string;
+}
+
 @Component({
-  selector: 'app-create-event',
-  imports: [FormsModule, CommonModule],
-  templateUrl: './create-event.html',
-  styleUrl: './create-event.css',
+  selector: 'app-edit-event',
+  imports: [FormsModule, CommonModule, RouterLink],
+  templateUrl: './edit-event.html',
+  styleUrl: './edit-event.css',
 })
-export class CreateEvent implements OnInit, OnDestroy {
+export class EditEvent implements OnInit, OnDestroy {
+  private route = inject(ActivatedRoute);
   private router = inject(Router);
   private eventService = inject(EventService);
+  private auth = inject(Auth);
   private http = inject(HttpClient);
   private sanitizer = inject(DomSanitizer);
   private cdr = inject(ChangeDetectorRef);
+
+  eventId = 0;
+  isLoadingEvent = true;
+  loadError = '';
 
   title = '';
   description = '';
@@ -61,9 +67,8 @@ export class CreateEvent implements OnInit, OnDestroy {
   errorMessage = '';
   imageFile: File | null = null;
   imagePreview: string | null = null;
+  existingImageUrl: string | null = null;
   formTouched = false;
-  hasDraft = false;
-  draftSaved = false;
 
   private searchSubject = new Subject<string>();
   private subs = new Subscription();
@@ -78,8 +83,28 @@ export class CreateEvent implements OnInit, OnDestroy {
   ];
 
   ngOnInit() {
-    const saved = localStorage.getItem(DRAFT_KEY);
-    if (saved) this.hasDraft = true;
+    this.eventId = Number(this.route.snapshot.paramMap.get('id'));
+    if (isNaN(this.eventId)) {
+      this.router.navigate(['/home']);
+      return;
+    }
+
+    this.eventService.getById(this.eventId).subscribe({
+      next: (event) => {
+        const user = this.auth.getUser();
+        if (!user || user.id !== event.organizerId) {
+          this.router.navigate(['/events', this.eventId]);
+          return;
+        }
+        this.populateForm(event);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loadError = "Impossible de charger l'événement.";
+        this.isLoadingEvent = false;
+        this.cdr.detectChanges();
+      },
+    });
 
     const searchSub = this.searchSubject
       .pipe(
@@ -110,6 +135,25 @@ export class CreateEvent implements OnInit, OnDestroy {
     this.subs.add(searchSub);
   }
 
+  private populateForm(event: MeetzEvent) {
+    this.title = event.name;
+    this.description = event.description ?? '';
+    this.selectedCategory = event.category ?? '';
+    this.maxAttendees = event.maxAttendees;
+    this.existingImageUrl = event.imageUrl;
+
+    const d = new Date(event.date);
+    this.date = d.toISOString().split('T')[0];
+    this.time = d.toTimeString().slice(0, 5);
+
+    if (event.location) {
+      this.location = event.location;
+      this.locationSearch = event.location;
+    }
+
+    this.isLoadingEvent = false;
+  }
+
   ngOnDestroy() {
     this.subs.unsubscribe();
   }
@@ -122,10 +166,7 @@ export class CreateEvent implements OnInit, OnDestroy {
   }
 
   get dateError(): string {
-    if (!this.formTouched) return '';
-    if (!this.date) return 'La date est obligatoire.';
-    if (new Date(this.date) < new Date(new Date().toDateString()))
-      return 'La date doit être dans le futur.';
+    if (!this.formTouched || !this.date) return '';
     return '';
   }
 
@@ -139,13 +180,12 @@ export class CreateEvent implements OnInit, OnDestroy {
     return (
       this.title.trim().length >= 3 &&
       !!this.date &&
-      new Date(this.date) >= new Date(new Date().toDateString()) &&
       (this.maxAttendees === null || this.maxAttendees >= 1)
     );
   }
 
   selectCategory(value: string) {
-    this.selectedCategory = value;
+    this.selectedCategory = this.selectedCategory === value ? '' : value;
   }
 
   onLocationInput(query: string) {
@@ -172,9 +212,7 @@ export class CreateEvent implements OnInit, OnDestroy {
   }
 
   hideSuggestions() {
-    setTimeout(() => {
-      this.showSuggestions = false;
-    }, 200);
+    setTimeout(() => (this.showSuggestions = false), 200);
   }
 
   clearLocation() {
@@ -187,66 +225,6 @@ export class CreateEvent implements OnInit, OnDestroy {
     this.showSuggestions = false;
   }
 
-  restoreDraft() {
-    const saved = localStorage.getItem(DRAFT_KEY);
-    if (!saved) return;
-    try {
-      const d = JSON.parse(saved);
-      this.title = d.title ?? '';
-      this.description = d.description ?? '';
-      this.date = d.date ?? '';
-      this.time = d.time ?? '';
-      this.maxAttendees = d.maxAttendees ?? null;
-      this.selectedCategory = d.selectedCategory ?? '';
-      this.locationSearch = d.locationSearch ?? '';
-      this.location = d.location ?? '';
-      if (d.lat && d.lon) {
-        this.selectedLat = d.lat;
-        this.selectedLon = d.lon;
-        const margin = 0.04;
-        const url = `https://www.openstreetmap.org/export/embed.html?bbox=${d.lon - margin},${d.lat - margin},${d.lon + margin},${d.lat + margin}&layer=mapnik&marker=${d.lat},${d.lon}`;
-        this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-      }
-    } catch {}
-    this.hasDraft = false;
-    this.successMessage = 'Brouillon restauré.';
-    setTimeout(() => (this.successMessage = ''), 3000);
-  }
-
-  discardDraft() {
-    localStorage.removeItem(DRAFT_KEY);
-    this.hasDraft = false;
-  }
-
-  saveDraft() {
-    if (!this.title.trim()) {
-      this.errorMessage = 'Ajoutez au moins un titre pour sauvegarder le brouillon.';
-      setTimeout(() => (this.errorMessage = ''), 3000);
-      return;
-    }
-    localStorage.setItem(
-      DRAFT_KEY,
-      JSON.stringify({
-        title: this.title,
-        description: this.description,
-        date: this.date,
-        time: this.time,
-        maxAttendees: this.maxAttendees,
-        selectedCategory: this.selectedCategory,
-        locationSearch: this.locationSearch,
-        location: this.location,
-        lat: this.selectedLat,
-        lon: this.selectedLon,
-      }),
-    );
-    this.draftSaved = true;
-    this.successMessage = 'Brouillon sauvegardé !';
-    setTimeout(() => {
-      this.successMessage = '';
-      this.draftSaved = false;
-    }, 3000);
-  }
-
   onImageChange(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
@@ -257,6 +235,7 @@ export class CreateEvent implements OnInit, OnDestroy {
       return;
     }
     this.imageFile = file;
+    this.existingImageUrl = null;
     const reader = new FileReader();
     reader.onload = (e) => {
       this.imagePreview = e.target?.result as string;
@@ -269,10 +248,11 @@ export class CreateEvent implements OnInit, OnDestroy {
   removeImage() {
     this.imageFile = null;
     this.imagePreview = null;
+    this.existingImageUrl = null;
   }
 
   triggerImageUpload() {
-    document.getElementById('image-upload')?.click();
+    document.getElementById('image-upload-edit')?.click();
   }
 
   onSubmit() {
@@ -286,29 +266,31 @@ export class CreateEvent implements OnInit, OnDestroy {
     const time = this.time || '00:00';
     const datetime = new Date(`${this.date}T${time}`).toISOString();
 
-    this.eventService
-      .create(
-        {
-          name: this.title.trim(),
-          description: this.description.trim() || undefined,
-          date: datetime,
-          location: this.location || undefined,
-          category: this.selectedCategory || undefined,
-          maxAttendees: this.maxAttendees ?? undefined,
-        },
-        this.imageFile ?? undefined,
-      )
-      .subscribe({
-        next: () => {
-          localStorage.removeItem(DRAFT_KEY);
-          this.successMessage = 'Événement publié avec succès !';
-          setTimeout(() => this.router.navigate(['/home']), 1500);
-        },
-        error: (err) => {
-          this.errorMessage = err.error?.error || 'Une erreur est survenue. Veuillez réessayer.';
-          this.isSubmitting = false;
-          this.cdr.detectChanges();
-        },
-      });
+    const payload = {
+      name: this.title.trim(),
+      description: this.description.trim() || undefined,
+      date: datetime,
+      location: this.location || undefined,
+      category: this.selectedCategory || undefined,
+      maxAttendees: this.maxAttendees ?? undefined,
+      imageUrl: !this.imageFile && this.existingImageUrl ? this.existingImageUrl : undefined,
+    };
+
+    this.eventService.update(this.eventId, payload, this.imageFile ?? undefined).subscribe({
+      next: () => {
+        this.successMessage = 'Événement mis à jour avec succès !';
+        this.cdr.detectChanges();
+        setTimeout(() => this.router.navigate(['/events', this.eventId]), 1500);
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.error || 'Une erreur est survenue. Veuillez réessayer.';
+        this.isSubmitting = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  cancel() {
+    this.router.navigate(['/events', this.eventId]);
   }
 }

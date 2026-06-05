@@ -1,0 +1,575 @@
+<div class="min-h-screen bg-mz-bg text-mz-text">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+    <!-- Retour -->
+    <button
+      type="button"
+      (click)="goBack()"
+      class="inline-flex items-center gap-2 text-sm text-mz-text-muted hover:text-mz-text transition-colors mb-5"
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="m15 18-6-6 6-6" />
+      </svg>
+      Retour
+    </button>
+
+    <h1 class="font-mz-display font-bold text-2xl text-mz-text mb-6">Réglages</h1>
+
+    <div class="flex gap-6 items-start">
+      <!-- ===== Sidebar nav ===== -->
+      <aside class="hidden md:flex flex-col w-52 shrink-0 gap-1 sticky top-24">
+        @for (
+          item of [
+            { id: 'general', label: 'Général' },
+            { id: 'account', label: 'Compte' },
+            { id: 'privacy', label: 'Confidentialité' },
+            { id: 'language', label: 'Langue' },
+          ];
+          track item.id
+        ) {
+          <button
+            type="button"
+            (click)="setSection($any(item.id))"
+            class="flex items-center gap-3 px-4 py-2.5 rounded-mz-btn text-sm font-semibold text-left transition-colors"
+            [class.bg-mz-primary]="activeSection() === item.id"
+            [class.text-mz-on-primary]="activeSection() === item.id"
+            [class.text-mz-text-muted]="activeSection() !== item.id"
+            [class.hover:bg-mz-surface-2]="activeSection() !== item.id"
+          >
+            {{ item.label }}
+          </button>
+        }
+      </aside>
+
+      <!-- Tabs mobiles -->
+      <div class="flex md:hidden gap-1 mb-6 overflow-x-auto w-full pb-1">
+        @for (
+          item of [
+            { id: 'general', label: 'Général' },
+            { id: 'account', label: 'Compte' },
+            { id: 'privacy', label: 'Confidentialité' },
+            { id: 'language', label: 'Langue' },
+          ];
+          track item.id
+        ) {
+          <button
+            type="button"
+            (click)="setSection($any(item.id))"
+            class="px-4 py-2 rounded-mz-pill text-sm font-semibold whitespace-nowrap transition-colors"
+            [class.bg-mz-primary]="activeSection() === item.id"
+            [class.text-mz-on-primary]="activeSection() === item.id"
+            [class.bg-mz-surface]="activeSection() !== item.id"
+            [class.border]="activeSection() !== item.id"
+            [class.border-mz-border]="activeSection() !== item.id"
+            [class.text-mz-text-muted]="activeSection() !== item.id"
+          >
+            {{ item.label }}
+          </button>
+        }
+      </div>
+
+      <!-- ===== Contenu ===== -->
+      <div class="flex-1 min-w-0 flex flex-col gap-5">
+        <!-- ==================== GÉNÉRAL ==================== -->
+        @if (activeSection() === 'general') {
+          <!-- Notifications in-app -->
+          <div class="mz-card p-5">
+            <h2 class="font-mz-display font-bold text-base text-mz-text mb-1">
+              Notifications in-app
+            </h2>
+            <p class="text-xs text-mz-text-dim mb-4">
+              Alertes visibles directement dans l'application.
+            </p>
+            <div class="flex flex-col gap-4">
+              @for (
+                item of [
+                  { label: 'Invitations à des événements', sig: notifInvitation },
+                  { label: "Confirmations d'inscription", sig: notifConfirmation },
+                  { label: "Places disponibles (liste d'attente)", sig: notifWaitlist },
+                  { label: 'Rappels avant un événement', sig: notifReminder },
+                  { label: 'Nouveaux messages reçus', sig: notifMessage },
+                  { label: 'Cooptations reçues', sig: notifCooptation },
+                ];
+                track item.label
+              ) {
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-sm text-mz-text">{{ item.label }}</span>
+                  <button
+                    type="button"
+                    class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors"
+                    [class.bg-mz-primary]="item.sig()"
+                    [class.bg-mz-border]="!item.sig()"
+                    (click)="item.sig.update(v => !v)"
+                  >
+                    <span
+                      class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform"
+                      [class.translate-x-6]="item.sig()"
+                      [class.translate-x-1]="!item.sig()"
+                    ></span>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Notifications email -->
+          <div class="mz-card p-5">
+            <h2 class="font-mz-display font-bold text-base text-mz-text mb-1">
+              Notifications par email
+            </h2>
+            <p class="text-xs text-mz-text-dim mb-4">Emails envoyés à votre adresse enregistrée.</p>
+            <div class="flex flex-col gap-4">
+              @for (
+                item of [
+                  { label: 'Invitations à des événements', sig: emailInvitation },
+                  { label: "Confirmation d'inscription (avec ticket)", sig: emailConfirmation },
+                  { label: 'Places disponibles', sig: emailWaitlist },
+                  { label: 'Rappels avant un événement', sig: emailReminder },
+                  { label: 'Cooptations reçues', sig: emailCooptation },
+                ];
+                track item.label
+              ) {
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-sm text-mz-text">{{ item.label }}</span>
+                  <button
+                    type="button"
+                    class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors"
+                    [class.bg-mz-primary]="item.sig()"
+                    [class.bg-mz-border]="!item.sig()"
+                    (click)="item.sig.update(v => !v)"
+                  >
+                    <span
+                      class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform"
+                      [class.translate-x-6]="item.sig()"
+                      [class.translate-x-1]="!item.sig()"
+                    ></span>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ==================== COMPTE ==================== -->
+        @if (activeSection() === 'account') {
+          <!-- Profil -->
+          <div class="mz-card p-5">
+            <h2 class="font-mz-display font-bold text-base text-mz-text mb-4">Profil</h2>
+            <a
+              [routerLink]="['/profile/edit']"
+              class="inline-flex items-center gap-2 mz-btn-ghost text-sm"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+              </svg>
+              Modifier mon profil
+            </a>
+          </div>
+
+          <!-- Mot de passe -->
+          <div class="mz-card p-5">
+            <h2 class="font-mz-display font-bold text-base text-mz-text mb-1">Mot de passe</h2>
+            <p class="text-xs text-mz-text-dim mb-4">
+              Choisissez un mot de passe fort d'au moins 8 caractères.
+            </p>
+
+            @if (pwdSaved()) {
+              <div class="mb-4 flex items-center gap-2 text-sm text-mz-success">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <path d="m22 4-10 10-3-3" />
+                </svg>
+                Mot de passe mis à jour.
+              </div>
+            }
+            @if (pwdError()) {
+              <p class="mb-4 text-sm text-mz-danger">{{ pwdError() }}</p>
+            }
+
+            <div class="flex flex-col gap-3">
+              <div>
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-mz-text-dim mb-1"
+                  for="pwd-current"
+                >
+                  Mot de passe actuel
+                </label>
+                <input
+                  id="pwd-current"
+                  type="password"
+                  class="mz-input"
+                  placeholder="••••••••"
+                  [value]="currentPwd()"
+                  (input)="onCurrentPwd($event)"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-mz-text-dim mb-1"
+                  for="pwd-new"
+                >
+                  Nouveau mot de passe
+                </label>
+                <input
+                  id="pwd-new"
+                  type="password"
+                  class="mz-input"
+                  placeholder="••••••••"
+                  [value]="newPwd()"
+                  (input)="onNewPwd($event)"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-mz-text-dim mb-1"
+                  for="pwd-confirm"
+                >
+                  Confirmer le nouveau mot de passe
+                </label>
+                <input
+                  id="pwd-confirm"
+                  type="password"
+                  class="mz-input"
+                  placeholder="••••••••"
+                  [value]="confirmPwd()"
+                  (input)="onConfirmPwd($event)"
+                />
+              </div>
+              <div class="flex justify-end pt-1">
+                <button type="button" class="mz-btn-primary text-sm" (click)="savePassword()">
+                  Mettre à jour
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Zone de danger -->
+          <div class="mz-card p-5 border-mz-danger/30">
+            <h2 class="font-mz-display font-bold text-base text-mz-danger mb-1">Zone de danger</h2>
+            <p class="text-xs text-mz-text-dim mb-4">
+              La suppression de votre compte est irréversible. Vos données seront anonymisées
+              conformément au RGPD.
+            </p>
+
+            @if (!showDeleteConfirm()) {
+              <button
+                type="button"
+                class="text-sm font-semibold text-mz-danger bg-mz-danger/10 hover:bg-mz-danger/20 border border-mz-danger/30 rounded-mz-btn px-4 py-2 transition-colors"
+                (click)="showDeleteConfirm.set(true)"
+              >
+                Supprimer mon compte
+              </button>
+            } @else {
+              <div class="flex flex-col gap-3">
+                <p class="text-sm text-mz-text">Tapez <strong>SUPPRIMER</strong> pour confirmer.</p>
+                <input
+                  type="text"
+                  class="mz-input"
+                  placeholder="SUPPRIMER"
+                  [value]="deleteConfirmText()"
+                  (input)="onDeleteText($event)"
+                />
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    class="mz-btn-ghost text-sm"
+                    (click)="showDeleteConfirm.set(false)"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    class="text-sm font-semibold text-mz-on-primary bg-mz-danger hover:opacity-90 rounded-mz-btn px-4 py-2 transition-opacity"
+                    [disabled]="deleteConfirmText() !== 'SUPPRIMER'"
+                    [class.opacity-40]="deleteConfirmText() !== 'SUPPRIMER'"
+                    (click)="requestDeletion()"
+                  >
+                    Confirmer la suppression
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- ==================== CONFIDENTIALITÉ ==================== -->
+        @if (activeSection() === 'privacy') {
+          <!-- Visibilité du profil -->
+          <div class="mz-card p-5">
+            <h2 class="font-mz-display font-bold text-base text-mz-text mb-1">
+              Visibilité du profil
+            </h2>
+            <p class="text-xs text-mz-text-dim mb-4">
+              Qui peut consulter votre profil et vos événements.
+            </p>
+            <div class="flex flex-col gap-3">
+              @for (
+                opt of [
+                  {
+                    value: 'public',
+                    label: 'Public',
+                    desc: 'Tout le monde peut voir votre profil.',
+                  },
+                  {
+                    value: 'friends',
+                    label: 'Amis seulement',
+                    desc: 'Seuls vos amis peuvent voir votre profil.',
+                  },
+                ];
+                track opt.value
+              ) {
+                <label
+                  class="flex items-start gap-3 p-3 rounded-mz-btn border cursor-pointer transition-colors"
+                  [class.border-mz-primary]="profileVisibility() === opt.value"
+                  [class.bg-mz-surface-2]="profileVisibility() === opt.value"
+                  [class.border-mz-border]="profileVisibility() !== opt.value"
+                >
+                  <input
+                    type="radio"
+                    name="profile-vis"
+                    [value]="opt.value"
+                    [checked]="profileVisibility() === opt.value"
+                    (change)="profileVisibility.set($any(opt.value))"
+                    style="accent-color: var(--mz-primary)"
+                    class="mt-0.5"
+                  />
+                  <div>
+                    <p class="text-sm font-semibold text-mz-text">{{ opt.label }}</p>
+                    <p class="text-xs text-mz-text-dim">{{ opt.desc }}</p>
+                  </div>
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Demandes d'ami -->
+          <div class="mz-card p-5">
+            <h2 class="font-mz-display font-bold text-base text-mz-text mb-1">Demandes d'ami</h2>
+            <p class="text-xs text-mz-text-dim mb-4">Qui peut vous envoyer des demandes d'ami.</p>
+            <div class="flex flex-col gap-3">
+              @for (
+                opt of [
+                  {
+                    value: 'everyone',
+                    label: 'Tout le monde',
+                    desc: "N'importe quel membre peut vous ajouter.",
+                  },
+                  { value: 'nobody', label: 'Personne', desc: "Désactiver les demandes d'ami." },
+                ];
+                track opt.value
+              ) {
+                <label
+                  class="flex items-start gap-3 p-3 rounded-mz-btn border cursor-pointer transition-colors"
+                  [class.border-mz-primary]="friendRequestsOpen() === opt.value"
+                  [class.bg-mz-surface-2]="friendRequestsOpen() === opt.value"
+                  [class.border-mz-border]="friendRequestsOpen() !== opt.value"
+                >
+                  <input
+                    type="radio"
+                    name="friend-req"
+                    [value]="opt.value"
+                    [checked]="friendRequestsOpen() === opt.value"
+                    (change)="friendRequestsOpen.set($any(opt.value))"
+                    style="accent-color: var(--mz-primary)"
+                    class="mt-0.5"
+                  />
+                  <div>
+                    <p class="text-sm font-semibold text-mz-text">{{ opt.label }}</p>
+                    <p class="text-xs text-mz-text-dim">{{ opt.desc }}</p>
+                  </div>
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Autres options -->
+          <div class="mz-card p-5">
+            <h2 class="font-mz-display font-bold text-base text-mz-text mb-4">Autres options</h2>
+            <div class="flex flex-col gap-5">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <p class="text-sm font-semibold text-mz-text">Présence en ligne</p>
+                  <p class="text-xs text-mz-text-dim">
+                    Afficher votre indicateur « en ligne » à vos amis.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors mt-0.5"
+                  [class.bg-mz-primary]="showOnlineStatus()"
+                  [class.bg-mz-border]="!showOnlineStatus()"
+                  (click)="showOnlineStatus.update(v => !v)"
+                >
+                  <span
+                    class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform"
+                    [class.translate-x-6]="showOnlineStatus()"
+                    [class.translate-x-1]="!showOnlineStatus()"
+                  ></span>
+                </button>
+              </div>
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <p class="text-sm font-semibold text-mz-text">Votes sur les participants</p>
+                  <p class="text-xs text-mz-text-dim">
+                    Participer aux votes anonymes après les événements.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors mt-0.5"
+                  [class.bg-mz-primary]="participateInVotes()"
+                  [class.bg-mz-border]="!participateInVotes()"
+                  (click)="participateInVotes.update(v => !v)"
+                >
+                  <span
+                    class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform"
+                    [class.translate-x-6]="participateInVotes()"
+                    [class.translate-x-1]="!participateInVotes()"
+                  ></span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RGPD -->
+          <div class="mz-card p-5">
+            <h2 class="font-mz-display font-bold text-base text-mz-text mb-1">
+              Vos données (RGPD)
+            </h2>
+            <p class="text-xs text-mz-text-dim mb-4">
+              Conformément au RGPD, vous pouvez obtenir une copie de vos données ou demander leur
+              effacement.
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" class="mz-btn-ghost text-sm">Télécharger mes données</button>
+              <a
+                [routerLink]="['/settings']"
+                (click)="setSection('account')"
+                class="mz-btn-ghost text-sm"
+              >
+                Demander la suppression
+              </a>
+            </div>
+          </div>
+        }
+
+        <!-- ==================== LANGUE ==================== -->
+        @if (activeSection() === 'language') {
+          <div class="mz-card p-5">
+            <h2 class="font-mz-display font-bold text-base text-mz-text mb-4">Langue & région</h2>
+            <div class="flex flex-col gap-5">
+              <!-- Langue -->
+              <div>
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-mz-text-dim mb-2"
+                  for="lang-select"
+                >
+                  Langue de l'interface
+                </label>
+                <select id="lang-select" class="mz-input" (change)="onLanguage($event)">
+                  <option value="fr" [selected]="language() === 'fr'">Français</option>
+                  <option value="en" [selected]="language() === 'en'">English</option>
+                  <option value="es" [selected]="language() === 'es'">Español</option>
+                  <option value="de" [selected]="language() === 'de'">Deutsch</option>
+                  <option value="it" [selected]="language() === 'it'">Italiano</option>
+                  <option value="pt" [selected]="language() === 'pt'">Português</option>
+                </select>
+              </div>
+
+              <!-- Format de date -->
+              <div>
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-mz-text-dim mb-2"
+                  for="date-format"
+                >
+                  Format de date
+                </label>
+                <select id="date-format" class="mz-input" (change)="onDateFormat($event)">
+                  <option value="dd/mm/yyyy" [selected]="dateFormat() === 'dd/mm/yyyy'">
+                    JJ/MM/AAAA (31/12/2024)
+                  </option>
+                  <option value="mm/dd/yyyy" [selected]="dateFormat() === 'mm/dd/yyyy'">
+                    MM/DD/YYYY (12/31/2024)
+                  </option>
+                  <option value="yyyy-mm-dd" [selected]="dateFormat() === 'yyyy-mm-dd'">
+                    AAAA-MM-JJ (2024-12-31)
+                  </option>
+                </select>
+              </div>
+
+              <!-- Fuseau horaire -->
+              <div>
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-mz-text-dim mb-2"
+                  for="tz-select"
+                >
+                  Fuseau horaire
+                </label>
+                <select id="tz-select" class="mz-input" (change)="onTimezone($event)">
+                  <option value="Europe/Paris" [selected]="timezone() === 'Europe/Paris'">
+                    Europe/Paris (UTC+1)
+                  </option>
+                  <option value="Europe/London" [selected]="timezone() === 'Europe/London'">
+                    Europe/London (UTC+0)
+                  </option>
+                  <option value="Europe/Berlin" [selected]="timezone() === 'Europe/Berlin'">
+                    Europe/Berlin (UTC+1)
+                  </option>
+                  <option value="Europe/Madrid" [selected]="timezone() === 'Europe/Madrid'">
+                    Europe/Madrid (UTC+1)
+                  </option>
+                  <option value="America/New_York" [selected]="timezone() === 'America/New_York'">
+                    America/New_York (UTC-5)
+                  </option>
+                  <option value="America/Montreal" [selected]="timezone() === 'America/Montreal'">
+                    America/Montréal (UTC-5)
+                  </option>
+                  <option value="America/Toronto" [selected]="timezone() === 'America/Toronto'">
+                    America/Toronto (UTC-5)
+                  </option>
+                </select>
+              </div>
+
+              <p class="text-xs text-mz-text-dim">
+                Les dates sont stockées en UTC. Le fuseau horaire affecte uniquement l'affichage.
+              </p>
+
+              <div class="flex justify-end">
+                <button type="button" class="mz-btn-primary text-sm">Enregistrer</button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

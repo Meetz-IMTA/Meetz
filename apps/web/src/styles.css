@@ -74,3 +74,121 @@ body {
     'GRAD' 0,
     'opsz' 24;
 }
+
+/* ===================== MEETZ THEME — début ===================== */
+/* Tokens de design Meetz. Préfixés mz- pour éviter toute collision.
+   Ne pas mélanger avec d'autres design tokens. */
+
+@theme inline {
+  --color-mz-bg: var(--mz-bg);
+  --color-mz-surface: var(--mz-surface);
+  --color-mz-surface-2: var(--mz-surface-2);
+
+  --color-mz-text: var(--mz-text);
+  --color-mz-text-muted: var(--mz-text-muted);
+  --color-mz-text-dim: var(--mz-text-dim);
+
+  --color-mz-border: var(--mz-border);
+  --color-mz-border-hover: var(--mz-border-hover);
+
+  --color-mz-primary: var(--mz-primary);
+  --color-mz-primary-hover: var(--mz-primary-hover);
+  --color-mz-on-primary: var(--mz-on-primary);
+  --color-mz-accent: var(--mz-accent);
+
+  --color-mz-success: var(--mz-success);
+  --color-mz-danger: var(--mz-danger);
+
+  --font-mz-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mz-body: 'Inter', system-ui, sans-serif;
+
+  --radius-mz-card: 12px;
+  --radius-mz-btn: 8px;
+  --radius-mz-badge: 6px;
+  --radius-mz-pill: 20px;
+}
+
+:root {
+  --mz-bg: #ffffff;
+  --mz-surface: #f9fafb;
+  --mz-surface-2: #f2ecf5;
+  --mz-text: #1d1b21;
+  --mz-text-muted: #5b4041;
+  --mz-text-dim: #8f6f70;
+  --mz-border: #e5e7eb;
+  --mz-border-hover: #d1d5db;
+  --mz-primary: #be123c;
+  --mz-primary-hover: #9b0f31;
+  --mz-on-primary: #ffffff;
+  --mz-accent: #ddd6fe;
+  --mz-success: #22c27a;
+  --mz-danger: #dc2626;
+}
+
+/* @layer components — classes utilitaires Meetz, sans risque de collision. */
+@layer components {
+  .mz-card {
+    background-color: var(--mz-surface);
+    border: 1px solid var(--mz-border);
+    border-radius: var(--radius-mz-card);
+  }
+  .mz-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: var(--mz-primary);
+    color: var(--mz-on-primary);
+    font-weight: 600;
+    border-radius: var(--radius-mz-btn);
+    padding: 0.625rem 1.25rem;
+    transition:
+      background-color 150ms ease,
+      transform 100ms ease;
+  }
+  .mz-btn-primary:hover {
+    background-color: var(--mz-primary-hover);
+  }
+  .mz-btn-primary:active {
+    transform: scale(0.98);
+  }
+  .mz-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: transparent;
+    color: var(--mz-text);
+    border: 1px solid var(--mz-border);
+    font-weight: 600;
+    border-radius: var(--radius-mz-btn);
+    padding: 0.625rem 1.25rem;
+    transition:
+      border-color 150ms ease,
+      transform 100ms ease;
+  }
+  .mz-btn-ghost:hover {
+    border-color: var(--mz-border-hover);
+  }
+  .mz-btn-ghost:active {
+    transform: scale(0.98);
+  }
+  .mz-input {
+    width: 100%;
+    background-color: var(--mz-bg);
+    border: 1px solid var(--mz-border);
+    border-radius: var(--radius-mz-btn);
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    color: var(--mz-text);
+    outline: none;
+    transition: border-color 150ms ease;
+  }
+  .mz-input::placeholder {
+    color: var(--mz-text-dim);
+  }
+  .mz-input:focus {
+    border-color: var(--mz-primary);
+  }
+}
+/* ===================== MEETZ THEME — fin ======================= */

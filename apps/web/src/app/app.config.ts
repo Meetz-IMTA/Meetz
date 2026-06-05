@@ -4,7 +4,7 @@ import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import { definePreset } from '@primeng/themes';
-import { routes } from './app.routes';
+import routes from './app.routes';
 
 const MeetzTheme = definePreset(Aura, {
   semantic: {

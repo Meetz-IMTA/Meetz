@@ -4,16 +4,18 @@ import { VerifyOtp } from './pages/verify-otp/verify-otp';
 import { ForgetPassword } from './pages/forget-password/forget-password';
 import { ResetPassword } from './pages/reset-password/reset-password';
 import { Home } from './pages/home/home';
-import { CreateEvent } from './pages/create-event/create-event';
 import { MainLayout } from './components/main-layout/main-layout';
 import { authGuard } from './guards/auth.guard';
+import { EventsList } from './pages/events/events-list/events-list';
+import { EventDetail } from './pages/events/event-detail/event-detail';
+import { EditEvent } from './pages/events/edit-event/edit-event';
 import { FriendListComponent } from './features/friends/friend-list.component';
-import { FriendSearchComponent } from './features/friends/friend-search.component';
 import { ProfileComponent } from './features/profile/profile.component';
 import { ProfileEditComponent } from './features/profile/profile-edit.component';
 import { SettingsComponent } from './features/settings/settings.component';
+import { FriendSearchComponent } from './features/friends/friend-search.component';
 
-export const routes: Routes = [
+const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: Login },
   { path: 'verify-otp', component: VerifyOtp },
@@ -25,7 +27,9 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'home', component: Home },
-      { path: 'create-event', component: CreateEvent },
+      { path: 'events', component: EventsList },
+      { path: 'events/:id', component: EventDetail },
+      { path: 'events/:id/edit', component: EditEvent },
       { path: 'friends', component: FriendListComponent },
       { path: 'friends/search', component: FriendSearchComponent },
       { path: 'profile', component: ProfileComponent },
@@ -35,3 +39,4 @@ export const routes: Routes = [
     ],
   },
 ];
+export default routes;

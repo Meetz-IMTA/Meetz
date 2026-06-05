@@ -1,0 +1,103 @@
+.font-headline {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Hero */
+.hero-placeholder {
+  background: linear-gradient(135deg, #be123c 0%, #7f1d1d 50%, #1e1b4b 100%);
+}
+
+/* CTA buttons */
+.btn-join {
+  background-color: #be123c;
+  color: white;
+}
+.btn-join:hover {
+  background-color: #9f0f33;
+}
+.btn-joined {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 2px solid #bbf7d0;
+}
+.btn-joined:hover {
+  background-color: #bbf7d0;
+}
+
+/* Section titles */
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1.25rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Sidebar cards */
+.sidebar-card {
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 1rem;
+  padding: 1.25rem;
+}
+.sidebar-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  margin-bottom: 0.875rem;
+}
+
+/* Feature items */
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: white;
+  border: 1px solid #f3f4f6;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.feature-item:hover {
+  border-color: #fecdd3;
+  background: #fff1f2;
+}
+
+/* Skeleton loading */
+.detail-skeleton {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.skeleton-hero {
+  width: 100%;
+  height: 400px;
+  background: #e5e7eb;
+}
+.skeleton-line {
+  background: #e5e7eb;
+  border-radius: 4px;
+}
+.skeleton-box {
+  background: #e5e7eb;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin {
+  animation: spin 0.75s linear infinite;
+}

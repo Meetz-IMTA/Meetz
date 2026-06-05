@@ -24,6 +24,7 @@ model User {
   resetToken        String?
   resetTokenExpiry  DateTime?
   events            Event[]
+  participations    EventParticipation[]
 }
 
 model Event {
@@ -37,4 +38,16 @@ model Event {
   imageUrl     String?
   organizerId  Int
   organizer    User     @relation(fields: [organizerId], references: [id])
+  participations EventParticipation[]
+}
+
+model EventParticipation {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  eventId   Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
 }

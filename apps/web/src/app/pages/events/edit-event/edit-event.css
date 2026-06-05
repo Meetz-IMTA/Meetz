@@ -1,0 +1,15 @@
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin {
+  animation: spin 0.75s linear infinite;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

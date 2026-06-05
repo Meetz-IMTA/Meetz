@@ -21,3 +21,18 @@ export const authMiddleware = (
     res.status(401).json({ error: "Token invalide ou expiré" });
   }
 };
+
+export const optionalAuthMiddleware = (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (token) {
+    try {
+      const payload: any = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!);
+      req.userId = payload.userId;
+    } catch {}
+  }
+  next();
+};

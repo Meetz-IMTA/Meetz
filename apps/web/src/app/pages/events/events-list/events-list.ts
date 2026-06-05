@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EventService } from '../../../services/event';
 import { EventCard } from '../../../components/event-card/event-card';
 import { Auth } from '../../../services/auth';
@@ -23,6 +23,7 @@ export class EventsList implements OnInit {
   private eventService = inject(EventService);
   private auth = inject(Auth);
   private cdr = inject(ChangeDetectorRef);
+  private route = inject(ActivatedRoute);
 
   events: MeetzEvent[] = [];
   filteredEvents: MeetzEvent[] = [];
@@ -46,6 +47,8 @@ export class EventsList implements OnInit {
   ];
 
   ngOnInit() {
+    const cat = this.route.snapshot.queryParamMap.get('category');
+    if (cat) this.selectedCategory = cat;
     this.isLoading = !this.eventService.hasCachedAll();
     this.loadEvents();
   }

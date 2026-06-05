@@ -1,0 +1,34 @@
+<section class="bg-white py-24">
+  <div class="max-w-[1280px] mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl font-extrabold text-meetz-charcoal mb-4 font-headline">
+        Explorer par catégorie
+      </h2>
+      <p class="text-meetz-charcoal/50 max-w-xl mx-auto">
+        Trouve exactement ce qui t'intéresse parmi nos thématiques variées.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+      @for (cat of categories; track cat.label) {
+        <a
+          routerLink="/events"
+          [queryParams]="{ category: cat.label }"
+          class="flex flex-col items-center gap-4 p-8 bg-meetz-offwhite border border-meetz-border rounded-2xl hover:bg-meetz-border hover:-translate-y-1 transition-all"
+        >
+          <div
+            [class]="
+              'w-14 h-14 flex items-center justify-center rounded-full ' +
+              cat.bgColor +
+              ' ' +
+              cat.textColor
+            "
+          >
+            <span class="material-symbols-outlined" style="font-size: 30px">{{ cat.icon }}</span>
+          </div>
+          <span class="font-bold text-meetz-charcoal">{{ cat.label }}</span>
+        </a>
+      }
+    </div>
+  </div>
+</section>

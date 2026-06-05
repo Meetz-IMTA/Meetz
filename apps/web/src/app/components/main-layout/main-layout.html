@@ -48,6 +48,22 @@
             <p class="text-xs font-bold text-zinc-800 truncate">{{ userName }}</p>
             <p class="text-[11px] text-zinc-400 truncate">{{ userEmail }}</p>
           </div>
+          <a
+            routerLink="/profile"
+            (click)="dropdownOpen.set(false)"
+            class="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+          >
+            <span class="material-symbols-outlined" style="font-size: 18px">person</span>
+            Mon profil
+          </a>
+          <a
+            routerLink="/settings"
+            (click)="dropdownOpen.set(false)"
+            class="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+          >
+            <span class="material-symbols-outlined" style="font-size: 18px">settings</span>
+            Réglages
+          </a>
           <button
             type="button"
             (click)="logout()"

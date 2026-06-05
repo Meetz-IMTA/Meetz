@@ -26,6 +26,8 @@ export class MainLayout {
     { label: 'Community', icon: 'group', route: '/community' },
     { label: 'Groups', icon: 'hub', route: '/groups' },
     { label: 'Events', icon: 'calendar_today', route: '/events' },
+    { label: 'Amis', icon: 'people', route: '/friends' },
+    { label: 'Profil', icon: 'person', route: '/profile' },
   ];
 
   get userInitial(): string {

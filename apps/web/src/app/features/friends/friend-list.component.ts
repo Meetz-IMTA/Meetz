@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MockDataService } from '../../core/services/mock-data.service';
+import { FriendService } from '../../services/friend.service';
+import { UserService } from '../../services/user.service';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 import { StarRatingComponent } from '../../shared/components/star-rating/star-rating.component';
 import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badge.component';
@@ -14,15 +15,16 @@ import type { Friend, FriendRequest } from '../../shared/models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FriendListComponent {
-  private readonly mockData = inject(MockDataService);
+  private readonly friendService = inject(FriendService);
+  private readonly userService = inject(UserService);
 
   readonly activeTab = signal<'friends' | 'requests'>('friends');
   readonly searchQuery = signal('');
 
-  readonly friends = this.mockData.friends;
-  readonly incomingRequests = this.mockData.incomingRequests;
-  readonly outgoingRequests = this.mockData.outgoingRequests;
-  readonly pendingCount = this.mockData.pendingRequestsCount;
+  readonly friends = this.friendService.friends;
+  readonly incomingRequests = this.friendService.incomingRequests;
+  readonly outgoingRequests = this.friendService.outgoingRequests;
+  readonly pendingCount = this.friendService.pendingRequestsCount;
 
   readonly filteredFriends = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -44,19 +46,19 @@ export class FriendListComponent {
   }
 
   acceptRequest(id: string): void {
-    this.mockData.acceptFriendRequest(id);
+    this.friendService.acceptFriendRequest(id);
   }
   declineRequest(id: string): void {
-    this.mockData.declineFriendRequest(id);
+    this.friendService.declineFriendRequest(id);
   }
   cancelRequest(id: string): void {
-    this.mockData.cancelFriendRequest(id);
+    this.friendService.cancelFriendRequest(id);
   }
   removeFriend(userId: string): void {
-    this.mockData.removeFriend(userId);
+    this.friendService.removeFriend(userId);
   }
   timeAgo(date: Date): string {
-    return this.mockData.timeAgo(date);
+    return this.userService.timeAgo(date);
   }
 
   trackFriend(_: number, f: Friend): string {

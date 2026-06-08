@@ -1,9 +1,18 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  resource,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
-import { map } from 'rxjs';
-import { MockDataService } from '../../core/services/mock-data.service';
+import { firstValueFrom } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { UserService } from '../../services/user.service';
+import { FriendService } from '../../services/friend.service';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 import { StarRatingComponent } from '../../shared/components/star-rating/star-rating.component';
 import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badge.component';
@@ -15,6 +24,7 @@ import type {
   Friend,
   ReportReason,
   UserRelation,
+  UserProfile,
 } from '../../shared/models';
 
 @Component({
@@ -31,7 +41,8 @@ import type {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent {
-  private readonly mockData = inject(MockDataService);
+  private readonly userService = inject(UserService);
+  private readonly friendService = inject(FriendService);
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
 
@@ -39,26 +50,34 @@ export class ProfileComponent {
     initialValue: this.route.snapshot.paramMap.get('id'),
   });
 
-  readonly profile = computed(() => {
-    const id = this.routeId() ?? this.mockData.currentUser().id;
-    return this.mockData.getUserProfile(id);
+  readonly profileResource = resource<UserProfile | null, string | null>({
+    params: () => this.routeId(),
+    loader: ({ params: id }) => {
+      const currentUser = this.userService.currentUser();
+      if (!id || id === currentUser?.id) {
+        return firstValueFrom(this.userService.getMyProfile());
+      }
+      return firstValueFrom(this.userService.getUserProfile(Number(id)));
+    },
   });
+
+  readonly profile = computed(() => this.profileResource.value() ?? null);
+  readonly isLoading = computed(() => this.profileResource.isLoading());
 
   readonly isOwner = computed(() => {
     const id = this.routeId();
-    return !id || id === this.mockData.currentUser().id;
+    const currentUser = this.userService.currentUser();
+    return !id || id === currentUser?.id;
   });
 
   readonly relation = computed<{ status: UserRelation; requestId?: string }>(() => {
     const p = this.profile();
     if (!p) return { status: 'none' };
-    return this.mockData.getUserRelation(p.id);
+    return this.friendService.getUserRelation(p.id);
   });
 
   readonly isCreator = computed(() => this.profile()?.role === 'creator');
-
-  /** Liste des amis de l'utilisateur courant (visible sur son propre profil). */
-  readonly friends = this.mockData.friends;
+  readonly friends = this.friendService.friends;
 
   // Signalement
   readonly reportOpen = signal(false);
@@ -75,44 +94,45 @@ export class ProfileComponent {
   onReportSubmitted(event: { reason: ReportReason; details: string | null }): void {
     const p = this.profile();
     if (!p) return;
-    this.mockData.submitReport(p.id, event.reason, event.details);
+    this.userService.submitReport(p.id, event.reason, event.details);
     this.reportOpen.set(false);
     this.reportConfirmed.set(true);
   }
 
-  // Navigation
   goBack(): void {
     this.location.back();
   }
 
-  // Actions amis
   addFriend(): void {
     const p = this.profile();
-    if (p) this.mockData.sendFriendRequest(p.id);
+    if (p) this.friendService.sendFriendRequest(p.id);
   }
   acceptRequest(): void {
     const id = this.relation().requestId;
-    if (id) this.mockData.acceptFriendRequest(id);
+    if (id) this.friendService.acceptFriendRequest(id);
   }
   declineRequest(): void {
     const id = this.relation().requestId;
-    if (id) this.mockData.declineFriendRequest(id);
+    if (id) this.friendService.declineFriendRequest(id);
   }
   cancelRequest(): void {
     const id = this.relation().requestId;
-    if (id) this.mockData.cancelFriendRequest(id);
+    if (id) this.friendService.cancelFriendRequest(id);
   }
   removeFriend(): void {
     const p = this.profile();
-    if (p) this.mockData.removeFriend(p.id);
+    if (p) this.friendService.removeFriend(p.id);
   }
 
-  // Formatage
   memberSince(date: Date): string {
-    return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(date);
+    return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(
+      new Date(date),
+    );
   }
   eventDate(date: Date): string {
-    return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(date);
+    return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(
+      new Date(date),
+    );
   }
 
   trackBadge(_: number, b: Badge): string {

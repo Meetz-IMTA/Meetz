@@ -120,7 +120,46 @@
           (change)="onFileSelected($event)"
         />
       </div>
-
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-mz-text-dim mb-3">Bannière</p>
+        <div class="relative w-full h-28 rounded-mz-card overflow-hidden bg-mz-surface-2 mb-3">
+          @if (bannerUrl()) {
+            <img [src]="bannerUrl()" alt="Bannière" class="w-full h-full object-cover" />
+          }
+          <button
+            type="button"
+            class="absolute inset-0 flex items-center justify-center gap-2 bg-black/30 hover:bg-black/40 transition-colors text-white text-sm font-semibold"
+            (click)="bannerInput.click()"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            Choisir une bannière
+          </button>
+        </div>
+        <input
+          #bannerInput
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          class="hidden"
+          (change)="onBannerSelected($event)"
+        />
+        @if (uploadingBanner()) {
+          <p class="text-xs text-mz-text-dim">Téléchargement en cours…</p>
+        }
+      </div>
       <!-- Nom -->
       <div>
         <label

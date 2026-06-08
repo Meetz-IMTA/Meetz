@@ -23,6 +23,15 @@ model User {
   otpExpiry         DateTime?
   resetToken        String?
   resetTokenExpiry  DateTime?
+  bio              String?   @db.Text
+  avatarUrl        String?
+  bannerUrl        String?
+  role             UserRole  @default(USER)
+  createdAt        DateTime  @default(now())
+  sentRequests     FriendRequest[] @relation("RequestSender")
+  receivedRequests FriendRequest[] @relation("RequestReceiver")
+  friendshipsA     Friendship[]    @relation("FriendA")
+  friendshipsB     Friendship[]    @relation("FriendB")
   events            Event[]
   participations    EventParticipation[]
 }
@@ -50,4 +59,41 @@ model EventParticipation {
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
+}
+
+enum UserRole {
+  ADMIN
+  CREATOR
+  USER
+  ORGANIZER
+}
+
+enum FriendRequestStatus {
+  PENDING
+  DECLINED
+}
+
+model FriendRequest {
+  id         Int                 @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  status     FriendRequestStatus @default(PENDING)
+  createdAt  DateTime            @default(now())
+
+  sender   User @relation("RequestSender",  fields: [senderId],   references: [id], onDelete: Cascade)
+  receiver User @relation("RequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+}
+
+model Friendship {
+  id        Int      @id @default(autoincrement())
+  userAId   Int
+  userBId   Int
+  createdAt DateTime @default(now())
+
+  userA User @relation("FriendA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB User @relation("FriendB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@unique([userAId, userBId])
 }

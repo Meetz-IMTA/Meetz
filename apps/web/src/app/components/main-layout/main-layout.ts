@@ -119,6 +119,10 @@ export class MainLayout implements OnInit, OnDestroy {
     return this.auth.getUser()?.email ?? '';
   }
 
+  get isAdmin(): boolean {
+    return this.auth.getUser()?.role === 'admin';
+  }
+
   toggleDropdown() {
     this.notifOpen.set(false);
     this.dropdownOpen.update((v) => !v);

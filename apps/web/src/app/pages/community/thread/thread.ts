@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommunityService } from '../../../services/community';
 import { Auth } from '../../../services/auth';
+import { AdminService } from '../../../services/admin';
 import { ToastService } from '../../../services/toast';
 import { Comment, Thread, ThreadComment } from '../../../models/community.model';
 import { CommentItem } from '../components/comment-item/comment-item';
@@ -31,6 +32,7 @@ export class CommunityThread implements OnInit {
   private router = inject(Router);
   private community = inject(CommunityService);
   private auth = inject(Auth);
+  private adminService = inject(AdminService);
   private toast = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -63,6 +65,10 @@ export class CommunityThread implements OnInit {
 
   get isOwner(): boolean {
     return this.currentUserId != null && this.currentUserId === this.thread?.authorId;
+  }
+
+  get isAdmin(): boolean {
+    return this.auth.getUser()?.role === 'admin';
   }
 
   get authorInitial(): string {
@@ -154,18 +160,21 @@ export class CommunityThread implements OnInit {
   deleteThread() {
     if (!this.thread) return;
     this.isDeleting = true;
-    this.community.deleteThread(this.thread.id).subscribe({
-      next: () => {
-        this.toast.success('Thread supprimé.');
-        this.router.navigate(['/community']);
-      },
-      error: () => {
-        this.toast.error('Impossible de supprimer le thread.');
-        this.isDeleting = false;
-        this.showDeleteConfirm = false;
-        this.cdr.detectChanges();
-      },
-    });
+    const onSuccess = () => {
+      this.toast.success('Thread supprimé.');
+      this.router.navigate(['/community']);
+    };
+    const onError = () => {
+      this.toast.error('Impossible de supprimer le thread.');
+      this.isDeleting = false;
+      this.showDeleteConfirm = false;
+      this.cdr.detectChanges();
+    };
+    if (this.isAdmin && !this.isOwner) {
+      this.adminService.deleteThread(this.thread.id).subscribe({ next: onSuccess, error: onError });
+    } else {
+      this.community.deleteThread(this.thread.id).subscribe({ next: onSuccess, error: onError });
+    }
   }
 
   openReport() {

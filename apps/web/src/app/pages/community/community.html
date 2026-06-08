@@ -290,7 +290,11 @@
         } @else {
           <div class="space-y-5">
             @for (thread of threads; track thread.id) {
-              <app-thread-card [thread]="thread" />
+              <app-thread-card
+                [thread]="thread"
+                [isAdmin]="isAdmin"
+                (adminDelete)="adminDeleteThread($event)"
+              />
             }
           </div>
           @if (page < totalPages) {

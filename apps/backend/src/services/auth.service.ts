@@ -150,6 +150,9 @@ export const loginUser = async (data: { email: string; password: string }) => {
   const isPasswordValid = await bcrypt.compare(data.password, user.password);
   if (!isPasswordValid) throw new Error("Mot de passe incorrect");
 
+  if (user.isBanned)
+    throw new Error("Votre compte a été suspendu. Contactez l'administrateur.");
+
   const accessToken = jwt.sign({ userId: user.id }, ACCESS_SECRET, {
     expiresIn: "15m",
   });

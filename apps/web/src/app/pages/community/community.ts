@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { CommunityService } from '../../services/community';
+import { Auth } from '../../services/auth';
+import { AdminService } from '../../services/admin';
 import { Category, Thread } from '../../models/community.model';
 import { ThreadCard } from './components/thread-card/thread-card';
 
@@ -14,7 +16,13 @@ import { ThreadCard } from './components/thread-card/thread-card';
 })
 export class Community implements OnInit {
   private community = inject(CommunityService);
+  private auth = inject(Auth);
+  private adminService = inject(AdminService);
   private cdr = inject(ChangeDetectorRef);
+
+  get isAdmin(): boolean {
+    return this.auth.getUser()?.role === 'admin';
+  }
 
   categories: Category[] = [];
   popularThreads: Thread[] = [];
@@ -205,5 +213,15 @@ export class Community implements OnInit {
     if (this.sort === sort) return;
     this.sort = sort;
     this.reloadThreads();
+  }
+
+  adminDeleteThread(threadId: number) {
+    this.adminService.deleteThread(threadId).subscribe({
+      next: () => {
+        this.threads = this.threads.filter((t) => t.id !== threadId);
+        this.popularThreads = this.popularThreads.filter((t) => t.id !== threadId);
+        this.cdr.detectChanges();
+      },
+    });
   }
 }

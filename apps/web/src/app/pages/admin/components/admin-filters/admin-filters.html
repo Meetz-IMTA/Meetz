@@ -1,0 +1,45 @@
+<div class="flex flex-wrap gap-3 items-center">
+  <div class="flex items-center gap-1.5">
+    <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Type :</span>
+    <div class="flex gap-1">
+      @for (opt of typeOptions; track opt.value) {
+        <button
+          type="button"
+          (click)="setType(opt.value)"
+          class="px-3 py-1 text-xs font-semibold rounded-lg border transition-colors"
+          [class.bg-rose-700]="type() === opt.value"
+          [class.text-white]="type() === opt.value"
+          [class.border-rose-700]="type() === opt.value"
+          [class.bg-white]="type() !== opt.value"
+          [class.text-zinc-600]="type() !== opt.value"
+          [class.border-zinc-200]="type() !== opt.value"
+          [class.hover:bg-zinc-50]="type() !== opt.value"
+        >
+          {{ opt.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="flex items-center gap-1.5">
+    <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Statut :</span>
+    <div class="flex gap-1">
+      @for (opt of statusOptions; track opt.value) {
+        <button
+          type="button"
+          (click)="setStatus(opt.value)"
+          class="px-3 py-1 text-xs font-semibold rounded-lg border transition-colors"
+          [class.bg-rose-700]="status() === opt.value"
+          [class.text-white]="status() === opt.value"
+          [class.border-rose-700]="status() === opt.value"
+          [class.bg-white]="status() !== opt.value"
+          [class.text-zinc-600]="status() !== opt.value"
+          [class.border-zinc-200]="status() !== opt.value"
+          [class.hover:bg-zinc-50]="status() !== opt.value"
+        >
+          {{ opt.label }}
+        </button>
+      }
+    </div>
+  </div>
+</div>

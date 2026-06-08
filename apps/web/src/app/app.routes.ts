@@ -20,6 +20,8 @@ import { CommunityCategory } from './pages/community/category/category';
 import { CommunityThread } from './pages/community/thread/thread';
 import { CreateThread } from './pages/community/create-thread/create-thread';
 import { EditThread } from './pages/community/edit-thread/edit-thread';
+import { AdminDashboard } from './pages/admin/admin-dashboard';
+import { adminGuard } from './guards/admin.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -48,6 +50,7 @@ const routes: Routes = [
       { path: 'profile/edit', component: ProfileEditComponent }, // DOIT être avant :id
       { path: 'profile/:id', component: ProfileComponent },
       { path: 'settings', component: SettingsComponent },
+      { path: 'admin', component: AdminDashboard, canActivate: [adminGuard] },
     ],
   },
 ];

@@ -1,7 +1,17 @@
 <a
   [routerLink]="['/community/thread', thread.id]"
-  class="group block bg-white border border-gray-200 rounded-2xl p-4 hover:border-rose-300 hover:shadow-md transition-all"
+  class="group relative block bg-white border border-gray-200 rounded-2xl p-4 hover:border-rose-300 hover:shadow-md transition-all"
 >
+  @if (isAdmin) {
+    <button
+      type="button"
+      (click)="onAdminDelete($event)"
+      title="Supprimer (admin)"
+      class="absolute top-3 right-3 z-10 flex items-center justify-center h-7 w-7 rounded-lg bg-white border border-red-200 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-50 transition-all shadow-sm"
+    >
+      <span class="material-symbols-outlined" style="font-size: 15px">delete</span>
+    </button>
+  }
   <div class="flex gap-4">
     <!-- Author avatar -->
     <div

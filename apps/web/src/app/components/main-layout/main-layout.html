@@ -145,6 +145,18 @@
             <span class="material-symbols-outlined" style="font-size: 18px">settings</span>
             Réglages
           </a>
+          @if (isAdmin) {
+            <a
+              routerLink="/admin"
+              (click)="dropdownOpen.set(false)"
+              class="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-50 transition-colors"
+            >
+              <span class="material-symbols-outlined" style="font-size: 18px"
+                >admin_panel_settings</span
+              >
+              Administration
+            </a>
+          }
           <button
             type="button"
             (click)="logout()"

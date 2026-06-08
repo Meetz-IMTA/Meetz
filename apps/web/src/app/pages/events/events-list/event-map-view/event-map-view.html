@@ -1,0 +1,88 @@
+<div class="relative w-full h-full">
+  <!-- Leaflet container -->
+  <div #mapContainer class="w-full h-full"></div>
+
+  <!-- Event Preview Card (first click) -->
+  @if (selectedEvent) {
+    <div
+      class="absolute bottom-6 left-6 z-[720] w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-preview-in"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Image -->
+      <div class="relative h-36 bg-gray-100 shrink-0">
+        @if (selectedEvent.imageUrl) {
+          <img
+            [src]="selectedEvent.imageUrl"
+            [alt]="selectedEvent.name"
+            class="w-full h-full object-cover"
+          />
+        } @else {
+          <div class="w-full h-full bg-rose-50 flex items-center justify-center">
+            <span class="material-symbols-outlined text-rose-200" style="font-size: 48px"
+              >event</span
+            >
+          </div>
+        }
+        <button
+          type="button"
+          (click)="closePreview()"
+          class="absolute top-2 right-2 w-7 h-7 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-500 hover:text-gray-800 shadow transition-colors"
+        >
+          <span class="material-symbols-outlined" style="font-size: 16px">close</span>
+        </button>
+      </div>
+
+      <!-- Content -->
+      <div class="p-4 pb-2">
+        <div class="flex items-center gap-2 mb-1.5">
+          @if (selectedEvent.category) {
+            <span class="badge" [ngClass]="'badge-' + selectedEvent.category">{{
+              selectedEvent.category
+            }}</span>
+          }
+          <span class="text-xs text-gray-400">{{ formatDate(selectedEvent.date) }}</span>
+        </div>
+        <h3 class="font-bold text-gray-900 text-sm leading-snug">{{ selectedEvent.name }}</h3>
+        @if (selectedEvent.description) {
+          <p class="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">
+            {{ selectedEvent.description }}
+          </p>
+        }
+        @if (selectedEvent.location) {
+          <p class="text-xs text-gray-400 flex items-center gap-1 mt-2">
+            <span class="material-symbols-outlined" style="font-size: 12px">location_on</span>
+            {{ selectedEvent.location }}
+          </p>
+        }
+      </div>
+
+      <!-- CTA -->
+      <div class="p-4 pt-3 space-y-2">
+        <button
+          type="button"
+          (click)="navigate(selectedEvent)"
+          class="w-full py-2.5 bg-rose-700 text-white text-xs font-bold rounded-xl hover:bg-rose-800 transition-colors flex items-center justify-center gap-2"
+        >
+          <span class="material-symbols-outlined" style="font-size: 14px">open_in_new</span>
+          Voir les détails
+        </button>
+        <p class="text-center text-[10px] text-gray-400">
+          Re-cliquer sur le pin pour y accéder directement
+        </p>
+      </div>
+    </div>
+  }
+
+  <!-- Map hint (no events) -->
+  @if (events.length === 0) {
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div class="bg-white/90 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg text-center">
+        <span class="material-symbols-outlined text-gray-300 block" style="font-size: 40px"
+          >search_off</span
+        >
+        <p class="text-sm font-semibold text-gray-500 mt-1">Aucun événement à afficher</p>
+        <p class="text-xs text-gray-400">Modifiez les filtres pour voir des résultats</p>
+      </div>
+    </div>
+  }
+</div>

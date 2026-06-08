@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { Location, CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { catchError, of } from 'rxjs';
@@ -20,6 +20,7 @@ const GEO_CACHE_PREFIX = 'meetz_geo_';
 export class EventDetail implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
   private eventService = inject(EventService);
   private auth = inject(Auth);
   private http = inject(HttpClient);
@@ -79,6 +80,10 @@ export class EventDetail implements OnInit {
 
   get organizerInitial(): string {
     return this.event?.organizer.name[0]?.toUpperCase() ?? '?';
+  }
+
+  goBack() {
+    this.location.back();
   }
 
   ngOnInit() {

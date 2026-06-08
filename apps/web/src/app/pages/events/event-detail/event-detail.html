@@ -44,13 +44,14 @@
     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
 
     <!-- Back link -->
-    <a
-      routerLink="/events"
+    <button
+      type="button"
+      (click)="goBack()"
       class="absolute top-5 left-5 md:left-8 flex items-center gap-1.5 text-white/80 hover:text-white transition-colors text-sm font-medium bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full"
     >
       <span class="material-symbols-outlined" style="font-size: 16px">arrow_back</span>
       Retour
-    </a>
+    </button>
 
     <!-- Hero content -->
     <div class="absolute bottom-0 left-0 right-0">
@@ -369,28 +370,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Footer -->
-  <footer class="bg-zinc-900 border-t border-zinc-800 py-10 mt-6">
-    <div
-      class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6"
-    >
-      <div>
-        <p class="text-lg font-black text-white">Meetz</p>
-        <p class="text-xs text-zinc-400 mt-1">© 2025 Meetz Alès. Connecting the community.</p>
-      </div>
-      <div class="flex flex-wrap justify-center gap-6">
-        <a class="text-xs text-zinc-400 hover:text-white transition-colors" routerLink="/events"
-          >Explorer</a
-        >
-        <a
-          class="text-xs text-zinc-400 hover:text-white transition-colors"
-          routerLink="/create-event"
-          >Créer un événement</a
-        >
-      </div>
-    </div>
-  </footer>
 }
 
 <!-- ── Delete confirm modal ── -->

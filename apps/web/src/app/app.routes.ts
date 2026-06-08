@@ -14,6 +14,11 @@ import { ProfileComponent } from './features/profile/profile.component';
 import { ProfileEditComponent } from './features/profile/profile-edit.component';
 import { SettingsComponent } from './features/settings/settings.component';
 import { FriendSearchComponent } from './features/friends/friend-search.component';
+import { Community } from './pages/community/community';
+import { CommunityCategory } from './pages/community/category/category';
+import { CommunityThread } from './pages/community/thread/thread';
+import { CreateThread } from './pages/community/create-thread/create-thread';
+import { EditThread } from './pages/community/edit-thread/edit-thread';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -27,6 +32,11 @@ const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'home', component: Home },
+      { path: 'community', component: Community },
+      { path: 'community/create', component: CreateThread },
+      { path: 'community/category/:id', component: CommunityCategory },
+      { path: 'community/thread/:id', component: CommunityThread },
+      { path: 'community/thread/:id/edit', component: EditThread },
       { path: 'events', component: EventsList },
       { path: 'events/:id', component: EventDetail },
       { path: 'events/:id/edit', component: EditEvent },

@@ -1,0 +1,156 @@
+<div class="max-w-2xl mx-auto w-full px-4 sm:px-6 py-6">
+  <!-- Back -->
+  <a
+    routerLink="/community"
+    class="inline-flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-rose-700 transition-colors mb-4"
+  >
+    <span class="material-symbols-outlined" style="font-size: 18px">arrow_back</span>
+    Communauté
+  </a>
+
+  <h1 class="text-2xl font-black text-gray-900 mb-1">Nouveau thread</h1>
+  <p class="text-sm text-gray-500 mb-6">Partagez une question, une idée ou une discussion.</p>
+
+  @if (errorMessage) {
+    <div
+      class="mb-4 px-4 py-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl flex items-center gap-2"
+    >
+      <span class="material-symbols-outlined" style="font-size: 18px">error</span>
+      {{ errorMessage }}
+    </div>
+  }
+
+  <form (ngSubmit)="onSubmit()" class="space-y-6">
+    <!-- Category -->
+    <div>
+      <label class="block text-sm font-bold text-gray-900 mb-2">
+        Catégorie <span class="text-rose-600">*</span>
+      </label>
+      <div class="flex flex-wrap gap-2">
+        @for (cat of categories; track cat.id) {
+          <button
+            type="button"
+            (click)="selectCategory(cat.id)"
+            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold border transition-colors"
+            [class.bg-rose-700]="categoryId === cat.id"
+            [class.text-white]="categoryId === cat.id"
+            [class.border-rose-700]="categoryId === cat.id"
+            [class.bg-white]="categoryId !== cat.id"
+            [class.text-gray-600]="categoryId !== cat.id"
+            [class.border-gray-200]="categoryId !== cat.id"
+          >
+            <span class="material-symbols-outlined" style="font-size: 16px">{{
+              cat.icon || 'forum'
+            }}</span>
+            {{ cat.name }}
+          </button>
+        }
+      </div>
+      @if (categoryError) {
+        <p class="text-xs text-red-500 mt-1.5">{{ categoryError }}</p>
+      }
+    </div>
+
+    <!-- Title -->
+    <div>
+      <label for="title" class="block text-sm font-bold text-gray-900 mb-2">
+        Titre <span class="text-rose-600">*</span>
+      </label>
+      <input
+        id="title"
+        [(ngModel)]="title"
+        name="title"
+        type="text"
+        placeholder="Un titre clair et accrocheur"
+        class="w-full text-sm border rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-rose-700/20 focus:border-rose-300 transition-all"
+        [class.border-gray-200]="!titleError"
+        [class.border-red-300]="titleError"
+      />
+      @if (titleError) {
+        <p class="text-xs text-red-500 mt-1.5">{{ titleError }}</p>
+      }
+    </div>
+
+    <!-- Content -->
+    <div>
+      <label for="content" class="block text-sm font-bold text-gray-900 mb-2">
+        Contenu <span class="text-rose-600">*</span>
+      </label>
+      <textarea
+        id="content"
+        [(ngModel)]="content"
+        name="content"
+        rows="6"
+        placeholder="Développez votre sujet..."
+        class="w-full text-sm border rounded-xl px-3.5 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-rose-700/20 focus:border-rose-300 transition-all resize-y"
+        [class.border-gray-200]="!contentError"
+        [class.border-red-300]="contentError"
+      ></textarea>
+      @if (contentError) {
+        <p class="text-xs text-red-500 mt-1.5">{{ contentError }}</p>
+      }
+    </div>
+
+    <!-- Images -->
+    <div>
+      <label class="block text-sm font-bold text-gray-900 mb-2">
+        Images <span class="text-gray-400 font-normal">(optionnel, max 5)</span>
+      </label>
+
+      <input
+        id="thread-images"
+        type="file"
+        accept="image/*"
+        multiple
+        (change)="onImagesSelected($event)"
+        class="hidden"
+      />
+
+      <div class="flex flex-wrap gap-3">
+        @for (img of images; track img.url; let i = $index) {
+          <div class="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-100 group">
+            <img [src]="img.url" alt="" class="w-full h-full object-cover" />
+            <button
+              type="button"
+              (click)="removeImage(i)"
+              class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+            >
+              <span class="material-symbols-outlined" style="font-size: 16px">close</span>
+            </button>
+          </div>
+        }
+
+        @if (images.length < 5) {
+          <button
+            type="button"
+            (click)="triggerUpload()"
+            class="w-24 h-24 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-rose-300 hover:text-rose-600 transition-colors"
+          >
+            <span class="material-symbols-outlined" style="font-size: 24px"
+              >add_photo_alternate</span
+            >
+            <span class="text-xs font-semibold">Ajouter</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end gap-3 pt-2">
+      <a
+        routerLink="/community"
+        class="px-5 py-2.5 text-sm font-semibold text-gray-600 rounded-xl hover:bg-gray-100 transition-colors"
+      >
+        Annuler
+      </a>
+      <button
+        type="submit"
+        [disabled]="isSubmitting"
+        class="inline-flex items-center gap-2 px-6 py-2.5 bg-rose-700 text-white text-sm font-bold rounded-xl hover:bg-rose-800 transition-colors disabled:opacity-50"
+      >
+        <span class="material-symbols-outlined" style="font-size: 18px">send</span>
+        {{ isSubmitting ? 'Publication...' : 'Publier le thread' }}
+      </button>
+    </div>
+  </form>
+</div>

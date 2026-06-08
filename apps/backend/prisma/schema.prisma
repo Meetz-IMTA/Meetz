@@ -25,6 +25,13 @@ model User {
   resetTokenExpiry  DateTime?
   events            Event[]
   participations    EventParticipation[]
+  threads            Thread[]
+  comments           Comment[]
+  threadLikes        ThreadLike[]
+  commentLikes       CommentLike[]
+  reports            Report[]
+  notifications      Notification[] @relation("UserNotifications")
+  actedNotifications Notification[] @relation("ActorNotifications")
 }
 
 model Event {
@@ -50,4 +57,116 @@ model EventParticipation {
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?  @db.Text
+  icon        String?
+  createdAt   DateTime @default(now())
+  threads     Thread[]
+}
+
+model Thread {
+  id         Int           @id @default(autoincrement())
+  title      String
+  content    String        @db.Text
+  authorId   Int
+  categoryId Int
+  viewsCount Int           @default(0)
+  isPinned   Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category   Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  images        ThreadImage[]
+  comments      Comment[]
+  likes         ThreadLike[]
+  reports       Report[]
+  notifications Notification[]
+
+  @@index([categoryId])
+  @@index([authorId])
+}
+
+model ThreadImage {
+  id       Int    @id @default(autoincrement())
+  imageUrl String
+  threadId Int
+  thread   Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+}
+
+model Comment {
+  id              Int           @id @default(autoincrement())
+  content         String?       @db.Text
+  imageUrl        String?
+  deleted         Boolean       @default(false)
+  authorId        Int
+  threadId        Int
+  parentCommentId Int?
+  createdAt       DateTime      @default(now())
+  author          User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  thread          Thread        @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  parent          Comment?      @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies         Comment[]     @relation("CommentReplies")
+  likes           CommentLike[]
+  reports         Report[]
+
+  @@index([threadId])
+  @@index([parentCommentId])
+}
+
+model ThreadLike {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  threadId Int
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thread   Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, threadId])
+}
+
+model CommentLike {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  commentId Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+}
+
+model Report {
+  id         Int      @id @default(autoincrement())
+  threadId   Int?
+  commentId  Int?
+  reporterId Int?
+  reason     String?  @db.Text
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  thread     Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  comment    Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reporter   User?    @relation(fields: [reporterId], references: [id], onDelete: SetNull)
+
+  @@index([threadId])
+  @@index([commentId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  actorId   Int?
+  type      String // comment | reply | thread_like | comment_like
+  threadId  Int?
+  commentId Int?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User?    @relation("ActorNotifications", fields: [actorId], references: [id], onDelete: SetNull)
+  thread    Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

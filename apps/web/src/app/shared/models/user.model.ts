@@ -8,6 +8,7 @@ export interface User {
   name: string;
   email: string;
   avatarUrl: string | null;
+  bannerUrl?: string | null;
   role: UserRole;
   /** Note moyenne reçue (1-5), null si aucune note. */
   rating: number | null;

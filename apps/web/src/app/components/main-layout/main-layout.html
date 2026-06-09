@@ -87,9 +87,19 @@
                   [class.hover:bg-rose-50]="!notif.read"
                 >
                   <div
-                    class="h-8 w-8 rounded-full bg-rose-700 flex items-center justify-center text-white text-xs font-bold shrink-0"
+                    class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                    [class.bg-rose-700]="
+                      notif.type !== 'friend_request' && notif.type !== 'friend_accepted'
+                    "
+                    [class.bg-sky-600]="
+                      notif.type === 'friend_request' || notif.type === 'friend_accepted'
+                    "
                   >
-                    {{ (notif.actor?.name || '?')[0].toUpperCase() }}
+                    @if (notif.type === 'friend_request' || notif.type === 'friend_accepted') {
+                      <span class="material-symbols-outlined" style="font-size: 18px">people</span>
+                    } @else {
+                      {{ (notif.actor?.name || '?')[0].toUpperCase() }}
+                    }
                   </div>
                   <div class="min-w-0 flex-1">
                     <p class="text-sm text-zinc-700 leading-snug">

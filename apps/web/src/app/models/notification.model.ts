@@ -1,4 +1,10 @@
-export type NotificationType = 'comment' | 'reply' | 'thread_like' | 'comment_like';
+export type NotificationType =
+  | 'comment'
+  | 'reply'
+  | 'thread_like'
+  | 'comment_like'
+  | 'friend_request'
+  | 'friend_accepted';
 
 export interface AppNotification {
   id: number;

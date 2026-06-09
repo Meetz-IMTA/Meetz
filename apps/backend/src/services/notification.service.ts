@@ -4,7 +4,9 @@ export type NotificationType =
   | "comment"
   | "reply"
   | "thread_like"
-  | "comment_like";
+  | "comment_like"
+  | "friend_request"
+  | "friend_accepted";
 
 interface NotificationInput {
   userId: number; // recipient
@@ -21,6 +23,17 @@ interface NotificationInput {
 export const notify = async (input: NotificationInput): Promise<void> => {
   if (input.userId === input.actorId) return; // no self-notifications
   try {
+    // For friend actions: replace any existing notification of the same type
+    // from the same actor so the inbox never shows duplicates.
+    if (input.type === "friend_request" || input.type === "friend_accepted") {
+      await prisma.notification.deleteMany({
+        where: {
+          userId: input.userId,
+          actorId: input.actorId,
+          type: input.type,
+        },
+      });
+    }
     await prisma.notification.create({
       data: {
         userId: input.userId,

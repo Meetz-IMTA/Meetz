@@ -1,4 +1,5 @@
 import prisma from "../lib/prisma.js";
+import { notify } from "./notification.service.js";
 
 const USER_SELECT = {
   id: true,
@@ -80,7 +81,11 @@ export const sendRequest = async (senderId: number, receiverId: number) => {
   });
   if (existingRequest) throw new Error("Une demande est déjà en attente.");
 
-  return prisma.friendRequest.create({ data: { senderId, receiverId } });
+  const request = await prisma.friendRequest.create({
+    data: { senderId, receiverId },
+  });
+  notify({ userId: receiverId, actorId: senderId, type: "friend_request" });
+  return request;
 };
 
 export const acceptRequest = async (requestId: number, userId: number) => {
@@ -98,6 +103,11 @@ export const acceptRequest = async (requestId: number, userId: number) => {
       data: { userAId: request.senderId, userBId: request.receiverId },
     }),
   ]);
+  notify({
+    userId: request.senderId,
+    actorId: userId,
+    type: "friend_accepted",
+  });
 };
 
 export const declineRequest = async (requestId: number, userId: number) => {

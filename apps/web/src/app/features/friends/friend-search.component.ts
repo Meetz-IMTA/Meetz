@@ -41,6 +41,10 @@ export class FriendSearchComponent {
     return this.searchQuery().trim().length >= 2;
   }
 
+  getRelation(userId: string) {
+    return this.friendService.getUserRelation(userId);
+  }
+
   sendRequest(userId: string): void {
     this.friendService.sendFriendRequest(userId);
   }

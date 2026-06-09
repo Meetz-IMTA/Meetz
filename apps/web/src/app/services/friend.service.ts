@@ -74,8 +74,20 @@ export class FriendService {
   }
 
   sendFriendRequest(userId: string): void {
+    const tempId = '__pending__' + userId;
+    this._requests.update((reqs) => [
+      ...reqs,
+      {
+        id: tempId,
+        from: {} as any,
+        to: { id: userId } as any,
+        sentAt: new Date(),
+        direction: 'outgoing' as const,
+      },
+    ]);
     this.http.post(`${API}/friends/request/${userId}`, {}).subscribe({
       next: () => this.loadRequests(),
+      error: () => this._requests.update((reqs) => reqs.filter((r) => r.id !== tempId)),
     });
   }
 

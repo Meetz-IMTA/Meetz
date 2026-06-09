@@ -86,7 +86,13 @@
                   [class.bg-rose-50]="!notif.read"
                   [class.hover:bg-rose-50]="!notif.read"
                 >
-                  @if (notif.actor?.avatarUrl) {
+                  @if (notif.type === 'friend_request' || notif.type === 'friend_accepted') {
+                    <div
+                      class="h-8 w-8 rounded-full bg-sky-600 flex items-center justify-center text-white text-xs font-bold shrink-0"
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 18px">people</span>
+                    </div>
+                  } @else if (notif.actor?.avatarUrl) {
                     <mz-avatar
                       [src]="notif.actor!.avatarUrl"
                       [alt]="notif.actor!.name"

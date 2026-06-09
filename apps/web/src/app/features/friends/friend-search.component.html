@@ -128,7 +128,7 @@
             </div>
 
             <div class="shrink-0">
-              @switch (result.relation) {
+              @switch (getRelation(result.user.id).status) {
                 @case ('friend') {
                   <span
                     class="inline-flex items-center gap-1.5 text-sm font-semibold text-mz-success px-4 py-2 rounded-mz-btn border border-mz-border"
@@ -154,7 +154,7 @@
                     <button
                       type="button"
                       class="mz-btn-ghost text-sm"
-                      (click)="cancelRequest(result.requestId!)"
+                      (click)="cancelRequest(getRelation(result.user.id).requestId!)"
                     >
                       Annuler
                     </button>

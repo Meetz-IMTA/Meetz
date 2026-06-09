@@ -14,11 +14,12 @@
   }
   <div class="flex gap-4">
     <!-- Author avatar -->
-    <div
-      class="h-10 w-10 rounded-full bg-rose-700 flex items-center justify-center text-white text-sm font-bold shrink-0"
-    >
-      {{ authorInitial }}
-    </div>
+    <mz-avatar
+      [src]="thread.author.avatarUrl"
+      [alt]="thread.author.name"
+      [seed]="thread.author.id.toString()"
+      [size]="40"
+    />
 
     <div class="min-w-0 flex-1">
       <!-- Meta -->

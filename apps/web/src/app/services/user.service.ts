@@ -75,6 +75,15 @@ export class UserService {
     return this.http.post<{ avatarUrl: string }>(`${API}/users/me/avatar`, form).pipe(
       map((res) => {
         this._currentUser.update((u) => (u ? { ...u, avatarUrl: res.avatarUrl } : u));
+        const stored = localStorage.getItem('user');
+        if (stored) {
+          try {
+            localStorage.setItem(
+              'user',
+              JSON.stringify({ ...JSON.parse(stored), avatarUrl: res.avatarUrl }),
+            );
+          } catch {}
+        }
         return res;
       }),
     );

@@ -86,21 +86,25 @@
                   [class.bg-rose-50]="!notif.read"
                   [class.hover:bg-rose-50]="!notif.read"
                 >
-                  <div
-                    class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                    [class.bg-rose-700]="
-                      notif.type !== 'friend_request' && notif.type !== 'friend_accepted'
-                    "
-                    [class.bg-sky-600]="
-                      notif.type === 'friend_request' || notif.type === 'friend_accepted'
-                    "
-                  >
-                    @if (notif.type === 'friend_request' || notif.type === 'friend_accepted') {
+                  @if (notif.type === 'friend_request' || notif.type === 'friend_accepted') {
+                    <div
+                      class="h-8 w-8 rounded-full bg-sky-600 flex items-center justify-center text-white text-xs font-bold shrink-0"
+                    >
                       <span class="material-symbols-outlined" style="font-size: 18px">people</span>
-                    } @else {
+                    </div>
+                  } @else if (notif.actor?.avatarUrl) {
+                    <mz-avatar
+                      [src]="notif.actor!.avatarUrl"
+                      [alt]="notif.actor!.name"
+                      [size]="32"
+                    />
+                  } @else {
+                    <div
+                      class="h-8 w-8 rounded-full bg-rose-700 flex items-center justify-center text-white text-xs font-bold shrink-0"
+                    >
                       {{ (notif.actor?.name || '?')[0].toUpperCase() }}
-                    }
-                  </div>
+                    </div>
+                  }
                   <div class="min-w-0 flex-1">
                     <p class="text-sm text-zinc-700 leading-snug">
                       <span class="font-bold text-zinc-900">{{
@@ -127,9 +131,16 @@
       <button
         type="button"
         (click)="toggleDropdown()"
-        class="h-8 w-8 rounded-full bg-rose-700 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white overflow-hidden hover:brightness-110 transition-all"
+        class="rounded-full ring-2 ring-white overflow-hidden hover:brightness-110 transition-all"
       >
-        {{ userInitial }}
+        @if (userAvatarUrl) {
+          <mz-avatar [src]="userAvatarUrl" [alt]="userName" [size]="32" />
+        } @else {
+          <span
+            class="h-8 w-8 rounded-full bg-rose-700 flex items-center justify-center text-white text-xs font-bold"
+            >{{ userInitial }}</span
+          >
+        }
       </button>
       @if (dropdownOpen()) {
         <div

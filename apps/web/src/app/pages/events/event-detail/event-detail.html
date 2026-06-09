@@ -229,11 +229,12 @@
       <div class="sidebar-card">
         <h3 class="sidebar-label">Organisé par</h3>
         <div class="flex items-center gap-4">
-          <div
-            class="w-12 h-12 rounded-full bg-rose-700 flex items-center justify-center text-white font-extrabold text-lg shrink-0"
-          >
-            {{ organizerInitial }}
-          </div>
+          <mz-avatar
+            [src]="event.organizer.avatarUrl"
+            [alt]="event.organizer.name"
+            [seed]="event.organizer.id.toString()"
+            [size]="48"
+          />
           <div class="min-w-0">
             <p class="font-bold text-zinc-900">{{ event.organizer.name }}</p>
             <p class="text-zinc-500 text-xs truncate">{{ event.organizer.email }}</p>

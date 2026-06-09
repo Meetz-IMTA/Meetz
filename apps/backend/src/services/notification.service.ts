@@ -48,7 +48,7 @@ export const notify = async (input: NotificationInput): Promise<void> => {
   }
 };
 
-const actorSelect = { select: { id: true, name: true } };
+const actorSelect = { select: { id: true, name: true, avatarUrl: true } };
 
 export const getNotifications = async (userId: number, limit = 20) => {
   const [items, unreadCount] = await Promise.all([

@@ -8,12 +8,13 @@ import { catchError, of } from 'rxjs';
 import { EventService } from '../../../services/event';
 import { Auth } from '../../../services/auth';
 import { MeetzEvent } from '../../../models/event.model';
+import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
 
 const GEO_CACHE_PREFIX = 'meetz_geo_';
 
 @Component({
   selector: 'app-event-detail',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, AvatarComponent],
   templateUrl: './event-detail.html',
   styleUrl: './event-detail.css',
 })

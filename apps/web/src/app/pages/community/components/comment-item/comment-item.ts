@@ -8,10 +8,19 @@ import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
 import { CloudImagePipe } from '../../../../shared/pipes/cloud-image.pipe';
 import { LikeButton } from '../like-button/like-button';
 import { CommentComposer } from '../comment-composer/comment-composer';
+import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
 
 @Component({
   selector: 'app-comment-item',
-  imports: [FormsModule, RouterLink, TimeAgoPipe, CloudImagePipe, LikeButton, CommentComposer],
+  imports: [
+    FormsModule,
+    RouterLink,
+    TimeAgoPipe,
+    CloudImagePipe,
+    LikeButton,
+    CommentComposer,
+    AvatarComponent,
+  ],
   templateUrl: './comment-item.html',
   host: { class: 'block' },
 })

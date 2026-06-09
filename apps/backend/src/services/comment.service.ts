@@ -2,7 +2,9 @@ import prisma from "../lib/prisma.js";
 import { notify } from "./notification.service.js";
 import { deleteImage } from "../lib/cloudinary.js";
 
-const authorSelect = { select: { id: true, name: true, email: true } };
+const authorSelect = {
+  select: { id: true, name: true, email: true, avatarUrl: true },
+};
 
 interface CommentData {
   content?: string;

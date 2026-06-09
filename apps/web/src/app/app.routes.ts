@@ -4,6 +4,7 @@ import { VerifyOtp } from './pages/verify-otp/verify-otp';
 import { ForgetPassword } from './pages/forget-password/forget-password';
 import { ResetPassword } from './pages/reset-password/reset-password';
 import { Home } from './pages/home/home';
+import { Chat } from './pages/chat/chat';
 import { MainLayout } from './components/main-layout/main-layout';
 import { authGuard } from './guards/auth.guard';
 import { EventsList } from './pages/events/events-list/events-list';
@@ -47,11 +48,13 @@ const routes: Routes = [
       { path: 'friends', component: FriendListComponent },
       { path: 'friends/search', component: FriendSearchComponent },
       { path: 'profile', component: ProfileComponent },
-      { path: 'profile/edit', component: ProfileEditComponent }, // DOIT être avant :id
+      { path: 'profile/edit', component: ProfileEditComponent },
       { path: 'profile/:id', component: ProfileComponent },
       { path: 'settings', component: SettingsComponent },
       { path: 'admin', component: AdminDashboard, canActivate: [adminGuard] },
+      { path: 'chat', component: Chat },
     ],
   },
 ];
+
 export default routes;

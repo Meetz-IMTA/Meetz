@@ -1,0 +1,342 @@
+@if (!isOnChatPage()) {
+  <!-- ═══ Popup panel ═══ -->
+  @if (isOpen$ | async) {
+    <div
+      class="fixed bottom-20 right-6 z-40 widget-panel bg-white rounded-2xl shadow-2xl border border-zinc-200 flex flex-col overflow-hidden"
+      style="width: 360px; height: 500px"
+    >
+      <!-- Panel header -->
+      <div class="flex items-center gap-2 px-4 py-3 bg-rose-700 text-white flex-shrink-0">
+        @if (view() === 'chat' && activeConversation(); as conv) {
+          <button
+            (click)="backToList()"
+            class="p-1 rounded-full hover:bg-rose-600 transition-colors flex-shrink-0"
+            type="button"
+          >
+            <span class="material-symbols-outlined" style="font-size: 20px">arrow_back</span>
+          </button>
+          <div
+            class="h-8 w-8 rounded-full bg-rose-500 flex items-center justify-center font-bold text-sm flex-shrink-0"
+          >
+            {{ getInitial(conv) }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm truncate">{{ getDisplayName(conv) }}</p>
+            @if (conv.type === 'EVENT_GROUP') {
+              <p class="text-rose-200 text-xs">{{ conv.participants.length }} participant(s)</p>
+            }
+          </div>
+        } @else {
+          <span class="material-symbols-outlined text-rose-200 flex-shrink-0">chat</span>
+          <span class="font-bold text-sm flex-1">Messagerie</span>
+        }
+        <!-- Expand to full page -->
+        <a
+          routerLink="/chat"
+          (click)="close()"
+          class="p-1 rounded-full hover:bg-rose-600 transition-colors flex-shrink-0"
+          title="Ouvrir en plein écran"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px">open_in_full</span>
+        </a>
+        <button
+          (click)="close()"
+          class="p-1 rounded-full hover:bg-rose-600 transition-colors flex-shrink-0"
+          type="button"
+        >
+          <span class="material-symbols-outlined" style="font-size: 20px">close</span>
+        </button>
+      </div>
+
+      <!-- Conversation list view -->
+      @if (view() === 'list') {
+        <div class="flex-1 overflow-y-auto">
+          @if (conversations().length === 0) {
+            <div
+              class="flex flex-col items-center justify-center h-full text-zinc-400 px-6 text-center"
+            >
+              <span class="material-symbols-outlined text-3xl mb-2">chat_bubble</span>
+              <p class="text-sm">Aucune conversation</p>
+            </div>
+          } @else {
+            @for (conv of conversations(); track conv.id) {
+              <div
+                (click)="openConversation(conv)"
+                class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-50 transition-colors border-b border-zinc-100"
+              >
+                <div class="relative flex-shrink-0">
+                  <div
+                    class="h-10 w-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-sm"
+                  >
+                    {{ getInitial(conv) }}
+                  </div>
+                  @if (conv.type === 'EVENT_GROUP') {
+                    <span
+                      class="absolute -bottom-0.5 -right-0.5 h-4 w-4 bg-rose-600 rounded-full flex items-center justify-center"
+                    >
+                      <span class="material-symbols-outlined text-white" style="font-size: 10px"
+                        >groups</span
+                      >
+                    </span>
+                  }
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between items-baseline gap-1">
+                    <span class="font-semibold text-sm text-zinc-800 truncate">{{
+                      getDisplayName(conv)
+                    }}</span>
+                    @if (conv.lastMessage) {
+                      <span class="text-xs text-zinc-400 flex-shrink-0">{{
+                        formatTime(conv.lastMessage.createdAt)
+                      }}</span>
+                    }
+                  </div>
+                  <div class="flex justify-between items-center gap-1 mt-0.5">
+                    <span class="text-xs text-zinc-400 truncate">{{
+                      lastMessagePreview(conv)
+                    }}</span>
+                    @if (conv.unreadCount > 0) {
+                      <span
+                        class="flex-shrink-0 h-5 min-w-5 px-1 rounded-full bg-rose-600 flex items-center justify-center text-white text-xs font-bold"
+                      >
+                        {{ conv.unreadCount > 9 ? '9+' : conv.unreadCount }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      }
+
+      <!-- Chat view -->
+      @if (view() === 'chat') {
+        <!-- Messages -->
+        <div #widgetMessages class="flex-1 overflow-y-auto p-3 space-y-2 bg-zinc-50">
+          @for (msg of messages(); track msg.id) {
+            <div class="flex gap-1.5" [class.flex-row-reverse]="isMe(msg)">
+              @if (!isMe(msg)) {
+                <div
+                  class="h-6 w-6 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600 font-bold text-xs flex-shrink-0 self-end mb-4"
+                >
+                  {{ msg.sender.name[0].toUpperCase() }}
+                </div>
+              }
+              <div class="max-w-[75%]">
+                @if (!isMe(msg)) {
+                  <span class="text-xs text-zinc-400 mb-0.5 block pl-1">{{ msg.sender.name }}</span>
+                }
+                <!-- Bubble -->
+                <div
+                  class="rounded-2xl overflow-hidden text-sm"
+                  [class.bg-rose-600]="isMe(msg)"
+                  [class.text-white]="isMe(msg)"
+                  [class.rounded-tr-sm]="isMe(msg)"
+                  [class.bg-white]="!isMe(msg)"
+                  [class.text-zinc-800]="!isMe(msg)"
+                  [class.shadow-sm]="!isMe(msg)"
+                  [class.border]="!isMe(msg)"
+                  [class.border-zinc-200]="!isMe(msg)"
+                  [class.rounded-tl-sm]="!isMe(msg)"
+                >
+                  @if (msg.content) {
+                    <div class="px-3 py-2">{{ msg.content }}</div>
+                  }
+                  @if (msg.imageUrl) {
+                    <img
+                      [src]="msg.imageUrl"
+                      class="block w-full max-h-40 object-cover"
+                      alt="Photo"
+                      loading="lazy"
+                    />
+                  } @else if (msg.gifUrl) {
+                    <img
+                      [src]="msg.gifUrl"
+                      class="block w-full max-h-40 object-contain"
+                      alt="GIF"
+                      loading="lazy"
+                    />
+                  }
+                </div>
+                <span
+                  class="text-xs text-zinc-400 mt-0.5 block px-1"
+                  [class.text-right]="isMe(msg)"
+                >
+                  {{ formatTime(msg.createdAt) }}
+                </span>
+              </div>
+            </div>
+          } @empty {
+            <div class="flex items-center justify-center h-full text-zinc-400 text-xs">
+              Envoyez le premier message !
+            </div>
+          }
+
+          @if (typingUserIds().length > 0) {
+            <div class="flex gap-1.5 items-end">
+              <div class="h-6 w-6 rounded-full bg-zinc-200 flex-shrink-0"></div>
+              <div
+                class="bg-white border border-zinc-200 shadow-sm px-3 py-2 rounded-2xl rounded-tl-sm"
+              >
+                <div class="flex gap-1 items-center">
+                  <div class="typing-dot"></div>
+                  <div class="typing-dot"></div>
+                  <div class="typing-dot"></div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- GIF picker panel (above input) -->
+        @if (showGifPicker()) {
+          <div class="flex-shrink-0 border-t border-zinc-200 bg-white">
+            <div class="p-2 border-b border-zinc-100">
+              <input
+                type="text"
+                [value]="gifQuery"
+                (input)="onGifSearch($any($event.target).value)"
+                placeholder="Rechercher un GIF…"
+                class="w-full px-2 py-1.5 rounded-lg border border-zinc-200 bg-zinc-50 text-xs focus:outline-none focus:ring-2 focus:ring-rose-700/20"
+              />
+            </div>
+            <div class="h-32 overflow-y-auto p-1.5">
+              @if (gifLoading()) {
+                <div class="flex items-center justify-center h-full text-zinc-400 text-xs">
+                  Chargement…
+                </div>
+              } @else if (gifs().length === 0) {
+                <div class="flex items-center justify-center h-full text-zinc-400 text-xs">
+                  Aucun GIF
+                </div>
+              } @else {
+                <div class="grid grid-cols-3 gap-1">
+                  @for (gif of gifs(); track gif.id) {
+                    <img
+                      [src]="gif.previewUrl"
+                      [alt]="gif.title"
+                      (click)="selectGif(gif)"
+                      class="w-full h-14 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                    />
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Input -->
+        <div class="px-3 py-2 border-t border-zinc-200 bg-white flex-shrink-0">
+          <!-- Attachment preview -->
+          @if (imagePreview() || selectedGifUrl()) {
+            <div class="mb-1.5 flex items-center gap-2">
+              <div class="relative inline-block">
+                <img
+                  [src]="(imagePreview() || selectedGifUrl())!"
+                  class="h-10 w-10 rounded-lg object-cover border border-zinc-200"
+                  alt="Aperçu"
+                />
+                <button
+                  (click)="clearAttachment()"
+                  class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-zinc-700 text-white flex items-center justify-center"
+                  type="button"
+                >
+                  <span class="material-symbols-outlined" style="font-size: 10px">close</span>
+                </button>
+              </div>
+              <span class="text-xs text-zinc-400">
+                {{ imagePreview() ? 'Photo' : 'GIF' }} sélectionné(e)
+              </span>
+            </div>
+          }
+
+          <div class="flex gap-1.5 items-end">
+            <!-- Attachment buttons -->
+            <div class="flex items-center gap-0.5 flex-shrink-0 self-end mb-1">
+              <button
+                (click)="triggerPhotoUpload()"
+                class="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600 transition-colors"
+                title="Photo"
+                type="button"
+              >
+                <span class="material-symbols-outlined" style="font-size: 18px">image</span>
+              </button>
+              <button
+                (click)="toggleGifPicker()"
+                class="h-7 px-1.5 flex items-center justify-center rounded-lg hover:bg-zinc-100 text-xs font-bold transition-colors"
+                [class.text-rose-600]="showGifPicker()"
+                [class.bg-rose-50]="showGifPicker()"
+                [class.text-zinc-400]="!showGifPicker()"
+                title="GIF"
+                type="button"
+              >
+                GIF
+              </button>
+            </div>
+            <!-- Textarea -->
+            <textarea
+              [(ngModel)]="messageText"
+              (keydown.enter)="onEnterKey($event)"
+              (input)="onInput()"
+              (blur)="clearTyping()"
+              rows="1"
+              placeholder="Écrire un message…"
+              class="flex-1 resize-none px-3 py-2 rounded-xl border border-zinc-200 bg-zinc-50 text-sm focus:outline-none focus:ring-2 focus:ring-rose-700/20"
+              style="min-height: 38px; max-height: 90px"
+            >
+            </textarea>
+            <!-- Send button -->
+            <button
+              (click)="sendMessage()"
+              [disabled]="!canSend"
+              class="flex-shrink-0 h-9 w-9 rounded-full bg-rose-600 hover:bg-rose-700 disabled:bg-zinc-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center text-white"
+              type="button"
+            >
+              @if (imageUploading()) {
+                <span class="material-symbols-outlined widget-spin" style="font-size: 18px"
+                  >progress_activity</span
+                >
+              } @else {
+                <span class="material-symbols-outlined" style="font-size: 18px">send</span>
+              }
+            </button>
+          </div>
+
+          <!-- Hidden file input -->
+          <input
+            #widgetPhotoInput
+            type="file"
+            accept="image/*"
+            (change)="onImageSelected($event)"
+            class="hidden"
+          />
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══ Pill toggle bar — masquée quand le panel est ouvert ═══ -->
+  @if (!(isOpen$ | async)) {
+    <div class="fixed bottom-6 right-6 z-40">
+      <button
+        (click)="toggle()"
+        class="widget-pill flex items-center gap-2 px-4 h-12 rounded-full bg-white border border-zinc-200 shadow-lg hover:shadow-xl hover:bg-zinc-50 transition-all duration-200 text-zinc-700"
+        type="button"
+      >
+        <span class="material-symbols-outlined text-rose-600" style="font-size: 22px">chat</span>
+        <span class="font-semibold text-sm">Messagerie</span>
+        @if (totalUnread > 0) {
+          <span
+            class="h-5 min-w-5 px-1 rounded-full bg-rose-600 text-white text-xs font-black flex items-center justify-center"
+          >
+            {{ totalUnread > 9 ? '9+' : totalUnread }}
+          </span>
+        }
+        <span class="material-symbols-outlined text-zinc-400" style="font-size: 18px"
+          >expand_less</span
+        >
+      </button>
+    </div>
+  }
+}

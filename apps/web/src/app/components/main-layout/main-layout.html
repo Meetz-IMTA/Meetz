@@ -94,7 +94,7 @@
                   <div class="min-w-0 flex-1">
                     <p class="text-sm text-zinc-700 leading-snug">
                       <span class="font-bold text-zinc-900">{{
-                        notif.actor?.name || 'Quelqu’un'
+                        notif.actor?.name || "Quelqu'un"
                       }}</span>
                       {{ notifLabel(notif.type) }}
                       @if (notif.thread) {
@@ -178,3 +178,6 @@
     <app-footer />
   </div>
 </div>
+
+<!-- Chat widget (always visible on authenticated pages) -->
+<app-chat-widget />

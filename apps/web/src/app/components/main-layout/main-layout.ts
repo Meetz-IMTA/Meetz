@@ -6,6 +6,7 @@ import { Footer } from '../footer/footer';
 import { NotificationService } from '../../services/notification';
 import { AppNotification, NotificationType } from '../../models/notification.model';
 import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
+import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 
 interface NavItem {
   label: string;
@@ -22,7 +23,7 @@ const NOTIF_LABELS: Record<NotificationType, string> = {
 
 @Component({
   selector: 'app-main-layout',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, Footer, TimeAgoPipe],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, Footer, TimeAgoPipe, AvatarComponent],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
 })
@@ -109,6 +110,10 @@ export class MainLayout implements OnInit, OnDestroy {
   get userInitial(): string {
     const user = this.auth.getUser();
     return user?.name ? user.name[0].toUpperCase() : 'U';
+  }
+
+  get userAvatarUrl(): string | null {
+    return this.auth.getUser()?.avatarUrl ?? null;
   }
 
   get userName(): string {

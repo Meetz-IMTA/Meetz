@@ -2,6 +2,7 @@ export interface CommunityAuthor {
   id: number;
   name: string;
   email: string;
+  avatarUrl: string | null;
 }
 
 export interface Category {

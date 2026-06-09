@@ -9,7 +9,7 @@ export interface AppNotification {
   commentId: number | null;
   read: boolean;
   createdAt: string;
-  actor: { id: number; name: string } | null;
+  actor: { id: number; name: string; avatarUrl: string | null } | null;
   thread: { id: number; title: string } | null;
 }
 

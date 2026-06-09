@@ -31,7 +31,11 @@ export const getEvents = (filters: EventFilters = {}) =>
         ],
       }),
     },
-    include: { organizer: { select: { id: true, name: true, email: true } } },
+    include: {
+      organizer: {
+        select: { id: true, name: true, email: true, avatarUrl: true },
+      },
+    },
     orderBy: { date: "asc" },
   });
 
@@ -39,7 +43,9 @@ export const getEventById = async (id: number, userId?: number) => {
   const event = await prisma.event.findUnique({
     where: { id },
     include: {
-      organizer: { select: { id: true, name: true, email: true } },
+      organizer: {
+        select: { id: true, name: true, email: true, avatarUrl: true },
+      },
       _count: { select: { participations: true } },
     },
   });

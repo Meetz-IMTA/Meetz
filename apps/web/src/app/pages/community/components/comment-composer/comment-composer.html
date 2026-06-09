@@ -1,0 +1,159 @@
+<div
+  class="bg-white border border-gray-200 rounded-2xl"
+  [class.p-4]="!compact"
+  [class.p-3]="compact"
+>
+  <textarea
+    #textarea
+    [(ngModel)]="text"
+    [rows]="compact ? 2 : 3"
+    [placeholder]="placeholder"
+    class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-700/20 focus:border-rose-300 transition-all resize-none"
+  ></textarea>
+
+  <!-- Attachment preview -->
+  @if (hasAttachment) {
+    <div class="relative inline-block mt-2">
+      <img
+        [src]="selectedGifUrl || imagePreview"
+        alt=""
+        class="max-h-40 rounded-xl border border-gray-200"
+      />
+      <button
+        type="button"
+        (click)="clearAttachment()"
+        class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+      >
+        <span class="material-symbols-outlined" style="font-size: 16px">close</span>
+      </button>
+      @if (selectedGifUrl) {
+        <span
+          class="absolute bottom-1 left-1 text-[10px] font-bold bg-black/60 text-white px-1.5 py-0.5 rounded"
+          >GIF</span
+        >
+      }
+    </div>
+  }
+
+  @if (error) {
+    <p class="text-xs text-red-500 mt-2">{{ error }}</p>
+  }
+
+  <!-- Toolbar -->
+  <div class="flex items-center justify-between mt-2 relative">
+    <div class="flex items-center gap-1">
+      <button
+        type="button"
+        (click)="toggleEmoji()"
+        class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-rose-600 transition-colors"
+        title="Emoji"
+        [class.bg-rose-50]="showEmoji"
+        [class.text-rose-600]="showEmoji"
+      >
+        <span class="material-symbols-outlined" style="font-size: 20px">mood</span>
+      </button>
+      <button
+        type="button"
+        (click)="toggleGif()"
+        class="h-8 px-2 rounded-lg flex items-center justify-center text-xs font-black text-gray-500 hover:bg-gray-100 hover:text-rose-600 transition-colors"
+        title="GIF"
+        [class.bg-rose-50]="showGif"
+        [class.text-rose-600]="showGif"
+      >
+        GIF
+      </button>
+      <button
+        type="button"
+        (click)="triggerImage()"
+        class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-rose-600 transition-colors"
+        title="Image"
+      >
+        <span class="material-symbols-outlined" style="font-size: 20px">image</span>
+      </button>
+      <input
+        [id]="fileInputId"
+        type="file"
+        accept="image/*"
+        (change)="onImageSelected($event)"
+        class="hidden"
+      />
+    </div>
+
+    <button
+      type="button"
+      (click)="submit()"
+      [disabled]="!canSubmit"
+      class="px-4 py-1.5 bg-rose-700 text-white text-sm font-semibold rounded-xl hover:bg-rose-800 transition-colors disabled:opacity-50"
+    >
+      {{ isSubmitting ? 'Envoi...' : compact ? 'Répondre' : 'Commenter' }}
+    </button>
+
+    <!-- Emoji panel -->
+    @if (showEmoji) {
+      <div
+        class="absolute bottom-11 left-0 z-30 w-72 bg-white border border-gray-200 rounded-2xl shadow-lg p-3"
+      >
+        <div class="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto">
+          @for (emoji of emojis; track emoji) {
+            <button
+              type="button"
+              (click)="addEmoji(emoji)"
+              class="w-8 h-8 rounded-lg text-lg hover:bg-gray-100 transition-colors flex items-center justify-center"
+            >
+              {{ emoji }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- GIF panel -->
+    @if (showGif) {
+      <div
+        class="absolute bottom-11 left-0 z-30 w-80 bg-white border border-gray-200 rounded-2xl shadow-lg p-3"
+      >
+        <div class="relative mb-2">
+          <span
+            class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+            style="font-size: 18px"
+            >search</span
+          >
+          <input
+            [ngModel]="gifQuery"
+            (ngModelChange)="onGifQueryChange($event)"
+            type="text"
+            placeholder="Rechercher un GIF..."
+            class="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-rose-700/20 transition-all"
+          />
+        </div>
+        @if (isLoadingGifs) {
+          <div class="h-48 flex items-center justify-center text-sm text-gray-400">
+            Chargement...
+          </div>
+        } @else if (gifs.length === 0) {
+          <div class="h-48 flex items-center justify-center text-sm text-gray-400">
+            Aucun GIF trouvé
+          </div>
+        } @else {
+          <div class="columns-2 gap-1.5 max-h-56 overflow-y-auto">
+            @for (gif of gifs; track gif.id) {
+              <button
+                type="button"
+                (click)="selectGif(gif)"
+                class="block w-full mb-1.5 break-inside-avoid rounded-lg overflow-hidden bg-gray-100 hover:ring-2 hover:ring-rose-400 transition-all"
+              >
+                <img
+                  [src]="gif.previewUrl || gif.url"
+                  [alt]="gif.title"
+                  class="w-full h-auto block"
+                  loading="lazy"
+                />
+              </button>
+            }
+          </div>
+          <p class="text-[10px] text-gray-300 text-right mt-1.5">Powered by GIPHY</p>
+        }
+      </div>
+    }
+  </div>
+</div>

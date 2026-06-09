@@ -18,3 +18,35 @@ export const uploadImage = (
       })
       .end(buffer);
   });
+
+/**
+ * Extracts the Cloudinary public_id from a delivery URL, or null if the URL
+ * isn't a Cloudinary asset we uploaded (e.g. an external Giphy GIF).
+ */
+const extractPublicId = (url: string): string | null => {
+  if (!url || !url.includes("res.cloudinary.com")) return null;
+  // .../upload/(v123/)?<folder>/<id>.<ext>
+  const match = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z0-9]+$/);
+  return match?.[1] ?? null;
+};
+
+/** Deletes a single Cloudinary image by its URL. Never throws. */
+export const deleteImage = async (
+  url: string | null | undefined,
+): Promise<void> => {
+  if (!url) return;
+  const publicId = extractPublicId(url);
+  if (!publicId) return; // external URL (Giphy, etc.) — nothing to purge
+  try {
+    await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
+  } catch (err) {
+    console.error("Cloudinary delete failed for", publicId, err);
+  }
+};
+
+/** Deletes several Cloudinary images by URL in parallel. Never throws. */
+export const deleteImages = async (
+  urls: (string | null | undefined)[],
+): Promise<void> => {
+  await Promise.all(urls.map(deleteImage));
+};

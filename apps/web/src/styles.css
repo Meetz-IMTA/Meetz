@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'leaflet/dist/leaflet.css';
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
 
@@ -308,3 +309,99 @@ body {
   }
 }
 /* ===================== MEETZ THEME — fin ======================= */
+
+/* ── Community like button animation ── */
+@keyframes mz-like-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.45);
+  }
+  60% {
+    transform: scale(0.85);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes mz-like-burst {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.75;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.mz-like-icon {
+  display: inline-flex;
+  transition: color 0.2s ease;
+  font-variation-settings: 'FILL' 0;
+}
+.mz-like-icon.filled {
+  font-variation-settings: 'FILL' 1;
+}
+.mz-like-icon.animate {
+  animation: mz-like-pop 0.45s ease;
+}
+
+/* filled star for favorite categories */
+.mz-fav-star {
+  font-variation-settings: 'FILL' 0;
+}
+.mz-fav-star.filled {
+  font-variation-settings: 'FILL' 1;
+}
+
+/* generic filled material symbol (e.g. notification bell when unread) */
+.mz-fill-1 {
+  font-variation-settings: 'FILL' 1;
+}
+
+/* notification badge pop-in */
+@keyframes mz-badge-in {
+  0% {
+    transform: scale(0);
+  }
+  70% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.mz-badge {
+  animation: mz-badge-in 0.25s ease;
+}
+
+/* toast slide-in */
+@keyframes mz-toast-in {
+  0% {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.mz-toast {
+  animation: mz-toast-in 0.22s ease;
+}
+
+/* radial burst ring shown briefly when liking */
+.mz-like-burst {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(225, 29, 72, 0.45) 0%, rgba(225, 29, 72, 0) 70%);
+  pointer-events: none;
+  animation: mz-like-burst 0.5s ease-out forwards;
+}

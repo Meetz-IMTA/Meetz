@@ -1,0 +1,122 @@
+<div class="bg-white rounded-xl border border-zinc-200 shadow-sm p-4 flex flex-col gap-3">
+  <!-- Header row: type badge + status + date -->
+  <div class="flex items-center justify-between gap-2 flex-wrap">
+    <div class="flex items-center gap-2">
+      @if (report.threadId) {
+        <span
+          class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-rose-100 text-rose-700 uppercase tracking-wide"
+          >Post</span
+        >
+      } @else {
+        <span
+          class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-blue-100 text-blue-700 uppercase tracking-wide"
+          >Commentaire</span
+        >
+      }
+      <span
+        class="text-[11px] font-semibold px-2 py-0.5 rounded-md"
+        [ngClass]="STATUS_CLASSES[report.status]"
+      >
+        {{ STATUS_LABELS[report.status] }}
+      </span>
+    </div>
+    <span class="text-xs text-zinc-400">{{ report.createdAt | timeAgo }}</span>
+  </div>
+
+  <!-- Content preview -->
+  <div class="flex flex-col gap-0.5">
+    <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wide">Contenu signalé</p>
+    @if (contentThreadLink) {
+      <a
+        [routerLink]="['/community/thread', contentThreadLink]"
+        class="text-sm text-zinc-700 hover:text-rose-700 transition-colors font-medium line-clamp-2"
+        >{{ contentLabel }}</a
+      >
+    } @else {
+      <p class="text-sm text-zinc-700 font-medium">{{ contentLabel }}</p>
+    }
+    @if (report.reason) {
+      <p class="text-xs text-zinc-500 mt-1">
+        <span class="font-semibold">Raison :</span> {{ report.reason }}
+      </p>
+    }
+  </div>
+
+  <!-- People row -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <!-- Reporter -->
+    <div>
+      <p class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide mb-1">
+        Signalé par
+      </p>
+      @if (report.reporter) {
+        <div class="flex items-center gap-2">
+          <div
+            class="h-6 w-6 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600 text-[10px] font-bold shrink-0"
+          >
+            {{ report.reporter.name[0].toUpperCase() }}
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-zinc-700">{{ report.reporter.name }}</p>
+            <p class="text-[10px] text-zinc-400">{{ report.reporter.email }}</p>
+          </div>
+        </div>
+      } @else {
+        <span class="text-xs text-zinc-400">Utilisateur supprimé</span>
+      }
+    </div>
+
+    <!-- Reported user -->
+    <div>
+      <p class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide mb-1">
+        Utilisateur signalé
+      </p>
+      @if (reportedUser) {
+        <div class="flex items-center gap-2">
+          <div
+            class="h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
+            [class.bg-red-200]="reportedUser.isBanned"
+            [class.text-red-700]="reportedUser.isBanned"
+            [class.bg-zinc-200]="!reportedUser.isBanned"
+            [class.text-zinc-600]="!reportedUser.isBanned"
+          >
+            {{ reportedUser.name[0].toUpperCase() }}
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <p class="text-xs font-semibold text-zinc-700">{{ reportedUser.name }}</p>
+              @if (reportedUser.isBanned) {
+                <span class="px-1.5 py-0 text-[10px] font-bold bg-red-100 text-red-600 rounded"
+                  >Banni</span
+                >
+              }
+            </div>
+            <p class="text-[10px] text-zinc-400">{{ reportedUser.email }}</p>
+          </div>
+        </div>
+      } @else {
+        <span class="text-xs text-zinc-400">Utilisateur supprimé</span>
+      }
+    </div>
+  </div>
+
+  <!-- Actions divider -->
+  <div class="border-t border-zinc-100 pt-3 flex flex-col gap-2">
+    <!-- Content actions -->
+    <app-content-moderation-panel
+      [report]="report"
+      (deleteContent)="onDeleteContent($event)"
+      (ignoreReport)="onIgnore($event)"
+      (resolveReport)="onResolve($event)"
+    />
+
+    <!-- User moderation -->
+    @if (reportedUser) {
+      <app-user-moderation-panel
+        [user]="reportedUser"
+        (banUser)="onBanUser($event)"
+        (unbanUser)="onUnbanUser($event)"
+      />
+    }
+  </div>
+</div>

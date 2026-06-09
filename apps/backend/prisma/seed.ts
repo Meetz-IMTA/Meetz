@@ -115,7 +115,132 @@ async function main() {
     });
   }
 
-  console.log("Seed terminé : utilisateur + 8 événements créés.");
+  const categories = [
+    {
+      name: "General Discussion",
+      description: "Discussions générales sur tous les sujets.",
+      icon: "forum",
+    },
+    {
+      name: "Travel",
+      description: "Partagez vos voyages, conseils et destinations.",
+      icon: "travel_explore",
+    },
+    {
+      name: "Technology",
+      description: "Tech, gadgets, développement et innovations.",
+      icon: "memory",
+    },
+    {
+      name: "Gaming",
+      description: "Jeux vidéo, esport et communauté gaming.",
+      icon: "sports_esports",
+    },
+    {
+      name: "Sports",
+      description: "Tout l'univers du sport et de la compétition.",
+      icon: "sports_soccer",
+    },
+    {
+      name: "Food",
+      description: "Recettes, restaurants et plaisirs gourmands.",
+      icon: "restaurant",
+    },
+    {
+      name: "Photography",
+      description: "Photographie, matériel et partage de clichés.",
+      icon: "photo_camera",
+    },
+    {
+      name: "Lifestyle",
+      description: "Bien-être, mode de vie et inspiration au quotidien.",
+      icon: "spa",
+    },
+  ];
+
+  for (const category of categories) {
+    await prisma.category.upsert({
+      where: { name: category.name },
+      update: {},
+      create: category,
+    });
+  }
+
+  const existingThreads = await prisma.thread.count();
+  if (existingThreads === 0) {
+    const general = await prisma.category.findUniqueOrThrow({
+      where: { name: "General Discussion" },
+    });
+    const travel = await prisma.category.findUniqueOrThrow({
+      where: { name: "Travel" },
+    });
+    const tech = await prisma.category.findUniqueOrThrow({
+      where: { name: "Technology" },
+    });
+
+    const thread1 = await prisma.thread.create({
+      data: {
+        title: "Bienvenue sur la communauté Meetz 👋",
+        content:
+          "Présentez-vous, partagez vos centres d'intérêt et faites connaissance ! Ce thread est épinglé pour accueillir les nouveaux membres.",
+        authorId: user.id,
+        categoryId: general.id,
+        isPinned: true,
+        viewsCount: 142,
+      },
+    });
+
+    const thread2 = await prisma.thread.create({
+      data: {
+        title: "Vos meilleures destinations pour l'été 2026 ?",
+        content:
+          "Je prépare mes vacances et je cherche de l'inspiration. Quelles sont les destinations que vous recommandez pour un voyage de deux semaines ?",
+        authorId: user2.id,
+        categoryId: travel.id,
+        viewsCount: 87,
+      },
+    });
+
+    await prisma.thread.create({
+      data: {
+        title: "Quel framework frontend en 2026 ?",
+        content:
+          "Angular, React, Vue, Svelte... Le débat est éternel. Qu'utilisez-vous au quotidien et pourquoi ?",
+        authorId: user.id,
+        categoryId: tech.id,
+        viewsCount: 215,
+      },
+    });
+
+    const comment1 = await prisma.comment.create({
+      data: {
+        content: "Bienvenue à tous ! Hâte d'échanger avec vous 🚀",
+        authorId: user2.id,
+        threadId: thread1.id,
+      },
+    });
+
+    await prisma.comment.create({
+      data: {
+        content: "Merci pour l'accueil 🙌",
+        authorId: user.id,
+        threadId: thread1.id,
+        parentCommentId: comment1.id,
+      },
+    });
+
+    await prisma.threadLike.createMany({
+      data: [
+        { userId: user.id, threadId: thread2.id },
+        { userId: user2.id, threadId: thread1.id },
+      ],
+      skipDuplicates: true,
+    });
+  }
+
+  console.log(
+    "Seed terminé : utilisateurs + événements + catégories communauté.",
+  );
 }
 
 main()

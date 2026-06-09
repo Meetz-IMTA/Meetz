@@ -63,3 +63,19 @@
 .animate-spin {
   animation: spin 0.75s linear infinite;
 }
+
+/* ── Radius chips ── */
+.radius-active {
+  background: #be123c;
+  color: #fff;
+  border-color: #be123c;
+}
+.radius-inactive {
+  background: #fff;
+  color: #52525b;
+  border-color: #e4e4e7;
+}
+.radius-inactive:hover {
+  border-color: #be123c;
+  color: #be123c;
+}

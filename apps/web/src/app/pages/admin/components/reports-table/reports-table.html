@@ -1,0 +1,45 @@
+@if (loading) {
+  <div class="flex flex-col gap-3">
+    @for (s of skeletons; track $index) {
+      <div class="bg-white rounded-xl border border-zinc-200 h-36 animate-pulse"></div>
+    }
+  </div>
+} @else if (reports.length === 0) {
+  <div class="flex flex-col items-center justify-center py-16 text-center">
+    <span class="material-symbols-outlined text-zinc-200 mb-3" style="font-size: 48px">inbox</span>
+    <p class="text-sm font-semibold text-zinc-400">Aucun signalement trouvé</p>
+    <p class="text-xs text-zinc-300 mt-1">Modifiez les filtres pour voir plus de résultats</p>
+  </div>
+} @else {
+  <div class="flex flex-col gap-3">
+    @for (report of reports; track report.id) {
+      <app-report-card [report]="report" (action)="onAction($event)" />
+    }
+  </div>
+
+  @if (totalPages > 1) {
+    <div class="flex items-center justify-center gap-2 mt-6">
+      <button
+        type="button"
+        (click)="goToPage(currentPage - 1)"
+        [disabled]="currentPage <= 1"
+        class="p-1.5 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        <span class="material-symbols-outlined" style="font-size: 18px">chevron_left</span>
+      </button>
+
+      <span class="text-sm font-semibold text-zinc-600">
+        Page {{ currentPage }} / {{ totalPages }}
+      </span>
+
+      <button
+        type="button"
+        (click)="goToPage(currentPage + 1)"
+        [disabled]="currentPage >= totalPages"
+        class="p-1.5 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        <span class="material-symbols-outlined" style="font-size: 18px">chevron_right</span>
+      </button>
+    </div>
+  }
+}

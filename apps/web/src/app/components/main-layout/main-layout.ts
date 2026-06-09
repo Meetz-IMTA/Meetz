@@ -19,6 +19,8 @@ const NOTIF_LABELS: Record<NotificationType, string> = {
   reply: 'a répondu à votre commentaire',
   thread_like: 'a aimé votre thread',
   comment_like: 'a aimé votre commentaire',
+  friend_request: "vous a envoyé une demande d'ami",
+  friend_accepted: "a accepté votre demande d'ami",
 };
 
 @Component({
@@ -90,7 +92,14 @@ export class MainLayout implements OnInit, OnDestroy {
       );
       this.unreadCount.update((c) => Math.max(0, c - 1));
     }
-    if (notif.threadId) this.router.navigate(['/community/thread', notif.threadId]);
+    if (notif.type === 'friend_request') {
+      this.router.navigate(['/friends'], { queryParams: { tab: 'requests' } });
+    } else if (notif.type === 'friend_accepted' && notif.actorId) {
+      this.router.navigate(['/profile', notif.actorId]);
+    } else if (notif.threadId) {
+      const extras = notif.commentId ? { fragment: 'comment-' + notif.commentId } : {};
+      this.router.navigate(['/community/thread', notif.threadId], extras);
+    }
   }
 
   markAllRead() {

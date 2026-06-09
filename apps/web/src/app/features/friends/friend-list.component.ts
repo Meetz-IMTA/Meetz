@@ -1,5 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FriendService } from '../../services/friend.service';
 import { UserService } from '../../services/user.service';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
@@ -14,9 +21,16 @@ import type { Friend, FriendRequest } from '../../shared/models';
   templateUrl: './friend-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FriendListComponent {
+export class FriendListComponent implements OnInit {
   private readonly friendService = inject(FriendService);
   private readonly userService = inject(UserService);
+  private readonly route = inject(ActivatedRoute);
+
+  ngOnInit(): void {
+    this.friendService.loadAll();
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab === 'requests') this.activeTab.set('requests');
+  }
 
   readonly activeTab = signal<'friends' | 'requests'>('friends');
   readonly searchQuery = signal('');

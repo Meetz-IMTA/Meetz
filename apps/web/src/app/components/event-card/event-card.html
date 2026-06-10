@@ -22,6 +22,14 @@
         event.category
       }}</span>
     }
+    @if (event.isPrivate) {
+      <span
+        class="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm shadow flex items-center justify-center text-rose-700"
+        title="Événement privé — visible uniquement par les amis de l'organisateur"
+      >
+        <span class="material-symbols-outlined" style="font-size: 16px">lock</span>
+      </span>
+    }
   </div>
 
   <!-- Body -->

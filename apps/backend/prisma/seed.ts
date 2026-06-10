@@ -105,6 +105,17 @@ async function main() {
       maxAttendees: 120,
       organizerId: user2.id,
     },
+    {
+      name: "Soirée privée — anniversaire surprise",
+      description:
+        "Événement réservé aux amis : fête d'anniversaire surprise, chut !",
+      date: new Date("2026-07-25T20:00:00"),
+      location: "Montpellier, Place de la Comédie",
+      category: "Musique",
+      maxAttendees: 20,
+      isPrivate: true,
+      organizerId: user2.id,
+    },
   ];
 
   for (const event of events) {
@@ -114,6 +125,13 @@ async function main() {
       create: event,
     });
   }
+
+  // user1 et user2 sont amis : user1 voit donc les événements privés de user2.
+  await prisma.friendship.upsert({
+    where: { userAId_userBId: { userAId: user.id, userBId: user2.id } },
+    update: {},
+    create: { userAId: user.id, userBId: user2.id },
+  });
 
   const categories = [
     {

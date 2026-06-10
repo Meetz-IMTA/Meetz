@@ -23,6 +23,7 @@ model User {
   banReason                String?                   @db.Text
   refreshToken             String?
   isVerified               Boolean                   @default(false)
+  readReceipts             Boolean                   @default(true)
   otpCode                  String?
   otpExpiry                DateTime?
   resetToken               String?
@@ -38,6 +39,7 @@ model User {
   actedNotifications       Notification[]            @relation("ActorNotifications")
   conversationParticipants ConversationParticipant[]
   sentMessages             Message[]
+  messageReactions         MessageReaction[]
 }
 
 model Event {
@@ -150,16 +152,32 @@ model Report {
   id         Int      @id @default(autoincrement())
   threadId   Int?
   commentId  Int?
+  messageId  Int?
   reporterId Int?
   reason     String?  @db.Text
   status     String   @default("pending")
   createdAt  DateTime @default(now())
   thread     Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
   comment    Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  message    Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
   reporter   User?    @relation(fields: [reporterId], references: [id], onDelete: SetNull)
 
   @@index([threadId])
   @@index([commentId])
+  @@index([messageId])
+}
+
+model MessageReaction {
+  id        Int      @id @default(autoincrement())
+  messageId Int
+  userId    Int
+  emoji     String
+  createdAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
 }
 
 model Notification {
@@ -208,6 +226,8 @@ model Message {
   conversationId Int
   senderId       Int
   createdAt      DateTime     @default(now())
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender         User         @relation(fields: [senderId], references: [id])
+  conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User              @relation(fields: [senderId], references: [id])
+  reactions      MessageReaction[]
+  reports        Report[]
 }

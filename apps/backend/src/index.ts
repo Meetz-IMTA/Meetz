@@ -8,6 +8,7 @@ import communityRouter from "./routes/community.js";
 import notificationRouter from "./routes/notification.js";
 import adminRouter from "./routes/admin.js";
 import chatRouter from "./routes/chat.js";
+import usersRouter from "./routes/users.js";
 import { registerSocketHandlers } from "./socket/socket.handler.js";
 
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/v1/community", communityRouter);
 app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/chat", chatRouter);
+app.use("/api/v1/users", usersRouter);
 
 registerSocketHandlers(io);
 

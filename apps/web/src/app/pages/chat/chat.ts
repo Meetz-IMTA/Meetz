@@ -16,6 +16,7 @@ import {
   ChatService,
   type Conversation,
   type Message,
+  type MessageReaction,
   type ChatUser,
 } from '../../services/chat.service';
 import { Auth } from '../../services/auth';
@@ -57,6 +58,44 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
   imagePreview = signal<string | null>(null);
   imageUploading = signal(false);
   attachmentError = signal<string | null>(null);
+
+  // Hover actions
+  readonly EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+  hoveredMsgId = signal<number | null>(null);
+  emojiPickerMsgId = signal<number | null>(null);
+  reportMsgId = signal<number | null>(null);
+  reportReason = '';
+  reportCategory = signal<string | null>(null);
+  reportStep = signal<1 | 2>(1);
+  reportDone = signal<number | null>(null);
+
+  // Read receipts: maps userId → lastReadAt ISO string for the active conversation
+  seenBy = signal<Map<number, string>>(new Map());
+
+  readonly lastSeenMessageId = computed(() => {
+    const currentUserId = this.currentUser?.id;
+    if (!currentUserId) return null;
+    const seenMap = this.seenBy();
+    let latestOtherReadMs = 0;
+    seenMap.forEach((lastReadAt, uid) => {
+      if (uid !== currentUserId) {
+        const t = new Date(lastReadAt).getTime();
+        if (t > latestOtherReadMs) latestOtherReadMs = t;
+      }
+    });
+    if (!latestOtherReadMs) return null;
+    const msgs = this.messages();
+    let lastSeenId: number | null = null;
+    for (const msg of msgs) {
+      if (
+        msg.senderId === currentUserId &&
+        new Date(msg.createdAt).getTime() <= latestOtherReadMs
+      ) {
+        lastSeenId = msg.id;
+      }
+    }
+    return lastSeenId;
+  });
 
   searchTerm = '';
   userSearch = '';
@@ -134,6 +173,13 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
       }),
     );
 
+    this.subs.add(
+      this.chatService.onConversationRead().subscribe(({ userId, conversationId, lastReadAt }) => {
+        if (conversationId !== this.activeConversation()?.id) return;
+        this.seenBy.update((map) => new Map(map).set(userId, lastReadAt));
+      }),
+    );
+
     this.chatService.loadConversations();
   }
 
@@ -154,6 +200,9 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
     this.typingUserIds.set([]);
     this.clearAttachment();
     this.showGifPicker.set(false);
+    const initSeen = new Map<number, string>();
+    conv.participants.forEach((p) => initSeen.set(p.userId, p.lastReadAt));
+    this.seenBy.set(initSeen);
     this.chatService.openConversation(conv.id);
     this.shouldScrollToBottom = true;
   }
@@ -300,9 +349,9 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
     this.chatService.createPrivateConversation(user.id).subscribe({
       next: (conv) => {
         const raw = conv as any;
-        const minimal: Conversation = {
+        const normalized: Conversation = {
           id: raw.id,
-          type: raw.type,
+          type: raw.type ?? 'PRIVATE',
           name: raw.name ?? null,
           createdAt: raw.createdAt,
           eventId: raw.eventId ?? null,
@@ -311,15 +360,81 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
           lastMessage: raw.messages?.[0] ?? null,
           unreadCount: 0,
         };
-        this.activeConversation.set(minimal);
+        // Add to local list if not already present, then open
+        if (!this.conversations().find((c) => c.id === normalized.id)) {
+          this.conversations.update((cs) => [normalized, ...cs]);
+        }
+        this.activeConversation.set(normalized);
         this.shouldScrollToBottom = true;
         this.chatService.openConversation(conv.id);
         this.chatService.loadConversations();
       },
-      error: (err) => {
-        console.error('[Chat] Impossible de créer la conversation :', err);
+      error: () => {
+        this.flashError('Impossible de créer la conversation. Vérifiez votre connexion.');
       },
     });
+  }
+
+  // ── Reactions & Report ──
+
+  toggleEmojiPicker(msgId: number, event: MouseEvent): void {
+    event.stopPropagation();
+    this.emojiPickerMsgId.set(this.emojiPickerMsgId() === msgId ? null : msgId);
+    this.reportMsgId.set(null);
+  }
+
+  sendReaction(msg: Message, emoji: string): void {
+    const conv = this.activeConversation();
+    if (!conv) return;
+    this.emojiPickerMsgId.set(null);
+    this.chatService.reactToMessage(msg.id, conv.id, emoji);
+  }
+
+  openReport(msgId: number, event: MouseEvent): void {
+    event.stopPropagation();
+    this.reportMsgId.set(this.reportMsgId() === msgId ? null : msgId);
+    this.emojiPickerMsgId.set(null);
+    this.reportReason = '';
+    this.reportCategory.set(null);
+    this.reportStep.set(1);
+    this.reportDone.set(null);
+  }
+
+  submitReport(msgId: number): void {
+    const cat = this.reportCategory();
+    if (!cat) return;
+    const reason = this.reportReason.trim() ? `${cat} — ${this.reportReason.trim()}` : cat;
+    this.chatService.reportChatMessage(msgId, reason).subscribe({
+      next: () => {
+        this.reportDone.set(msgId);
+        this.reportReason = '';
+        this.reportCategory.set(null);
+        setTimeout(() => {
+          this.reportMsgId.set(null);
+          this.reportDone.set(null);
+        }, 2000);
+      },
+      error: () => {},
+    });
+  }
+
+  groupedReactions(
+    reactions: MessageReaction[],
+  ): { emoji: string; count: number; hasMe: boolean }[] {
+    const map = new Map<string, { count: number; hasMe: boolean }>();
+    const myId = this.currentUser?.id;
+    for (const r of reactions) {
+      const entry = map.get(r.emoji) ?? { count: 0, hasMe: false };
+      entry.count++;
+      if (r.userId === myId) entry.hasMe = true;
+      map.set(r.emoji, entry);
+    }
+    return Array.from(map.entries()).map(([emoji, v]) => ({ emoji, ...v }));
+  }
+
+  closePopovers(): void {
+    this.emojiPickerMsgId.set(null);
+    this.reportMsgId.set(null);
   }
 
   lastMessagePreview(conv: Conversation): string {

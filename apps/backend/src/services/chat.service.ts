@@ -25,7 +25,10 @@ export const saveMessage = async (
       imageUrl: imageUrl ?? null,
       gifUrl: gifUrl ?? null,
     },
-    include: { sender: { select: { id: true, name: true } } },
+    include: {
+      sender: { select: { id: true, name: true } },
+      reactions: { select: { id: true, emoji: true, userId: true } },
+    },
   });
 };
 
@@ -88,10 +91,39 @@ export const getConversationMessages = async (
   }
   return prisma.message.findMany({
     where: { conversationId },
-    include: { sender: { select: { id: true, name: true } } },
+    include: {
+      sender: { select: { id: true, name: true } },
+      reactions: { select: { id: true, emoji: true, userId: true } },
+    },
     orderBy: { createdAt: "desc" },
     skip: (page - 1) * limit,
     take: limit,
+  });
+};
+
+export const toggleReaction = async (
+  messageId: number,
+  userId: number,
+  emoji: string,
+) => {
+  const existing = await prisma.messageReaction.findUnique({
+    where: { messageId_userId_emoji: { messageId, userId, emoji } },
+  });
+  if (existing) {
+    await prisma.messageReaction.delete({ where: { id: existing.id } });
+    return { action: "removed" as const, emoji };
+  }
+  await prisma.messageReaction.create({ data: { messageId, userId, emoji } });
+  return { action: "added" as const, emoji };
+};
+
+export const reportMessage = async (
+  messageId: number,
+  reporterId: number,
+  reason?: string,
+) => {
+  return prisma.report.create({
+    data: { messageId, reporterId, reason: reason ?? null },
   });
 };
 

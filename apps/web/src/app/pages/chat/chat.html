@@ -114,18 +114,26 @@
       <!-- Messages -->
       <div #messagesContainer class="flex-1 overflow-y-auto p-6 space-y-2 bg-zinc-50">
         @for (msg of messages(); track msg.id) {
-          <div class="flex gap-2" [class.flex-row-reverse]="isMe(msg)">
+          <div
+            class="flex gap-2 group"
+            [class.flex-row-reverse]="isMe(msg)"
+            (mouseenter)="hoveredMsgId.set(msg.id)"
+            (mouseleave)="hoveredMsgId.set(null)"
+            (click)="closePopovers()"
+          >
             @if (!isMe(msg)) {
               <div
-                class="h-7 w-7 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600 font-bold text-xs flex-shrink-0 self-end mb-5"
+                class="h-7 w-7 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600 font-bold text-xs flex-shrink-0 self-end mb-4"
               >
                 {{ msg.sender.name[0].toUpperCase() }}
               </div>
             }
-            <div class="max-w-xs lg:max-w-md xl:max-w-lg">
+            <!-- Bubble wrapper: relative so the action bar can float without taking space -->
+            <div class="max-w-xs lg:max-w-md xl:max-w-lg relative">
               @if (!isMe(msg)) {
                 <span class="text-xs text-zinc-400 mb-1 block pl-1">{{ msg.sender.name }}</span>
               }
+
               <!-- Bubble -->
               <div
                 class="rounded-2xl overflow-hidden text-sm leading-relaxed"
@@ -161,8 +169,85 @@
                   <div class="px-4 py-2.5 text-zinc-400 italic text-xs">Message vide</div>
                 }
               </div>
+
+              <!-- Hover action bar — absolute so it never pushes content down -->
+              <div
+                class="absolute top-full pt-1 z-10 flex items-center gap-1 transition-opacity pointer-events-none"
+                [class.opacity-0]="hoveredMsgId() !== msg.id"
+                [class.opacity-100]="hoveredMsgId() === msg.id"
+                [class.pointer-events-auto]="hoveredMsgId() === msg.id"
+                [class.right-0]="isMe(msg)"
+                [class.left-0]="!isMe(msg)"
+              >
+                <!-- Emoji reaction button -->
+                <div class="relative">
+                  <button
+                    (click)="toggleEmojiPicker(msg.id, $event)"
+                    class="h-7 w-7 rounded-full bg-white border border-zinc-200 shadow-sm flex items-center justify-center text-zinc-500 hover:text-rose-600 hover:border-rose-200 transition-colors"
+                    title="Ajouter une réaction"
+                    type="button"
+                  >
+                    <span class="material-symbols-outlined" style="font-size: 15px"
+                      >add_reaction</span
+                    >
+                  </button>
+                  @if (emojiPickerMsgId() === msg.id) {
+                    <div
+                      class="absolute bottom-9 z-20 bg-white border border-zinc-200 rounded-2xl shadow-lg px-2 py-1.5 flex gap-1"
+                      [class.right-0]="isMe(msg)"
+                      [class.left-0]="!isMe(msg)"
+                      (click)="$event.stopPropagation()"
+                    >
+                      @for (emoji of EMOJIS; track emoji) {
+                        <button
+                          (click)="sendReaction(msg, emoji)"
+                          class="text-xl leading-none p-1 rounded-lg hover:bg-zinc-100 transition-colors hover:scale-125"
+                          type="button"
+                        >
+                          {{ emoji }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+                <!-- Report button (not on own messages) -->
+                @if (!isMe(msg)) {
+                  <button
+                    (click)="openReport(msg.id, $event)"
+                    class="h-7 w-7 rounded-full bg-white border border-zinc-200 shadow-sm flex items-center justify-center text-zinc-500 hover:text-red-500 hover:border-red-200 transition-colors"
+                    title="Signaler le message"
+                    type="button"
+                  >
+                    <span class="material-symbols-outlined" style="font-size: 15px">flag</span>
+                  </button>
+                }
+              </div>
+
+              <!-- Reaction chips -->
+              @if (msg.reactions?.length) {
+                <div class="flex flex-wrap gap-1 mt-1 px-1" [class.justify-end]="isMe(msg)">
+                  @for (r of groupedReactions(msg.reactions); track r.emoji) {
+                    <button
+                      (click)="sendReaction(msg, r.emoji); $event.stopPropagation()"
+                      class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs border transition-colors"
+                      [class.bg-rose-50]="r.hasMe"
+                      [class.border-rose-300]="r.hasMe"
+                      [class.bg-zinc-100]="!r.hasMe"
+                      [class.border-zinc-200]="!r.hasMe"
+                      type="button"
+                    >
+                      <span>{{ r.emoji }}</span>
+                      <span class="text-zinc-600 font-medium">{{ r.count }}</span>
+                    </button>
+                  }
+                </div>
+              }
+
               <span class="text-xs text-zinc-400 mt-1 block px-1" [class.text-right]="isMe(msg)">
                 {{ formatTime(msg.createdAt) }}
+                @if (isMe(msg) && msg.id === lastSeenMessageId()) {
+                  <span class="ml-1 text-rose-400 font-medium">Vu</span>
+                }
               </span>
             </div>
           </div>
@@ -242,14 +327,19 @@
                   Aucun GIF trouvé
                 </div>
               } @else {
-                <div class="grid grid-cols-4 gap-1.5">
+                <div class="grid grid-cols-3 gap-1.5">
                   @for (gif of gifs(); track gif.id) {
-                    <img
-                      [src]="gif.previewUrl"
-                      [alt]="gif.title"
+                    <div
                       (click)="selectGif(gif)"
-                      class="w-full h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 hover:scale-105 transition-all"
-                    />
+                      class="relative aspect-video bg-zinc-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                    >
+                      <img
+                        [src]="gif.previewUrl"
+                        [alt]="gif.title"
+                        class="absolute inset-0 w-full h-full object-contain"
+                        loading="lazy"
+                      />
+                    </div>
                   }
                 </div>
               }
@@ -340,6 +430,152 @@
     </div>
   }
 </div>
+
+<!-- ═══ Report modal ═══ -->
+@if (reportMsgId() !== null) {
+  <div
+    class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
+    (click)="reportMsgId.set(null); reportCategory.set(null); reportStep.set(1)"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+        <div class="flex items-center gap-2">
+          @if (reportStep() === 2) {
+            <button
+              (click)="reportStep.set(1)"
+              class="p-1 rounded-full hover:bg-zinc-100 text-zinc-400 transition-colors -ml-1"
+              type="button"
+            >
+              <span class="material-symbols-outlined" style="font-size: 20px">arrow_back</span>
+            </button>
+          }
+          <h3 class="font-bold text-zinc-800">Signaler ce message</h3>
+        </div>
+        <button
+          (click)="reportMsgId.set(null); reportCategory.set(null); reportStep.set(1)"
+          class="p-1.5 rounded-full hover:bg-zinc-100 text-zinc-400 transition-colors"
+          type="button"
+        >
+          <span class="material-symbols-outlined" style="font-size: 20px">close</span>
+        </button>
+      </div>
+
+      <!-- Step 1 — Choose category -->
+      @if (reportStep() === 1) {
+        <div class="px-5 py-4">
+          <p class="text-sm text-zinc-500 mb-4">Pourquoi souhaitez-vous signaler ce message ?</p>
+          <div class="space-y-1">
+            @for (
+              cat of [
+                'Spam',
+                'Contenu inapproprié',
+                'Harcèlement ou intimidation',
+                'Discours haineux',
+                'Fausses informations',
+                'Autre',
+              ];
+              track cat
+            ) {
+              <button
+                (click)="reportCategory.set(cat)"
+                class="w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm text-left transition-colors"
+                [class.border-red-400]="reportCategory() === cat"
+                [class.bg-red-50]="reportCategory() === cat"
+                [class.text-red-700]="reportCategory() === cat"
+                [class.font-semibold]="reportCategory() === cat"
+                [class.border-zinc-200]="reportCategory() !== cat"
+                [class.bg-white]="reportCategory() !== cat"
+                [class.text-zinc-700]="reportCategory() !== cat"
+                [class.hover:bg-zinc-50]="reportCategory() !== cat"
+                type="button"
+              >
+                <span>{{ cat }}</span>
+                @if (reportCategory() === cat) {
+                  <span class="material-symbols-outlined text-red-500" style="font-size: 18px"
+                    >check_circle</span
+                  >
+                }
+              </button>
+            }
+          </div>
+        </div>
+        <div class="px-5 pb-4 flex justify-end gap-2">
+          <button
+            (click)="reportMsgId.set(null); reportCategory.set(null)"
+            class="px-4 py-2 rounded-lg text-sm text-zinc-500 hover:bg-zinc-100 transition-colors"
+            type="button"
+          >
+            Annuler
+          </button>
+          <button
+            (click)="reportStep.set(2)"
+            [disabled]="!reportCategory()"
+            class="px-4 py-2 rounded-lg text-sm bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold transition-colors flex items-center gap-1.5"
+            type="button"
+          >
+            Suivant
+            <span class="material-symbols-outlined" style="font-size: 16px">arrow_forward</span>
+          </button>
+        </div>
+      }
+
+      <!-- Step 2 — Optional details + confirm -->
+      @if (reportStep() === 2) {
+        @if (reportDone() === reportMsgId()) {
+          <div class="px-5 py-8 flex flex-col items-center gap-3">
+            <span class="material-symbols-outlined text-green-500" style="font-size: 48px"
+              >check_circle</span
+            >
+            <p class="text-sm font-semibold text-zinc-800">Message signalé. Merci.</p>
+            <p class="text-xs text-zinc-400 text-center">
+              Notre équipe examinera votre signalement dans les plus brefs délais.
+            </p>
+          </div>
+        } @else {
+          <div class="px-5 py-4">
+            <div
+              class="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 border border-red-200 mb-4"
+            >
+              <span class="material-symbols-outlined text-red-500" style="font-size: 16px"
+                >flag</span
+              >
+              <span class="text-sm font-semibold text-red-700">{{ reportCategory() }}</span>
+            </div>
+            <p class="text-sm text-zinc-500 mb-2">
+              Souhaitez-vous ajouter des précisions ? <span class="text-zinc-400">(optionnel)</span>
+            </p>
+            <textarea
+              [(ngModel)]="reportReason"
+              placeholder="Décrivez le problème en quelques mots…"
+              rows="3"
+              class="w-full text-sm px-3 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 resize-none focus:outline-none focus:ring-2 focus:ring-rose-700/20"
+            ></textarea>
+          </div>
+          <div class="px-5 pb-4 flex justify-end gap-2">
+            <button
+              (click)="reportMsgId.set(null); reportCategory.set(null); reportStep.set(1)"
+              class="px-4 py-2 rounded-lg text-sm text-zinc-500 hover:bg-zinc-100 transition-colors"
+              type="button"
+            >
+              Annuler
+            </button>
+            <button
+              (click)="submitReport(reportMsgId()!)"
+              class="px-4 py-2 rounded-lg text-sm bg-red-500 hover:bg-red-600 text-white font-semibold transition-colors"
+              type="button"
+            >
+              Envoyer le signalement
+            </button>
+          </div>
+        }
+      }
+    </div>
+  </div>
+}
 
 <!-- ═══ New chat dialog ═══ -->
 @if (showNewChatDialog()) {

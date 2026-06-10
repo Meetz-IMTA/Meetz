@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
+import { ChatService } from '../../services/chat.service';
 
-type Section = 'general' | 'account' | 'privacy' | 'language';
+type Section = 'general' | 'account' | 'privacy' | 'messaging' | 'language';
 
 @Component({
   selector: 'app-settings',
@@ -11,8 +12,9 @@ type Section = 'general' | 'account' | 'privacy' | 'language';
   templateUrl: './settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnInit {
   private readonly location = inject(Location);
+  private readonly chatService = inject(ChatService);
 
   readonly activeSection = signal<Section>('general');
   setSection(s: Section): void {
@@ -36,6 +38,28 @@ export class SettingsComponent {
   readonly emailWaitlist = signal(true);
   readonly emailReminder = signal(true);
   readonly emailCooptation = signal(true);
+
+  // ── Messagerie ────────────────────────────────────────────────────────────
+  readonly readReceipts = signal(true);
+  readonly msgSaved = signal(false);
+
+  ngOnInit(): void {
+    this.chatService.getUserSettings().subscribe({
+      next: (s) => this.readReceipts.set(s.readReceipts),
+      error: () => {},
+    });
+  }
+
+  saveMessagingSettings(): void {
+    this.chatService.updateUserSettings({ readReceipts: this.readReceipts() }).subscribe({
+      next: (s) => {
+        this.readReceipts.set(s.readReceipts);
+        this.msgSaved.set(true);
+        setTimeout(() => this.msgSaved.set(false), 2500);
+      },
+      error: () => {},
+    });
+  }
 
   // ── Confidentialité ───────────────────────────────────────────────────────
   readonly profileVisibility = signal<'public' | 'friends'>('public');

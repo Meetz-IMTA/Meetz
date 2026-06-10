@@ -10,6 +10,12 @@ export interface ChatUser {
   email?: string;
 }
 
+export interface MessageReaction {
+  id: number;
+  emoji: string;
+  userId: number;
+}
+
 export interface Message {
   id: number;
   content: string | null;
@@ -19,6 +25,7 @@ export interface Message {
   senderId: number;
   createdAt: string;
   sender: ChatUser;
+  reactions: MessageReaction[];
 }
 
 export interface ConversationParticipant {
@@ -51,6 +58,8 @@ export class ChatService implements OnDestroy {
   readonly messages$ = new BehaviorSubject<Message[]>([]);
   readonly isWidgetOpen$ = new BehaviorSubject<boolean>(false);
 
+  private apiUsersUrl = 'http://localhost:3000/api/v1/users';
+
   private activeConversationId: number | null = null;
   private messageSubject = new Subject<Message>();
   private typingSubject = new Subject<{
@@ -58,17 +67,37 @@ export class ChatService implements OnDestroy {
     conversationId: number;
     isTyping: boolean;
   }>();
+  private conversationReadSubject = new Subject<{
+    userId: number;
+    conversationId: number;
+    lastReadAt: string;
+  }>();
+  private reactionSubject = new Subject<{
+    messageId: number;
+    userId: number;
+    emoji: string;
+    action: 'added' | 'removed';
+  }>();
 
   onMessage(): Observable<Message> {
     return this.messageSubject.asObservable();
   }
 
-  onTyping(): Observable<{
-    userId: number;
-    conversationId: number;
-    isTyping: boolean;
-  }> {
+  onTyping(): Observable<{ userId: number; conversationId: number; isTyping: boolean }> {
     return this.typingSubject.asObservable();
+  }
+
+  onConversationRead(): Observable<{ userId: number; conversationId: number; lastReadAt: string }> {
+    return this.conversationReadSubject.asObservable();
+  }
+
+  onReaction(): Observable<{
+    messageId: number;
+    userId: number;
+    emoji: string;
+    action: 'added' | 'removed';
+  }> {
+    return this.reactionSubject.asObservable();
   }
 
   get totalUnread(): number {
@@ -105,6 +134,35 @@ export class ChatService implements OnDestroy {
     this.socket.on('typing:stop', (data: { userId: number; conversationId: number }) => {
       this.typingSubject.next({ ...data, isTyping: false });
     });
+
+    this.socket.on(
+      'conversation:read',
+      (data: { userId: number; conversationId: number; lastReadAt: string }) => {
+        this.conversationReadSubject.next(data);
+      },
+    );
+
+    this.socket.on(
+      'message:reaction',
+      (data: { messageId: number; userId: number; emoji: string; action: 'added' | 'removed' }) => {
+        this.reactionSubject.next(data);
+        this.messages$.next(
+          this.messages$.value.map((m) => {
+            if (m.id !== data.messageId) return m;
+            const reactions =
+              data.action === 'added'
+                ? [
+                    ...(m.reactions ?? []),
+                    { id: Date.now(), emoji: data.emoji, userId: data.userId },
+                  ]
+                : (m.reactions ?? []).filter(
+                    (r) => !(r.userId === data.userId && r.emoji === data.emoji),
+                  );
+            return { ...m, reactions };
+          }),
+        );
+      },
+    );
   }
 
   disconnect(): void {
@@ -196,6 +254,22 @@ export class ChatService implements OnDestroy {
 
   closeWidget(): void {
     this.isWidgetOpen$.next(false);
+  }
+
+  reactToMessage(messageId: number, conversationId: number, emoji: string): void {
+    this.socket?.emit('message:react', { messageId, conversationId, emoji });
+  }
+
+  reportChatMessage(messageId: number, reason?: string) {
+    return this.http.post(`${this.apiUrl}/messages/${messageId}/report`, { reason });
+  }
+
+  getUserSettings() {
+    return this.http.get<{ readReceipts: boolean }>(`${this.apiUsersUrl}/me/settings`);
+  }
+
+  updateUserSettings(settings: { readReceipts: boolean }) {
+    return this.http.patch<{ readReceipts: boolean }>(`${this.apiUsersUrl}/me/settings`, settings);
   }
 
   ngOnDestroy(): void {

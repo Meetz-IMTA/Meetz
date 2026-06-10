@@ -1,9 +1,11 @@
 import jwt from "jsonwebtoken";
 import type { Server } from "socket.io";
+import prisma from "../lib/prisma.js";
 import {
   isParticipant,
   saveMessage,
   markAsRead,
+  toggleReaction,
 } from "../services/chat.service.js";
 
 export function registerSocketHandlers(io: Server): void {
@@ -62,8 +64,37 @@ export function registerSocketHandlers(io: Server): void {
     );
 
     socket.on("message:read", async (conversationId: number) => {
+      const lastReadAt = new Date();
       await markAsRead(conversationId, userId);
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { readReceipts: true },
+      });
+      if (user?.readReceipts) {
+        socket.to(`conv:${conversationId}`).emit("conversation:read", {
+          userId,
+          conversationId,
+          lastReadAt: lastReadAt.toISOString(),
+        });
+      }
     });
+
+    socket.on(
+      "message:react",
+      async (data: {
+        messageId: number;
+        conversationId: number;
+        emoji: string;
+      }) => {
+        const result = await toggleReaction(data.messageId, userId, data.emoji);
+        io.to(`conv:${data.conversationId}`).emit("message:reaction", {
+          messageId: data.messageId,
+          userId,
+          emoji: data.emoji,
+          action: result.action,
+        });
+      },
+    );
 
     socket.on("typing:start", (conversationId: number) => {
       socket

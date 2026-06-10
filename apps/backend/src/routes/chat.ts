@@ -7,6 +7,8 @@ import {
   listUsers,
   uploadChatImage,
   chatUpload,
+  reactToMessage,
+  reportMessageHandler,
 } from "../controllers/chat.controller.js";
 
 const router = Router();
@@ -18,5 +20,7 @@ router.get("/conversations/:id/messages", listMessages);
 router.post("/conversations/private", createPrivateConversation);
 router.get("/users", listUsers);
 router.post("/upload", chatUpload.single("image"), uploadChatImage);
+router.post("/messages/:messageId/react", reactToMessage);
+router.post("/messages/:messageId/report", reportMessageHandler);
 
 export default router;

@@ -2,6 +2,7 @@ export interface EventOrganizer {
   id: number;
   name: string;
   email: string;
+  avatarUrl: string | null;
 }
 
 export interface MeetzEvent {
@@ -13,6 +14,7 @@ export interface MeetzEvent {
   category: string | null;
   maxAttendees: number | null;
   imageUrl: string | null;
+  isPrivate: boolean;
   organizerId: number;
   organizer: EventOrganizer;
   participantCount?: number;

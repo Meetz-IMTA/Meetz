@@ -1,4 +1,12 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  HostBinding,
+  Input,
+  Output,
+  inject,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CommunityService } from '../../../../services/community';
@@ -8,14 +16,27 @@ import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
 import { CloudImagePipe } from '../../../../shared/pipes/cloud-image.pipe';
 import { LikeButton } from '../like-button/like-button';
 import { CommentComposer } from '../comment-composer/comment-composer';
+import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
 
 @Component({
   selector: 'app-comment-item',
-  imports: [FormsModule, RouterLink, TimeAgoPipe, CloudImagePipe, LikeButton, CommentComposer],
+  imports: [
+    FormsModule,
+    RouterLink,
+    TimeAgoPipe,
+    CloudImagePipe,
+    LikeButton,
+    CommentComposer,
+    AvatarComponent,
+  ],
   templateUrl: './comment-item.html',
   host: { class: 'block' },
 })
 export class CommentItem {
+  @HostBinding('attr.id') get hostId() {
+    return 'comment-' + this.comment.id;
+  }
+
   @Input({ required: true }) comment!: ThreadComment;
   @Input({ required: true }) threadId!: number;
   @Input() currentUserId: number | null = null;

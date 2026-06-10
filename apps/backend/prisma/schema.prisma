@@ -13,33 +13,37 @@ enum ConversationType {
 }
 
 model User {
-  id                       Int                       @id @default(autoincrement())
-  name                     String
-  email                    String                    @unique
-  password                 String
-  role                     String                    @default("user")
-  isBanned                 Boolean                   @default(false)
-  bannedAt                 DateTime?
-  banReason                String?                   @db.Text
-  refreshToken             String?
-  isVerified               Boolean                   @default(false)
-  readReceipts             Boolean                   @default(true)
-  otpCode                  String?
-  otpExpiry                DateTime?
-  resetToken               String?
-  resetTokenExpiry         DateTime?
-  events                   Event[]
-  participations           EventParticipation[]
-  threads                  Thread[]
-  comments                 Comment[]
-  threadLikes              ThreadLike[]
-  commentLikes             CommentLike[]
-  reports                  Report[]
-  notifications            Notification[]            @relation("UserNotifications")
-  actedNotifications       Notification[]            @relation("ActorNotifications")
-  conversationParticipants ConversationParticipant[]
-  sentMessages             Message[]
-  messageReactions         MessageReaction[]
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  password     String
+  isBanned     Boolean   @default(false)
+  bannedAt     DateTime?
+  banReason    String?   @db.Text
+  refreshToken String?
+  isVerified   Boolean   @default(false)
+  otpCode           String?
+  otpExpiry         DateTime?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  bio              String?   @db.Text
+  avatarUrl        String?
+  bannerUrl        String?
+  role             UserRole  @default(USER)
+  createdAt        DateTime  @default(now())
+  sentRequests     FriendRequest[] @relation("RequestSender")
+  receivedRequests FriendRequest[] @relation("RequestReceiver")
+  friendshipsA     Friendship[]    @relation("FriendA")
+  friendshipsB     Friendship[]    @relation("FriendB")
+  events            Event[]
+  participations    EventParticipation[]
+  threads            Thread[]
+  comments           Comment[]
+  threadLikes        ThreadLike[]
+  commentLikes       CommentLike[]
+  reports            Report[]
+  notifications      Notification[] @relation("UserNotifications")
+  actedNotifications Notification[] @relation("ActorNotifications")
 }
 
 model Event {
@@ -51,9 +55,11 @@ model Event {
   category     String?
   maxAttendees Int?
   imageUrl     String?
+  isPrivate    Boolean  @default(false)
   organizerId  Int
   organizer    User               @relation(fields: [organizerId], references: [id])
   participations EventParticipation[]
+  notifications  Notification[]
   conversation Conversation?
 }
 
@@ -68,6 +74,42 @@ model EventParticipation {
   @@unique([userId, eventId])
 }
 
+enum UserRole {
+  ADMIN
+  CREATOR
+  USER
+  ORGANIZER
+}
+
+enum FriendRequestStatus {
+  PENDING
+  DECLINED
+}
+
+model FriendRequest {
+  id         Int                 @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  status     FriendRequestStatus @default(PENDING)
+  createdAt  DateTime            @default(now())
+
+  sender   User @relation("RequestSender",  fields: [senderId],   references: [id], onDelete: Cascade)
+  receiver User @relation("RequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+}
+
+model Friendship {
+  id        Int      @id @default(autoincrement())
+  userAId   Int
+  userBId   Int
+  createdAt DateTime @default(now())
+
+  userA User @relation("FriendA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB User @relation("FriendB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@unique([userAId, userBId])
+}
 model Category {
   id          Int      @id @default(autoincrement())
   name        String   @unique
@@ -184,14 +226,16 @@ model Notification {
   id        Int      @id @default(autoincrement())
   userId    Int
   actorId   Int?
-  type      String
+  type      String // comment | reply | thread_like | comment_like | friend_request | friend_accepted | event_join | event_leave | event_full
   threadId  Int?
   commentId Int?
+  eventId   Int?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
   user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
   actor     User?    @relation("ActorNotifications", fields: [actorId], references: [id], onDelete: SetNull)
   thread    Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  event     Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

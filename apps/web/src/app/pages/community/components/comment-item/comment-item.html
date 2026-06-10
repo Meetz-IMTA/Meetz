@@ -7,11 +7,13 @@
       <span class="material-symbols-outlined" style="font-size: 18px">do_not_disturb_on</span>
     </div>
   } @else {
-    <a
-      [routerLink]="['/profile', comment.authorId]"
-      class="h-9 w-9 rounded-full bg-zinc-700 flex items-center justify-center text-white text-xs font-bold shrink-0"
-    >
-      {{ authorInitial }}
+    <a [routerLink]="['/profile', comment.authorId]" class="shrink-0">
+      <mz-avatar
+        [src]="comment.author.avatarUrl"
+        [alt]="comment.author.name"
+        [seed]="comment.authorId.toString()"
+        [size]="36"
+      />
     </a>
   }
 

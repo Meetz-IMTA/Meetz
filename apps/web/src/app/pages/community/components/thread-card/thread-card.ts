@@ -3,10 +3,11 @@ import { RouterLink } from '@angular/router';
 import { Thread } from '../../../../models/community.model';
 import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
 import { CloudImagePipe } from '../../../../shared/pipes/cloud-image.pipe';
+import { AvatarComponent } from '../../../../shared/components/avatar/avatar.component';
 
 @Component({
   selector: 'app-thread-card',
-  imports: [RouterLink, TimeAgoPipe, CloudImagePipe],
+  imports: [RouterLink, TimeAgoPipe, CloudImagePipe, AvatarComponent],
   templateUrl: './thread-card.html',
   host: { class: 'block' },
 })

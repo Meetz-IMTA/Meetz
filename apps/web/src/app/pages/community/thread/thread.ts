@@ -1,7 +1,8 @@
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { CommunityService } from '../../../services/community';
 import { Auth } from '../../../services/auth';
 import { AdminService } from '../../../services/admin';
@@ -27,7 +28,7 @@ import { CloudImagePipe } from '../../../shared/pipes/cloud-image.pipe';
   ],
   templateUrl: './thread.html',
 })
-export class CommunityThread implements OnInit {
+export class CommunityThread implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private community = inject(CommunityService);
@@ -54,6 +55,7 @@ export class CommunityThread implements OnInit {
   reportDone = false;
 
   lightboxUrl: string | null = null;
+  private routeSub?: Subscription;
 
   get isAuthenticated(): boolean {
     return this.auth.getUser() != null;
@@ -76,12 +78,19 @@ export class CommunityThread implements OnInit {
   }
 
   ngOnInit() {
-    this.threadId = Number(this.route.snapshot.paramMap.get('id'));
-    if (isNaN(this.threadId)) {
-      this.router.navigate(['/community']);
-      return;
-    }
-    this.load();
+    this.routeSub = this.route.paramMap.subscribe((params) => {
+      const id = Number(params.get('id'));
+      if (isNaN(id)) {
+        this.router.navigate(['/community']);
+        return;
+      }
+      this.threadId = id;
+      this.load();
+    });
+  }
+
+  ngOnDestroy() {
+    this.routeSub?.unsubscribe();
   }
 
   load() {
@@ -92,6 +101,7 @@ export class CommunityThread implements OnInit {
         this.commentTree = this.buildTree(thread.comments ?? []);
         this.isLoading = false;
         this.cdr.detectChanges();
+        this.scrollToFragment();
       },
       error: () => {
         this.error = 'Thread introuvable.';
@@ -99,6 +109,19 @@ export class CommunityThread implements OnInit {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  private scrollToFragment() {
+    const fragment = this.route.snapshot.fragment;
+    if (!fragment) return;
+    setTimeout(() => {
+      const el = document.getElementById(fragment);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('mz-highlight');
+        setTimeout(() => el.classList.remove('mz-highlight'), 2000);
+      }
+    }, 50);
   }
 
   private buildTree(comments: Comment[]): ThreadComment[] {

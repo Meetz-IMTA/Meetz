@@ -12,12 +12,14 @@ export interface EventDto {
   category?: string;
   maxAttendees?: number;
   imageUrl?: string;
+  isPrivate?: boolean;
 }
 
 export interface EventFilters {
   category?: string;
   search?: string;
   organizerId?: number;
+  privateOnly?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -29,9 +31,14 @@ export class EventService {
   private readonly cache = new Map<string, { data: MeetzEvent[]; at: number }>();
   private readonly TTL = 60_000;
 
+  // La visibilité des événements privés dépend de l'utilisateur connecté :
+  // la clé de cache doit donc inclure son identité.
+  private cacheKey(filters?: EventFilters): string {
+    return JSON.stringify({ ...(filters ?? {}), viewer: this.auth.getUser()?.id ?? null });
+  }
+
   hasCachedAll(filters?: EventFilters): boolean {
-    const key = JSON.stringify(filters ?? {});
-    const hit = this.cache.get(key);
+    const hit = this.cache.get(this.cacheKey(filters));
     return !!hit && Date.now() - hit.at < this.TTL;
   }
 
@@ -40,7 +47,7 @@ export class EventService {
   }
 
   getAll(filters?: EventFilters) {
-    const key = JSON.stringify(filters ?? {});
+    const key = this.cacheKey(filters);
     const hit = this.cache.get(key);
     if (hit && Date.now() - hit.at < this.TTL) return of(hit.data);
 
@@ -49,6 +56,7 @@ export class EventService {
     if (filters?.search) params = params.set('search', filters.search);
     if (filters?.organizerId != null)
       params = params.set('organizerId', String(filters.organizerId));
+    if (filters?.privateOnly) params = params.set('private', 'true');
 
     return this.http
       .get<MeetzEvent[]>(this.apiUrl, { params })
@@ -105,6 +113,7 @@ export class EventService {
     if (data.location) form.append('location', data.location);
     if (data.category) form.append('category', data.category);
     if (data.maxAttendees != null) form.append('maxAttendees', String(data.maxAttendees));
+    if (data.isPrivate != null) form.append('isPrivate', String(data.isPrivate));
     form.append('image', image);
     return form;
   }

@@ -8,6 +8,7 @@ import { AppNotification, NotificationType } from '../../models/notification.mod
 import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
 import { ChatService } from '../../services/chat.service';
 import { ChatWidget } from '../chat-widget/chat-widget';
+import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 
 interface NavItem {
   label: string;
@@ -20,11 +21,24 @@ const NOTIF_LABELS: Record<NotificationType, string> = {
   reply: 'a répondu à votre commentaire',
   thread_like: 'a aimé votre thread',
   comment_like: 'a aimé votre commentaire',
+  friend_request: "vous a envoyé une demande d'ami",
+  friend_accepted: "a accepté votre demande d'ami",
+  event_join: "s'est inscrit·e à votre événement",
+  event_leave: "s'est désinscrit·e de votre événement",
+  event_full: 'a rempli la dernière place de votre événement',
 };
 
 @Component({
   selector: 'app-main-layout',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, Footer, TimeAgoPipe, ChatWidget],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    Footer,
+    TimeAgoPipe,
+    AvatarComponent,
+    ChatWidget,
+  ],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
 })
@@ -95,7 +109,16 @@ export class MainLayout implements OnInit, OnDestroy {
       );
       this.unreadCount.update((c) => Math.max(0, c - 1));
     }
-    if (notif.threadId) this.router.navigate(['/community/thread', notif.threadId]);
+    if (notif.type === 'friend_request') {
+      this.router.navigate(['/friends'], { queryParams: { tab: 'requests' } });
+    } else if (notif.type === 'friend_accepted' && notif.actorId) {
+      this.router.navigate(['/profile', notif.actorId]);
+    } else if (notif.eventId) {
+      this.router.navigate(['/events', notif.eventId]);
+    } else if (notif.threadId) {
+      const extras = notif.commentId ? { fragment: 'comment-' + notif.commentId } : {};
+      this.router.navigate(['/community/thread', notif.threadId], extras);
+    }
   }
 
   markAllRead() {
@@ -116,6 +139,10 @@ export class MainLayout implements OnInit, OnDestroy {
   get userInitial(): string {
     const user = this.auth.getUser();
     return user?.name ? user.name[0].toUpperCase() : 'U';
+  }
+
+  get userAvatarUrl(): string | null {
+    return this.auth.getUser()?.avatarUrl ?? null;
   }
 
   get userName(): string {

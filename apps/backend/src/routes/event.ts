@@ -27,7 +27,7 @@ const upload = multer({
   },
 });
 
-router.get("/", listEvents);
+router.get("/", optionalAuthMiddleware, listEvents);
 router.get("/:id", optionalAuthMiddleware, getEvent);
 router.post("/", authMiddleware, upload.single("image"), createEventHandler);
 router.put("/:id", authMiddleware, upload.single("image"), updateEventHandler);

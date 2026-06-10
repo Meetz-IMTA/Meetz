@@ -55,6 +55,7 @@ model Event {
   category     String?
   maxAttendees Int?
   imageUrl     String?
+  isPrivate    Boolean  @default(false)
   organizerId  Int
   organizer    User     @relation(fields: [organizerId], references: [id])
   participations EventParticipation[]

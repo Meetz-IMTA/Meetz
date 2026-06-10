@@ -18,10 +18,12 @@ export const listEvents = async (req: Request, res: Response) => {
   try {
     const { category, search, organizerId } = req.query;
     const filters: EventFilters = {};
+    if (req.userId != null) filters.viewerId = req.userId;
     if (typeof category === "string") filters.category = category;
     if (typeof search === "string") filters.search = search;
     if (typeof organizerId === "string")
       filters.organizerId = Number(organizerId);
+    if (req.query["private"] === "true") filters.privateOnly = true;
     res.json(await getEvents(filters));
   } catch {
     res

@@ -40,6 +40,14 @@
               selectedEvent.category
             }}</span>
           }
+          @if (selectedEvent.isPrivate) {
+            <span
+              class="material-symbols-outlined text-rose-700"
+              style="font-size: 14px"
+              title="Événement privé"
+              >lock</span
+            >
+          }
           <span class="text-xs text-gray-400">{{ formatDate(selectedEvent.date) }}</span>
         </div>
         <h3 class="font-bold text-gray-900 text-sm leading-snug">{{ selectedEvent.name }}</h3>

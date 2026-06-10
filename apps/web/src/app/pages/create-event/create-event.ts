@@ -56,6 +56,7 @@ export class CreateEvent implements OnInit, OnDestroy {
   showSuggestions = false;
   isSearchingLocation = false;
   selectedCategory = '';
+  isPrivate = false;
   isSubmitting = false;
   successMessage = '';
   errorMessage = '';
@@ -198,6 +199,7 @@ export class CreateEvent implements OnInit, OnDestroy {
       this.time = d.time ?? '';
       this.maxAttendees = d.maxAttendees ?? null;
       this.selectedCategory = d.selectedCategory ?? '';
+      this.isPrivate = d.isPrivate ?? false;
       this.locationSearch = d.locationSearch ?? '';
       this.location = d.location ?? '';
       if (d.lat && d.lon) {
@@ -233,6 +235,7 @@ export class CreateEvent implements OnInit, OnDestroy {
         time: this.time,
         maxAttendees: this.maxAttendees,
         selectedCategory: this.selectedCategory,
+        isPrivate: this.isPrivate,
         locationSearch: this.locationSearch,
         location: this.location,
         lat: this.selectedLat,
@@ -295,6 +298,7 @@ export class CreateEvent implements OnInit, OnDestroy {
           location: this.location || undefined,
           category: this.selectedCategory || undefined,
           maxAttendees: this.maxAttendees ?? undefined,
+          isPrivate: this.isPrivate,
         },
         this.imageFile ?? undefined,
       )

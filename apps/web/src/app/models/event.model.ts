@@ -14,6 +14,7 @@ export interface MeetzEvent {
   category: string | null;
   maxAttendees: number | null;
   imageUrl: string | null;
+  isPrivate: boolean;
   organizerId: number;
   organizer: EventOrganizer;
   participantCount?: number;

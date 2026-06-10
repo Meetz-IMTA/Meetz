@@ -42,6 +42,7 @@ export class EventsList implements OnInit, OnDestroy {
   selectedCategory = 'all';
   searchQuery = '';
   locationFilter = '';
+  privateOnly = false;
   viewMode: 'grid' | 'list' | 'map' = 'grid';
   isLoading = true;
   error = '';
@@ -114,6 +115,9 @@ export class EventsList implements OnInit, OnDestroy {
     if (this.selectedCategory !== 'all') {
       result = result.filter((e) => e.category === this.selectedCategory);
     }
+    if (this.privateOnly) {
+      result = result.filter((e) => e.isPrivate);
+    }
     if (this.searchQuery.trim()) {
       const q = this.searchQuery.toLowerCase();
       result = result.filter(
@@ -147,6 +151,15 @@ export class EventsList implements OnInit, OnDestroy {
   selectCategory(value: string) {
     this.selectedCategory = value;
     this.applyFilters();
+  }
+
+  togglePrivateOnly() {
+    this.privateOnly = !this.privateOnly;
+    this.applyFilters();
+  }
+
+  get privateCount(): number {
+    return this.events.filter((e) => e.isPrivate).length;
   }
 
   setLocationFilter(city: string) {
@@ -198,14 +211,16 @@ export class EventsList implements OnInit, OnDestroy {
     this.selectedCategory = 'all';
     this.searchQuery = '';
     this.locationFilter = '';
+    this.privateOnly = false;
     this.distanceRadius = null;
     this.cityCoords = null;
     this.applyFilters();
   }
 
   countByCategory(value: string): number {
-    if (value === 'all') return this.events.length;
-    return this.events.filter((e) => e.category === value).length;
+    const pool = this.privateOnly ? this.events.filter((e) => e.isPrivate) : this.events;
+    if (value === 'all') return pool.length;
+    return pool.filter((e) => e.category === value).length;
   }
 
   formatShortDate(date: string): string {

@@ -44,6 +44,10 @@ model User {
   reports            Report[]
   notifications      Notification[] @relation("UserNotifications")
   actedNotifications Notification[] @relation("ActorNotifications")
+  readReceipts       Boolean                   @default(true)
+  conversations      ConversationParticipant[]
+  sentMessages       Message[]
+  messageReactions   MessageReaction[]
 }
 
 model Event {

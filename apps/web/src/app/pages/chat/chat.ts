@@ -61,8 +61,44 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
 
   // Hover actions
   readonly EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+  readonly INPUT_EMOJIS = [
+    '😀',
+    '😂',
+    '😍',
+    '🥰',
+    '😎',
+    '🤔',
+    '😢',
+    '😮',
+    '😡',
+    '🥳',
+    '😅',
+    '🤣',
+    '😊',
+    '😘',
+    '😤',
+    '🤩',
+    '😴',
+    '🤗',
+    '👍',
+    '👎',
+    '❤️',
+    '🔥',
+    '🎉',
+    '🙏',
+    '💪',
+    '👏',
+    '🙌',
+    '💯',
+    '✨',
+    '🫡',
+    '🤝',
+    '😷',
+  ];
   hoveredMsgId = signal<number | null>(null);
+  private hoverTimer: ReturnType<typeof setTimeout> | null = null;
   emojiPickerMsgId = signal<number | null>(null);
+  showInputEmojiPicker = signal(false);
   reportMsgId = signal<number | null>(null);
   reportReason = '';
   reportCategory = signal<string | null>(null);
@@ -193,6 +229,7 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
   ngOnDestroy(): void {
     this.subs.unsubscribe();
     this.clearTypingTimer();
+    if (this.hoverTimer) clearTimeout(this.hoverTimer);
   }
 
   selectConversation(conv: Conversation): void {
@@ -375,6 +412,20 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
     });
   }
 
+  // ── Hover ──
+
+  msgMouseEnter(msgId: number): void {
+    if (this.hoverTimer) {
+      clearTimeout(this.hoverTimer);
+      this.hoverTimer = null;
+    }
+    this.hoveredMsgId.set(msgId);
+  }
+
+  msgMouseLeave(): void {
+    this.hoverTimer = setTimeout(() => this.hoveredMsgId.set(null), 150);
+  }
+
   // ── Reactions & Report ──
 
   toggleEmojiPicker(msgId: number, event: MouseEvent): void {
@@ -432,9 +483,14 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
     return Array.from(map.entries()).map(([emoji, v]) => ({ emoji, ...v }));
   }
 
+  insertEmoji(emoji: string): void {
+    this.messageText += emoji;
+  }
+
   closePopovers(): void {
     this.emojiPickerMsgId.set(null);
     this.reportMsgId.set(null);
+    this.showInputEmojiPicker.set(false);
   }
 
   lastMessagePreview(conv: Conversation): string {

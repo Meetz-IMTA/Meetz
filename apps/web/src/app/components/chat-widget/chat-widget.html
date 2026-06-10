@@ -175,10 +175,8 @@
         >
           @for (msg of messages(); track msg.id) {
             <div
-              class="flex gap-1.5 group"
+              class="flex gap-1.5"
               [class.flex-row-reverse]="isMe(msg)"
-              (mouseenter)="hoveredMsgId.set(msg.id)"
-              (mouseleave)="hoveredMsgId.set(null)"
               (click)="closePopovers()"
             >
               @if (!isMe(msg)) {
@@ -188,94 +186,99 @@
                   {{ msg.sender.name[0].toUpperCase() }}
                 </div>
               }
-              <!-- Bubble wrapper: relative so action bar floats without space -->
-              <div class="max-w-[75%] relative">
+              <div class="max-w-[75%]">
                 @if (!isMe(msg)) {
                   <span class="text-xs text-zinc-400 mb-0.5 block pl-1">{{ msg.sender.name }}</span>
                 }
 
-                <!-- Bubble -->
+                <!-- Wrapper hover — action bar DANS le bubble, aucun gap possible -->
                 <div
-                  class="rounded-2xl overflow-hidden text-sm"
-                  [class.bg-rose-600]="isMe(msg)"
-                  [class.text-white]="isMe(msg)"
-                  [class.rounded-tr-sm]="isMe(msg)"
-                  [class.bg-white]="!isMe(msg)"
-                  [class.text-zinc-800]="!isMe(msg)"
-                  [class.shadow-sm]="!isMe(msg)"
-                  [class.border]="!isMe(msg)"
-                  [class.border-zinc-200]="!isMe(msg)"
-                  [class.rounded-tl-sm]="!isMe(msg)"
+                  class="relative"
+                  (mouseenter)="msgMouseEnter(msg.id)"
+                  (mouseleave)="msgMouseLeave()"
                 >
-                  @if (msg.content) {
-                    <div class="px-3 py-2">{{ msg.content }}</div>
-                  }
-                  @if (msg.imageUrl) {
-                    <img
-                      [src]="msg.imageUrl"
-                      class="block w-full max-h-40 object-cover"
-                      alt="Photo"
-                      loading="lazy"
-                    />
-                  } @else if (msg.gifUrl) {
-                    <img
-                      [src]="msg.gifUrl"
-                      class="block w-full max-h-40 object-contain"
-                      alt="GIF"
-                      loading="lazy"
-                    />
-                  }
-                </div>
-
-                <!-- Hover action bar — absolute, no layout space -->
-                <div
-                  class="absolute top-full pt-0.5 z-10 flex items-center gap-1 transition-opacity pointer-events-none"
-                  [class.opacity-0]="hoveredMsgId() !== msg.id"
-                  [class.opacity-100]="hoveredMsgId() === msg.id"
-                  [class.pointer-events-auto]="hoveredMsgId() === msg.id"
-                  [class.right-0]="isMe(msg)"
-                  [class.left-0]="!isMe(msg)"
-                >
-                  <div class="relative">
-                    <button
-                      (click)="toggleEmojiPicker(msg.id, $event)"
-                      class="h-6 w-6 rounded-full bg-white border border-zinc-200 shadow-sm flex items-center justify-center text-zinc-500 hover:text-rose-600 hover:border-rose-200 transition-colors"
-                      title="Réagir"
-                      type="button"
-                    >
-                      <span class="material-symbols-outlined" style="font-size: 13px"
-                        >add_reaction</span
-                      >
-                    </button>
-                    @if (emojiPickerMsgId() === msg.id) {
-                      <div
-                        class="absolute bottom-8 z-20 bg-white border border-zinc-200 rounded-2xl shadow-lg px-1.5 py-1 flex gap-0.5"
-                        [class.right-0]="isMe(msg)"
-                        [class.left-0]="!isMe(msg)"
-                        (click)="$event.stopPropagation()"
-                      >
-                        @for (emoji of EMOJIS; track emoji) {
-                          <button
-                            (click)="sendReaction(msg, emoji)"
-                            class="text-base leading-none p-1 rounded-lg hover:bg-zinc-100 transition-colors hover:scale-125"
-                            type="button"
-                          >
-                            {{ emoji }}
-                          </button>
-                        }
-                      </div>
+                  <!-- Bubble -->
+                  <div
+                    class="rounded-2xl overflow-hidden text-sm"
+                    [class.bg-rose-600]="isMe(msg)"
+                    [class.text-white]="isMe(msg)"
+                    [class.rounded-tr-sm]="isMe(msg)"
+                    [class.bg-white]="!isMe(msg)"
+                    [class.text-zinc-800]="!isMe(msg)"
+                    [class.shadow-sm]="!isMe(msg)"
+                    [class.border]="!isMe(msg)"
+                    [class.border-zinc-200]="!isMe(msg)"
+                    [class.rounded-tl-sm]="!isMe(msg)"
+                  >
+                    @if (msg.content) {
+                      <div class="px-3 pt-2 pb-7">{{ msg.content }}</div>
+                    }
+                    @if (msg.imageUrl) {
+                      <img
+                        [src]="msg.imageUrl"
+                        class="block w-full max-h-40 object-cover"
+                        alt="Photo"
+                        loading="lazy"
+                      />
+                    } @else if (msg.gifUrl) {
+                      <img
+                        [src]="msg.gifUrl"
+                        class="block w-full max-h-40 object-contain"
+                        alt="GIF"
+                        loading="lazy"
+                      />
                     }
                   </div>
-                  @if (!isMe(msg)) {
-                    <button
-                      (click)="openReport(msg.id, $event)"
-                      class="h-6 w-6 rounded-full bg-white border border-zinc-200 shadow-sm flex items-center justify-center text-zinc-500 hover:text-red-500 hover:border-red-200 transition-colors"
-                      title="Signaler"
-                      type="button"
-                    >
-                      <span class="material-symbols-outlined" style="font-size: 13px">flag</span>
-                    </button>
-                  }
+
+                  <!-- Action bar : coin bas-droit à l'intérieur de la bubble → 0 gap -->
+                  <div
+                    class="absolute bottom-1.5 right-1.5 z-10 flex items-center gap-1 transition-opacity"
+                    [class.pointer-events-none]="
+                      hoveredMsgId() !== msg.id && emojiPickerMsgId() !== msg.id
+                    "
+                    [style.opacity]="
+                      hoveredMsgId() === msg.id || emojiPickerMsgId() === msg.id ? '1' : '0'
+                    "
+                  >
+                    <div class="relative">
+                      <button
+                        (click)="toggleEmojiPicker(msg.id, $event)"
+                        class="h-5 w-5 rounded-full bg-white/90 border border-zinc-300 shadow-sm flex items-center justify-center text-zinc-500 hover:text-rose-600 transition-colors"
+                        title="Réagir"
+                        type="button"
+                      >
+                        <span class="material-symbols-outlined" style="font-size: 11px"
+                          >add_reaction</span
+                        >
+                      </button>
+                      @if (emojiPickerMsgId() === msg.id) {
+                        <div
+                          class="absolute bottom-full right-0 mb-2 z-20 bg-white border border-zinc-200 rounded-2xl shadow-lg px-1.5 py-1 flex gap-0.5"
+                          (click)="$event.stopPropagation()"
+                        >
+                          @for (emoji of EMOJIS; track emoji) {
+                            <button
+                              (click)="sendReaction(msg, emoji)"
+                              class="text-base leading-none p-1 rounded-lg hover:bg-zinc-100 transition-colors hover:scale-125"
+                              type="button"
+                            >
+                              {{ emoji }}
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+                    @if (!isMe(msg)) {
+                      <button
+                        (click)="openReport(msg.id, $event)"
+                        class="h-5 w-5 rounded-full bg-white/90 border border-zinc-300 shadow-sm flex items-center justify-center text-zinc-500 hover:text-red-500 transition-colors"
+                        title="Signaler"
+                        type="button"
+                      >
+                        <span class="material-symbols-outlined" style="font-size: 11px">flag</span>
+                      </button>
+                    }
+                  </div>
                 </div>
 
                 <!-- Reaction chips -->
@@ -398,9 +401,43 @@
             </div>
           }
 
-          <div class="flex gap-1.5 items-end">
+          <div class="flex gap-1.5 items-end relative">
+            <!-- Emoji input picker popover -->
+            @if (showInputEmojiPicker()) {
+              <div
+                class="absolute bottom-full mb-2 left-0 z-30 bg-white border border-zinc-200 rounded-2xl shadow-xl p-2.5 w-64"
+                (click)="$event.stopPropagation()"
+              >
+                <div class="grid grid-cols-8 gap-0.5">
+                  @for (e of INPUT_EMOJIS; track e) {
+                    <button
+                      (click)="insertEmoji(e)"
+                      class="text-lg leading-none p-1 rounded-lg hover:bg-zinc-100 transition-colors hover:scale-125"
+                      type="button"
+                    >
+                      {{ e }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
             <!-- Attachment buttons -->
             <div class="flex items-center gap-0.5 flex-shrink-0 self-end mb-1">
+              <button
+                (click)="
+                  showInputEmojiPicker.set(!showInputEmojiPicker()); showGifPicker.set(false)
+                "
+                class="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-zinc-100 transition-colors"
+                [class.text-rose-600]="showInputEmojiPicker()"
+                [class.bg-rose-50]="showInputEmojiPicker()"
+                [class.text-zinc-400]="!showInputEmojiPicker()"
+                title="Emoji"
+                type="button"
+              >
+                <span class="material-symbols-outlined" style="font-size: 18px"
+                  >sentiment_satisfied</span
+                >
+              </button>
               <button
                 (click)="triggerPhotoUpload()"
                 class="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600 transition-colors"
@@ -473,11 +510,11 @@
       >
         <div class="relative flex-shrink-0">
           <span class="material-symbols-outlined text-rose-600" style="font-size: 22px">chat</span>
-          @if (totalUnread > 0) {
+          @if (totalUnread() > 0) {
             <span
               class="absolute -top-1.5 -right-1.5 h-4.5 min-w-4.5 px-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center leading-none shadow-sm"
             >
-              {{ totalUnread > 9 ? '9+' : totalUnread }}
+              {{ totalUnread() > 9 ? '9+' : totalUnread() }}
             </span>
           }
         </div>

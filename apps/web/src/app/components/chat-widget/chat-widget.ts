@@ -91,8 +91,44 @@ export class ChatWidget implements OnInit, AfterViewChecked, OnDestroy {
 
   // Hover actions
   readonly EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+  readonly INPUT_EMOJIS = [
+    '😀',
+    '😂',
+    '😍',
+    '🥰',
+    '😎',
+    '🤔',
+    '😢',
+    '😮',
+    '😡',
+    '🥳',
+    '😅',
+    '🤣',
+    '😊',
+    '😘',
+    '😤',
+    '🤩',
+    '😴',
+    '🤗',
+    '👍',
+    '👎',
+    '❤️',
+    '🔥',
+    '🎉',
+    '🙏',
+    '💪',
+    '👏',
+    '🙌',
+    '💯',
+    '✨',
+    '🫡',
+    '🤝',
+    '😷',
+  ];
   hoveredMsgId = signal<number | null>(null);
+  private hoverTimer: ReturnType<typeof setTimeout> | null = null;
   emojiPickerMsgId = signal<number | null>(null);
+  showInputEmojiPicker = signal(false);
   reportMsgId = signal<number | null>(null);
   reportReason = '';
   reportCategory = signal<string | null>(null);
@@ -118,9 +154,7 @@ export class ChatWidget implements OnInit, AfterViewChecked, OnDestroy {
   private subs = new Subscription();
   private gifSearch$ = new Subject<string>();
 
-  get totalUnread(): number {
-    return this.chatService.totalUnread;
-  }
+  totalUnread = signal(0);
 
   get canSend(): boolean {
     return (
@@ -161,7 +195,10 @@ export class ChatWidget implements OnInit, AfterViewChecked, OnDestroy {
     );
 
     this.subs.add(
-      this.chatService.conversations$.subscribe((convs) => this.conversations.set(convs)),
+      this.chatService.conversations$.subscribe((convs) => {
+        this.conversations.set(convs);
+        this.totalUnread.set(convs.reduce((sum, c) => sum + c.unreadCount, 0));
+      }),
     );
 
     this.subs.add(
@@ -208,6 +245,7 @@ export class ChatWidget implements OnInit, AfterViewChecked, OnDestroy {
   ngOnDestroy(): void {
     this.subs.unsubscribe();
     this.clearTypingTimer();
+    if (this.hoverTimer) clearTimeout(this.hoverTimer);
   }
 
   toggle(): void {
@@ -383,6 +421,20 @@ export class ChatWidget implements OnInit, AfterViewChecked, OnDestroy {
     this.clearTypingTimer();
   }
 
+  // ── Hover ──
+
+  msgMouseEnter(msgId: number): void {
+    if (this.hoverTimer) {
+      clearTimeout(this.hoverTimer);
+      this.hoverTimer = null;
+    }
+    this.hoveredMsgId.set(msgId);
+  }
+
+  msgMouseLeave(): void {
+    this.hoverTimer = setTimeout(() => this.hoveredMsgId.set(null), 150);
+  }
+
   // ── Reactions & Report ──
 
   toggleEmojiPicker(msgId: number, event: MouseEvent): void {
@@ -440,9 +492,14 @@ export class ChatWidget implements OnInit, AfterViewChecked, OnDestroy {
     return Array.from(map.entries()).map(([emoji, v]) => ({ emoji, ...v }));
   }
 
+  insertEmoji(emoji: string): void {
+    this.messageText += emoji;
+  }
+
   closePopovers(): void {
     this.emojiPickerMsgId.set(null);
     this.reportMsgId.set(null);
+    this.showInputEmojiPicker.set(false);
   }
 
   lastMessagePreview(conv: Conversation): string {

@@ -6,7 +6,10 @@ export type NotificationType =
   | "thread_like"
   | "comment_like"
   | "friend_request"
-  | "friend_accepted";
+  | "friend_accepted"
+  | "event_join"
+  | "event_leave"
+  | "event_full";
 
 interface NotificationInput {
   userId: number; // recipient
@@ -14,6 +17,7 @@ interface NotificationInput {
   type: NotificationType;
   threadId?: number;
   commentId?: number;
+  eventId?: number;
 }
 
 /**
@@ -41,6 +45,7 @@ export const notify = async (input: NotificationInput): Promise<void> => {
         type: input.type,
         threadId: input.threadId ?? null,
         commentId: input.commentId ?? null,
+        eventId: input.eventId ?? null,
       },
     });
   } catch (error) {
@@ -57,6 +62,7 @@ export const getNotifications = async (userId: number, limit = 20) => {
       include: {
         actor: actorSelect,
         thread: { select: { id: true, title: true } },
+        event: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: "desc" },
       take: limit,

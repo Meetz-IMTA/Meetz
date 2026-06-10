@@ -114,6 +114,9 @@
                       @if (notif.thread) {
                         <span class="text-zinc-500"> — « {{ notif.thread.title }} »</span>
                       }
+                      @if (notif.event) {
+                        <span class="text-zinc-500"> — « {{ notif.event.name }} »</span>
+                      }
                     </p>
                     <p class="text-xs text-zinc-400 mt-0.5">{{ notif.createdAt | timeAgo }}</p>
                   </div>

@@ -21,6 +21,9 @@ const NOTIF_LABELS: Record<NotificationType, string> = {
   comment_like: 'a aimé votre commentaire',
   friend_request: "vous a envoyé une demande d'ami",
   friend_accepted: "a accepté votre demande d'ami",
+  event_join: "s'est inscrit·e à votre événement",
+  event_leave: "s'est désinscrit·e de votre événement",
+  event_full: 'a rempli la dernière place de votre événement',
 };
 
 @Component({
@@ -96,6 +99,8 @@ export class MainLayout implements OnInit, OnDestroy {
       this.router.navigate(['/friends'], { queryParams: { tab: 'requests' } });
     } else if (notif.type === 'friend_accepted' && notif.actorId) {
       this.router.navigate(['/profile', notif.actorId]);
+    } else if (notif.eventId) {
+      this.router.navigate(['/events', notif.eventId]);
     } else if (notif.threadId) {
       const extras = notif.commentId ? { fragment: 'comment-' + notif.commentId } : {};
       this.router.navigate(['/community/thread', notif.threadId], extras);

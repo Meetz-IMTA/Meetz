@@ -4,7 +4,10 @@ export type NotificationType =
   | 'thread_like'
   | 'comment_like'
   | 'friend_request'
-  | 'friend_accepted';
+  | 'friend_accepted'
+  | 'event_join'
+  | 'event_leave'
+  | 'event_full';
 
 export interface AppNotification {
   id: number;
@@ -13,10 +16,12 @@ export interface AppNotification {
   type: NotificationType;
   threadId: number | null;
   commentId: number | null;
+  eventId: number | null;
   read: boolean;
   createdAt: string;
   actor: { id: number; name: string; avatarUrl: string | null } | null;
   thread: { id: number; title: string } | null;
+  event: { id: number; name: string } | null;
 }
 
 export interface NotificationList {

@@ -13,10 +13,12 @@ import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { UserService } from '../../services/user.service';
 import { FriendService } from '../../services/friend.service';
+import { EventService } from '../../services/event';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 import { StarRatingComponent } from '../../shared/components/star-rating/star-rating.component';
 import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badge.component';
 import { ReportDialogComponent } from '../../shared/components/report-dialog/report-dialog.component';
+import type { MeetzEvent } from '../../models/event.model';
 import type {
   Badge,
   CooptationEntry,
@@ -43,6 +45,7 @@ import type {
 export class ProfileComponent {
   private readonly userService = inject(UserService);
   private readonly friendService = inject(FriendService);
+  private readonly eventService = inject(EventService);
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
 
@@ -63,6 +66,27 @@ export class ProfileComponent {
 
   readonly profile = computed(() => this.profileResource.value() ?? null);
   readonly isLoading = computed(() => this.profileResource.isLoading());
+
+  readonly eventsResource = resource<
+    MeetzEvent[],
+    { routeId: string | null; userId: string | null }
+  >({
+    params: () => ({
+      routeId: this.routeId(),
+      userId: this.userService.currentUser()?.id ?? null,
+    }),
+    loader: ({ params }) => {
+      const organizerId = params.routeId
+        ? Number(params.routeId)
+        : params.userId
+          ? Number(params.userId)
+          : null;
+      if (organizerId == null) return Promise.resolve([]);
+      return firstValueFrom(this.eventService.getAll({ organizerId }));
+    },
+  });
+
+  readonly profileEvents = computed(() => this.eventsResource.value() ?? []);
 
   readonly isOwner = computed(() => {
     const id = this.routeId();
@@ -124,12 +148,16 @@ export class ProfileComponent {
     if (p) this.friendService.removeFriend(p.id);
   }
 
+  eventStatus(date: string): 'upcoming' | 'past' {
+    return new Date(date) > new Date() ? 'upcoming' : 'past';
+  }
+
   memberSince(date: Date): string {
     return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(
       new Date(date),
     );
   }
-  eventDate(date: Date): string {
+  eventDate(date: Date | string): string {
     return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(
       new Date(date),
     );
@@ -139,6 +167,9 @@ export class ProfileComponent {
     return b.id;
   }
   trackEvent(_: number, e: EventSummary): string {
+    return e.id;
+  }
+  trackMeetzEvent(_: number, e: MeetzEvent): number {
     return e.id;
   }
   trackCoopt(_: number, c: CooptationEntry): string {

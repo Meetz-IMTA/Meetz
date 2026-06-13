@@ -18,17 +18,6 @@ const MOCK_BADGES = [
     category: 'participation' as const,
   },
 ];
-const MOCK_EVENTS = [
-  {
-    id: 'e1',
-    title: 'Trail du Gardon',
-    category: 'Sport',
-    date: new Date('2024-03-10'),
-    location: 'Alès',
-    coverImage: null,
-    status: 'past' as const,
-  },
-];
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -148,7 +137,7 @@ export class UserService {
     return {
       ...this.mapToUser(data),
       badges: MOCK_BADGES,
-      recentEvents: MOCK_EVENTS,
+      recentEvents: [],
       cooptations: [],
       friendsCount: data.friendsCount ?? 0,
       eventsCount: data.eventsCount ?? 0,

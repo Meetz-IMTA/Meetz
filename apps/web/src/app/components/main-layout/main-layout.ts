@@ -115,10 +115,9 @@ export class MainLayout implements OnInit, OnDestroy {
 
   navItems: NavItem[] = [
     { label: 'Home', icon: 'home', route: '/home' },
-    { label: 'Communauté', icon: 'group', route: '/community' },
+    { label: 'Communautés', icon: 'group', route: '/community' },
     { label: 'Événements', icon: 'explore', route: '/events' },
     { label: 'Amis', icon: 'people', route: '/friends' },
-    { label: 'Profil', icon: 'person', route: '/profile' },
   ];
 
   get userInitial(): string {

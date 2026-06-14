@@ -78,7 +78,7 @@ export const registerUser = async (data: {
             </div>
             <!-- Footer -->
             <div style="border-top:1px solid #f3f4f6;padding:20px 40px;text-align:center;">
-              <p style="margin:0;font-size:12px;color:#9ca3af;">© 2026 Meetz Inc. · Tous droits réservés</p>
+              <p style="margin:0;font-size:12px;color:#9ca3af;">© 2026 Meetz. · Tous droits réservés</p>
             </div>
           </div>
         </div>
@@ -251,7 +251,7 @@ export const forgotPasswordService = async (email: string) => {
             </div>
             <!-- Footer -->
             <div style="border-top:1px solid #f3f4f6;padding:20px 40px;text-align:center;">
-              <p style="margin:0;font-size:12px;color:#9ca3af;">© 2026 Meetz Inc. · Tous droits réservés</p>
+              <p style="margin:0;font-size:12px;color:#9ca3af;">© 2026 Meetz · Tous droits réservés</p>
             </div>
           </div>
         </div>

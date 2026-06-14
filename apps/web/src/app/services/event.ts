@@ -63,6 +63,10 @@ export class EventService {
       .pipe(tap((data) => this.cache.set(key, { data, at: Date.now() })));
   }
 
+  getFeatured() {
+    return this.http.get<MeetzEvent[]>(`${this.apiUrl}/featured`);
+  }
+
   getById(id: number) {
     return this.http.get<MeetzEvent>(`${this.apiUrl}/${id}`, { headers: this.authHeader });
   }

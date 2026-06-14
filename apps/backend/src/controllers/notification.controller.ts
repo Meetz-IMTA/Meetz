@@ -4,6 +4,7 @@ import {
   getUnreadCount,
   markAllRead,
   markRead,
+  deleteAll,
 } from "../services/notification.service.js";
 
 export const listNotifications = async (req: Request, res: Response) => {
@@ -36,6 +37,15 @@ export const markAllReadHandler = async (req: Request, res: Response) => {
 export const markReadHandler = async (req: Request, res: Response) => {
   try {
     await markRead(Number(req.params["id"]), req.userId!);
+    res.status(204).send();
+  } catch {
+    res.status(500).json({ error: "Erreur." });
+  }
+};
+
+export const deleteAllHandler = async (req: Request, res: Response) => {
+  try {
+    await deleteAll(req.userId!);
     res.status(204).send();
   } catch {
     res.status(500).json({ error: "Erreur." });

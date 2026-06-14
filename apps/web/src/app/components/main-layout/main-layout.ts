@@ -113,6 +113,12 @@ export class MainLayout implements OnInit, OnDestroy {
     this.unreadCount.set(0);
   }
 
+  deleteAllNotifications() {
+    this.notifications.deleteAll().subscribe({ error: () => {} });
+    this.notifItems.set([]);
+    this.unreadCount.set(0);
+  }
+
   navItems: NavItem[] = [
     { label: 'Home', icon: 'home', route: '/home' },
     { label: 'Communauté', icon: 'group', route: '/community' },

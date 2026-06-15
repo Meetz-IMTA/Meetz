@@ -1,4 +1,5 @@
 import prisma from "../lib/prisma.js";
+import { createEventGroupConversation } from "./chat.service.js";
 
 interface EventData {
   name: string;
@@ -114,8 +115,8 @@ export const getEventById = async (id: number, userId?: number) => {
   return { ...rest, participantCount: _count.participations, isJoined };
 };
 
-export const createEvent = (data: EventData, organizerId: number) =>
-  prisma.event.create({
+export const createEvent = async (data: EventData, organizerId: number) => {
+  const event = await prisma.event.create({
     data: {
       name: data.name,
       description: data.description ?? null,
@@ -128,6 +129,11 @@ export const createEvent = (data: EventData, organizerId: number) =>
       organizerId,
     },
   });
+
+  await createEventGroupConversation(event.id, organizerId, event.name);
+
+  return event;
+};
 
 export const updateEvent = async (
   id: number,

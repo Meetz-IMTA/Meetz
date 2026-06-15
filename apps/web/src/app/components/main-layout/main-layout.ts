@@ -6,11 +6,13 @@ import { Footer } from '../footer/footer';
 import { NotificationService } from '../../services/notification';
 import { AppNotification, NotificationType } from '../../models/notification.model';
 import { TimeAgoPipe } from '../../shared/pipes/time-ago.pipe';
+import { ChatService } from '../../services/chat.service';
+import { ChatWidget } from '../chat-widget/chat-widget';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 
 interface NavItem {
   label: string;
-  icon: string;
+  icon?: string;
   route: string;
 }
 
@@ -28,7 +30,15 @@ const NOTIF_LABELS: Record<NotificationType, string> = {
 
 @Component({
   selector: 'app-main-layout',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, Footer, TimeAgoPipe, AvatarComponent],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    Footer,
+    TimeAgoPipe,
+    AvatarComponent,
+    ChatWidget,
+  ],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
 })
@@ -36,6 +46,7 @@ export class MainLayout implements OnInit, OnDestroy {
   private auth = inject(Auth);
   private router = inject(Router);
   private notifications = inject(NotificationService);
+  private chatService = inject(ChatService);
 
   dropdownOpen = signal(false);
 
@@ -49,10 +60,13 @@ export class MainLayout implements OnInit, OnDestroy {
   ngOnInit() {
     this.refreshUnreadCount();
     this.pollHandle = setInterval(() => this.refreshUnreadCount(), 45_000);
+    this.chatService.connect();
+    this.chatService.loadConversations();
   }
 
   ngOnDestroy() {
     if (this.pollHandle) clearInterval(this.pollHandle);
+    this.chatService.disconnect();
   }
 
   private refreshUnreadCount() {
@@ -124,6 +138,7 @@ export class MainLayout implements OnInit, OnDestroy {
     { label: 'Communauté', icon: 'group', route: '/community' },
     { label: 'Événements', icon: 'explore', route: '/events' },
     { label: 'Amis', icon: 'people', route: '/friends' },
+    { label: 'Chat', icon: 'chat', route: '/chat' },
     { label: 'Profil', icon: 'person', route: '/profile' },
   ];
 

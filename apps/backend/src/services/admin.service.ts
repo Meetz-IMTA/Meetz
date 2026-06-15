@@ -1,5 +1,6 @@
 import prisma from "../lib/prisma.js";
 import { deleteImage } from "../lib/cloudinary.js";
+import { decrypt, isEncrypted } from "./crypto.service.js";
 
 const safeUserSelect = {
   select: {
@@ -62,12 +63,39 @@ export const getReports = async (filters: ReportFilters = {}) => {
             thread: { select: { id: true, title: true } },
           },
         },
+        message: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            sender: { select: { id: true, name: true } },
+          },
+        },
       },
     }),
     prisma.report.count({ where }),
   ]);
 
-  return { reports, total, page, totalPages: Math.ceil(total / limit) };
+  const decryptedReports = reports.map((r) => ({
+    ...r,
+    message: r.message
+      ? {
+          ...r.message,
+          content: r.message.content
+            ? isEncrypted(r.message.content)
+              ? decrypt(r.message.content)
+              : r.message.content
+            : null,
+        }
+      : null,
+  }));
+
+  return {
+    reports: decryptedReports,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
 };
 
 export const updateReportStatus = async (id: number, status: string) => {

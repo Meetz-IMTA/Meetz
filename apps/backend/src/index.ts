@@ -18,7 +18,10 @@ const httpServer = createServer(app);
 const PORT = process.env.PORT || 3000;
 
 export const io = new Server(httpServer, {
-  cors: { origin: "http://localhost:4200", methods: ["GET", "POST"] },
+  cors: {
+    origin: process.env["CORS_ORIGIN"] ?? "http://localhost:4200",
+    methods: ["GET", "POST"],
+  },
 });
 
 app.use(cors());

@@ -74,7 +74,17 @@ export const getUserConversations = async (userId: number) => {
           senderId: { not: userId },
         },
       });
-      const lastMessage = conversation.messages[0] ?? null;
+      const rawLastMessage = conversation.messages[0] ?? null;
+      const lastMessage = rawLastMessage
+        ? {
+            ...rawLastMessage,
+            content: rawLastMessage.content
+              ? isEncrypted(rawLastMessage.content)
+                ? decrypt(rawLastMessage.content)
+                : rawLastMessage.content
+              : null,
+          }
+        : null;
       return { ...conversation, lastMessage, unreadCount };
     }),
   );

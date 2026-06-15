@@ -180,6 +180,15 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
       this.chatService.conversations$.subscribe((convs) => {
         this.conversations.set(convs);
         this.loading.set(false);
+
+        const pendingId = this.chatService.pendingOpenConversationId$.value;
+        if (pendingId && !this.activeConversation() && convs.length > 0) {
+          const conv = convs.find((c) => c.id === pendingId);
+          if (conv) {
+            this.chatService.setPendingConversation(null);
+            this.selectConversation(conv);
+          }
+        }
       }),
     );
 

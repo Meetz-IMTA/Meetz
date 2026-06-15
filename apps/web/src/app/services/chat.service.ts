@@ -57,6 +57,11 @@ export class ChatService implements OnDestroy {
   readonly conversations$ = new BehaviorSubject<Conversation[]>([]);
   readonly messages$ = new BehaviorSubject<Message[]>([]);
   readonly isWidgetOpen$ = new BehaviorSubject<boolean>(false);
+  readonly pendingOpenConversationId$ = new BehaviorSubject<number | null>(null);
+
+  setPendingConversation(id: number | null): void {
+    this.pendingOpenConversationId$.next(id);
+  }
 
   private apiUsersUrl = 'http://localhost:3000/api/v1/users';
 

@@ -257,6 +257,12 @@ export class ChatWidget implements OnInit, AfterViewChecked, OnDestroy {
     this.backToList();
   }
 
+  expandToFullPage(): void {
+    const conv = this.activeConversation();
+    this.chatService.setPendingConversation(conv?.id ?? null);
+    this.close();
+  }
+
   openConversation(conv: Conversation): void {
     this.activeConversation.set(conv);
     this.view.set('chat');

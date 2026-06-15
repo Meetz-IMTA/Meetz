@@ -1,9 +1,41 @@
 <!-- Top nav bar -->
 <header
-  class="sticky top-0 z-[900] flex justify-between items-center px-4 h-16 w-full bg-white border-b border-zinc-200 shadow-sm font-semibold"
+  class="sticky top-0 z-900 flex justify-between items-center px-4 h-16 w-full bg-white border-b border-zinc-200 shadow-sm font-semibold"
 >
   <div class="flex items-center gap-4">
-    <span class="text-2xl font-black text-rose-700">Meetz</span>
+    <div class="flex items-center gap-1">
+      <svg
+        width="28"
+        height="32"
+        viewBox="0 0 72 82"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M36 4C20.536 4 8 16.536 8 32C8 48 20 56 28 64C30.8 67.2 33.2 70.4 36 76C38.8 70.4 41.2 67.2 44 64C52 56 64 48 64 32C64 16.536 51.464 4 36 4Z"
+          fill="#BE123C"
+        />
+        <circle cx="27" cy="23" r="5.5" fill="white" />
+        <path
+          d="M18 41C18 35 22 32 27 32C32 32 34 35 34 38"
+          stroke="white"
+          stroke-width="3"
+          stroke-linecap="round"
+          fill="none"
+        />
+        <path d="M18 41H34" stroke="white" stroke-width="3" stroke-linecap="round" />
+        <circle cx="45" cy="23" r="5.5" fill="white" />
+        <path
+          d="M54 41C54 35 50 32 45 32C40 32 38 35 38 38"
+          stroke="white"
+          stroke-width="3"
+          stroke-linecap="round"
+          fill="none"
+        />
+        <path d="M54 41H38" stroke="white" stroke-width="3" stroke-linecap="round" />
+      </svg>
+      <span class="font-headline text-2xl font-extrabold text-primary tracking-tighter">Meetz</span>
+    </div>
     <nav class="hidden md:flex items-center gap-1 ml-8">
       @for (item of navItems; track item.route) {
         <a
@@ -17,18 +49,6 @@
     </nav>
   </div>
   <div class="flex items-center gap-3">
-    <div class="relative hidden sm:block">
-      <span
-        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
-        style="font-size: 20px"
-        >search</span
-      >
-      <input
-        class="pl-10 pr-4 py-1.5 rounded-lg border border-zinc-200 bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-rose-700/20 w-64 text-sm"
-        placeholder="Search Alès..."
-        type="text"
-      />
-    </div>
     <div class="relative">
       <button
         type="button"
@@ -43,7 +63,7 @@
         >
         @if (unreadCount() > 0) {
           <span
-            class="mz-badge absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white"
+            class="mz-badge absolute -top-0.5 -right-0.5 min-w-4.5 h-4.5 px-1 rounded-full bg-rose-600 text-white text-10px font-bold flex items-center justify-center ring-2 ring-white"
           >
             {{ unreadCount() > 9 ? '9+' : unreadCount() }}
           </span>

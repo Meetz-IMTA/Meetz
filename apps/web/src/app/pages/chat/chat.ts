@@ -519,6 +519,10 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
     return this.getDisplayName(conv)[0]?.toUpperCase() ?? '?';
   }
 
+  getConversationAvatar(conv: Conversation): string | null {
+    return this.chatService.getConversationAvatar(conv, this.currentUser?.id ?? 0);
+  }
+
   isMe(msg: Message): boolean {
     return msg.senderId === this.currentUser?.id;
   }

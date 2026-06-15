@@ -1,32 +1,20 @@
 <section class="bg-white py-20">
   <div class="max-w-[1280px] mx-auto px-6">
-    <!-- Header + filters -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
+    <div class="mb-10">
       <h2 class="text-3xl font-bold text-meetz-charcoal tracking-tight font-headline">
         Événements à la une
       </h2>
-      @if (!loading) {
-        <div class="flex flex-wrap gap-2">
-          <button
-            *ngFor="let cat of categories"
-            type="button"
-            (click)="activeCategory = cat"
-            [class]="
-              cat === activeCategory
-                ? 'px-5 py-2 rounded-lg bg-meetz-red text-white text-sm font-semibold'
-                : 'px-5 py-2 rounded-lg bg-meetz-offwhite border border-meetz-border hover:bg-meetz-border text-meetz-charcoal/80 text-sm font-semibold transition-colors'
-            "
-          >
-            {{ cat }}
-          </button>
-        </div>
-      }
     </div>
 
-    <!-- Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      @for (event of filteredEvents; track event.id) {
-        <app-event-card [event]="event" />
+      @if (loading) {
+        @for (_ of [1, 2, 3]; track $index) {
+          <div class="h-64 rounded-2xl bg-zinc-100 animate-pulse"></div>
+        }
+      } @else {
+        @for (event of events; track event.id) {
+          <app-event-card [event]="event" />
+        }
       }
     </div>
   </div>

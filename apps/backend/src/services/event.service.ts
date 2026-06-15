@@ -74,6 +74,24 @@ export const getEvents = async (filters: EventFilters = {}) =>
     orderBy: { date: "asc" },
   });
 
+export const getFeaturedEvents = async () => {
+  const events = await prisma.event.findMany({
+    where: { isPrivate: false, date: { gte: new Date() } },
+    include: {
+      organizer: {
+        select: { id: true, name: true, email: true, avatarUrl: true },
+      },
+      _count: { select: { participations: true } },
+    },
+    orderBy: { participations: { _count: "desc" } },
+    take: 3,
+  });
+  return events.map(({ _count, ...e }) => ({
+    ...e,
+    participantCount: _count.participations,
+  }));
+};
+
 export const getEventById = async (id: number, userId?: number) => {
   const event = await prisma.event.findUnique({
     where: { id },

@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import {
   getEvents,
+  getFeaturedEvents,
   getEventById,
   createEvent,
   updateEvent,
@@ -12,6 +13,16 @@ import { uploadImage } from "../lib/cloudinary.js";
 const resolveImageUrl = async (req: Request): Promise<string | undefined> => {
   if (req.file?.buffer) return uploadImage(req.file.buffer);
   return req.body.imageUrl ?? undefined;
+};
+
+export const listFeaturedEvents = async (_req: Request, res: Response) => {
+  try {
+    res.json(await getFeaturedEvents());
+  } catch {
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la récupération des événements." });
+  }
 };
 
 export const listEvents = async (req: Request, res: Response) => {

@@ -6,6 +6,7 @@ import {
 } from "../middlewares/auth.middleware.js";
 import {
   listEvents,
+  listFeaturedEvents,
   getEvent,
   createEventHandler,
   updateEventHandler,
@@ -28,6 +29,7 @@ const upload = multer({
 });
 
 router.get("/", optionalAuthMiddleware, listEvents);
+router.get("/featured", listFeaturedEvents);
 router.get("/:id", optionalAuthMiddleware, getEvent);
 router.post("/", authMiddleware, upload.single("image"), createEventHandler);
 router.put("/:id", authMiddleware, upload.single("image"), updateEventHandler);

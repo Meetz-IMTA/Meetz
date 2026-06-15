@@ -8,6 +8,7 @@ export interface ChatUser {
   id: number;
   name: string;
   email?: string;
+  avatarUrl?: string | null;
 }
 
 export interface MessageReaction {
@@ -247,6 +248,14 @@ export class ChatService implements OnDestroy {
       return other?.user.name ?? 'Conversation';
     }
     return 'Groupe';
+  }
+
+  getConversationAvatar(conversation: Conversation, currentUserId: number): string | null {
+    if (conversation.type === 'PRIVATE') {
+      const other = conversation.participants.find((p) => p.userId !== currentUserId);
+      return other?.user.avatarUrl ?? null;
+    }
+    return null;
   }
 
   toggleWidget(): void {

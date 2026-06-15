@@ -47,11 +47,15 @@
           >
             <!-- Avatar -->
             <div class="relative flex-shrink-0">
-              <div
-                class="h-11 w-11 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-sm"
-              >
-                {{ getInitial(conv) }}
-              </div>
+              @if (getConversationAvatar(conv); as avatarUrl) {
+                <img [src]="avatarUrl" class="h-11 w-11 rounded-full object-cover" alt="" />
+              } @else {
+                <div
+                  class="h-11 w-11 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-sm"
+                >
+                  {{ getInitial(conv) }}
+                </div>
+              }
               @if (conv.type === 'EVENT_GROUP') {
                 <span
                   class="absolute -bottom-0.5 -right-0.5 h-4 w-4 bg-rose-600 rounded-full flex items-center justify-center"
@@ -98,11 +102,15 @@
       <div
         class="flex items-center gap-3 px-6 py-4 border-b border-zinc-200 bg-white flex-shrink-0"
       >
-        <div
-          class="h-9 w-9 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-sm"
-        >
-          {{ getInitial(conv) }}
-        </div>
+        @if (getConversationAvatar(conv); as avatarUrl) {
+          <img [src]="avatarUrl" class="h-9 w-9 rounded-full object-cover flex-shrink-0" alt="" />
+        } @else {
+          <div
+            class="h-9 w-9 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-sm flex-shrink-0"
+          >
+            {{ getInitial(conv) }}
+          </div>
+        }
         <div>
           <h2 class="font-semibold text-zinc-800 leading-tight">{{ getDisplayName(conv) }}</h2>
           @if (conv.type === 'EVENT_GROUP') {
@@ -116,11 +124,19 @@
         @for (msg of messages(); track msg.id) {
           <div class="flex gap-2" [class.flex-row-reverse]="isMe(msg)" (click)="closePopovers()">
             @if (!isMe(msg)) {
-              <div
-                class="h-7 w-7 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600 font-bold text-xs flex-shrink-0 self-end mb-4"
-              >
-                {{ msg.sender.name[0].toUpperCase() }}
-              </div>
+              @if (msg.sender.avatarUrl) {
+                <img
+                  [src]="msg.sender.avatarUrl"
+                  class="h-7 w-7 rounded-full object-cover flex-shrink-0 self-end mb-4"
+                  alt=""
+                />
+              } @else {
+                <div
+                  class="h-7 w-7 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600 font-bold text-xs flex-shrink-0 self-end mb-4"
+                >
+                  {{ msg.sender.name[0].toUpperCase() }}
+                </div>
+              }
             }
             <div class="max-w-xs lg:max-w-md xl:max-w-lg">
               @if (!isMe(msg)) {
@@ -642,11 +658,19 @@
             (click)="startPrivateChat(user)"
             class="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50 cursor-pointer transition-colors"
           >
-            <div
-              class="h-9 w-9 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-sm flex-shrink-0"
-            >
-              {{ user.name[0].toUpperCase() }}
-            </div>
+            @if (user.avatarUrl) {
+              <img
+                [src]="user.avatarUrl"
+                class="h-9 w-9 rounded-full object-cover flex-shrink-0"
+                alt=""
+              />
+            } @else {
+              <div
+                class="h-9 w-9 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-sm flex-shrink-0"
+              >
+                {{ user.name[0].toUpperCase() }}
+              </div>
+            }
             <div>
               <p class="text-sm font-semibold text-zinc-800">{{ user.name }}</p>
               <p class="text-xs text-zinc-400">{{ user.email }}</p>

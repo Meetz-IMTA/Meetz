@@ -28,7 +28,7 @@ export const saveMessage = async (
       gifUrl: gifUrl ?? null,
     },
     include: {
-      sender: { select: { id: true, name: true } },
+      sender: { select: { id: true, name: true, avatarUrl: true } },
       reactions: { select: { id: true, emoji: true, userId: true } },
     },
   });
@@ -52,12 +52,16 @@ export const getUserConversations = async (userId: number) => {
       conversation: {
         include: {
           participants: {
-            include: { user: { select: { id: true, name: true } } },
+            include: {
+              user: { select: { id: true, name: true, avatarUrl: true } },
+            },
           },
           messages: {
             orderBy: { createdAt: "desc" },
             take: 1,
-            include: { sender: { select: { id: true, name: true } } },
+            include: {
+              sender: { select: { id: true, name: true, avatarUrl: true } },
+            },
           },
           event: { select: { id: true, name: true } },
         },
@@ -108,7 +112,7 @@ export const getConversationMessages = async (
   const messages = await prisma.message.findMany({
     where: { conversationId },
     include: {
-      sender: { select: { id: true, name: true } },
+      sender: { select: { id: true, name: true, avatarUrl: true } },
       reactions: { select: { id: true, emoji: true, userId: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -164,11 +168,17 @@ export const findOrCreatePrivateConversation = async (
       ],
     },
     include: {
-      participants: { include: { user: { select: { id: true, name: true } } } },
+      participants: {
+        include: {
+          user: { select: { id: true, name: true, avatarUrl: true } },
+        },
+      },
       messages: {
         orderBy: { createdAt: "desc" },
         take: 1,
-        include: { sender: { select: { id: true, name: true } } },
+        include: {
+          sender: { select: { id: true, name: true, avatarUrl: true } },
+        },
       },
     },
   });
@@ -181,11 +191,17 @@ export const findOrCreatePrivateConversation = async (
       participants: { create: [{ userId }, { userId: targetUserId }] },
     },
     include: {
-      participants: { include: { user: { select: { id: true, name: true } } } },
+      participants: {
+        include: {
+          user: { select: { id: true, name: true, avatarUrl: true } },
+        },
+      },
       messages: {
         orderBy: { createdAt: "desc" },
         take: 1,
-        include: { sender: { select: { id: true, name: true } } },
+        include: {
+          sender: { select: { id: true, name: true, avatarUrl: true } },
+        },
       },
     },
   });
@@ -209,6 +225,6 @@ export const createEventGroupConversation = async (
 export const getUsers = async (excludeUserId: number) => {
   return prisma.user.findMany({
     where: { id: { not: excludeUserId }, isVerified: true },
-    select: { id: true, name: true, email: true },
+    select: { id: true, name: true, email: true, avatarUrl: true },
   });
 };

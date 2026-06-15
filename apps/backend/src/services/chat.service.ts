@@ -1,4 +1,5 @@
 import prisma from "../lib/prisma.js";
+import { encrypt, decrypt, isEncrypted } from "./crypto.service.js";
 
 export const isParticipant = async (
   conversationId: number,
@@ -17,11 +18,12 @@ export const saveMessage = async (
   imageUrl?: string,
   gifUrl?: string,
 ) => {
-  return prisma.message.create({
+  const encryptedContent = content ? encrypt(content) : null;
+  const message = await prisma.message.create({
     data: {
       conversationId,
       senderId,
-      content: content || null,
+      content: encryptedContent,
       imageUrl: imageUrl ?? null,
       gifUrl: gifUrl ?? null,
     },
@@ -30,6 +32,10 @@ export const saveMessage = async (
       reactions: { select: { id: true, emoji: true, userId: true } },
     },
   });
+  return {
+    ...message,
+    content: message.content ? content : null,
+  };
 };
 
 export const markAsRead = async (conversationId: number, userId: number) => {
@@ -89,7 +95,7 @@ export const getConversationMessages = async (
   if (!(await isParticipant(conversationId, userId))) {
     throw new Error("Non autorisé");
   }
-  return prisma.message.findMany({
+  const messages = await prisma.message.findMany({
     where: { conversationId },
     include: {
       sender: { select: { id: true, name: true } },
@@ -99,6 +105,14 @@ export const getConversationMessages = async (
     skip: (page - 1) * limit,
     take: limit,
   });
+  return messages.map((msg) => ({
+    ...msg,
+    content: msg.content
+      ? isEncrypted(msg.content)
+        ? decrypt(msg.content)
+        : msg.content
+      : null,
+  }));
 };
 
 export const toggleReaction = async (

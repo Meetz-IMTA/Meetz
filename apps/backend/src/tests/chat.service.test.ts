@@ -41,17 +41,17 @@ describe("saveMessage", () => {
   it("stocke le contenu chiffré en base et retourne le texte en clair", async () => {
     const plaintext = "Bonjour !";
 
-    mockCreate.mockImplementation(async ({ data }: any) => ({
+    mockCreate.mockResolvedValue({
       id: 1,
       conversationId: 1,
       senderId: 1,
-      content: data.content,
+      content: "valeur_ignorée_saveMessage_utilise_le_plaintext_original",
       imageUrl: null,
       gifUrl: null,
       createdAt: new Date(),
       sender: { id: 1, name: "Alice" },
       reactions: [],
-    }));
+    } as any);
 
     const result = await saveMessage(1, 1, plaintext);
 

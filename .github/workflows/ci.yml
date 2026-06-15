@@ -21,6 +21,6 @@ jobs:
         run: npm ci
 
       - name: Tests unitaires (crypto + services)
-        run: npm test --workspace=apps/backend
+        run: npm test --workspace=backend
         env:
           CHAT_ENCRYPTION_KEY: ${{ secrets.CHAT_ENCRYPTION_KEY }}

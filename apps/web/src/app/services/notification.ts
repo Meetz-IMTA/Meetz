@@ -30,4 +30,8 @@ export class NotificationService {
   markRead(id: number) {
     return this.http.post<void>(`${this.apiUrl}/${id}/read`, {}, { headers: this.authHeader });
   }
+
+  deleteAll() {
+    return this.http.delete<void>(this.apiUrl, { headers: this.authHeader });
+  }
 }

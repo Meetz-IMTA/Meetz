@@ -76,14 +76,25 @@
         >
           <div class="flex items-center justify-between px-4 py-2.5 border-b border-zinc-100">
             <p class="text-sm font-bold text-zinc-800">Notifications</p>
-            @if (unreadCount() > 0) {
-              <button
-                type="button"
-                (click)="markAllRead()"
-                class="text-xs font-semibold text-rose-700 hover:underline"
-              >
-                Tout marquer comme lu
-              </button>
+            @if (notifItems().length > 0) {
+              <div class="flex items-center gap-3">
+                @if (unreadCount() > 0) {
+                  <button
+                    type="button"
+                    (click)="markAllRead()"
+                    class="text-xs font-semibold text-rose-700 hover:underline"
+                  >
+                    Tout marquer comme lu
+                  </button>
+                }
+                <button
+                  type="button"
+                  (click)="deleteAllNotifications()"
+                  class="text-xs font-semibold text-zinc-400 hover:text-zinc-600 hover:underline"
+                >
+                  Tout supprimer
+                </button>
+              </div>
             }
           </div>
 
@@ -106,29 +117,45 @@
                   [class.bg-rose-50]="!notif.read"
                   [class.hover:bg-rose-50]="!notif.read"
                 >
-                  @if (notif.type === 'friend_request' || notif.type === 'friend_accepted') {
-                    <div
-                      class="h-8 w-8 rounded-full bg-sky-600 flex items-center justify-center text-white text-xs font-bold shrink-0"
-                    >
-                      <span class="material-symbols-outlined" style="font-size: 18px">people</span>
+                  @if (notif.actor?.avatarUrl) {
+                    <div class="relative shrink-0">
+                      <mz-avatar
+                        [src]="notif.actor!.avatarUrl"
+                        [alt]="notif.actor!.name"
+                        [size]="32"
+                      />
+                      @if (notif.type === 'friend_request' || notif.type === 'friend_accepted') {
+                        <span
+                          class="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-sky-600 flex items-center justify-center ring-1 ring-white"
+                        >
+                          <span class="material-symbols-outlined text-white" style="font-size: 10px"
+                            >people</span
+                          >
+                        </span>
+                      }
                     </div>
-                  } @else if (notif.actor?.avatarUrl) {
-                    <mz-avatar
-                      [src]="notif.actor!.avatarUrl"
-                      [alt]="notif.actor!.name"
-                      [size]="32"
-                    />
                   } @else {
                     <div
-                      class="h-8 w-8 rounded-full bg-rose-700 flex items-center justify-center text-white text-xs font-bold shrink-0"
+                      class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                      [class]="
+                        notif.type === 'friend_request' || notif.type === 'friend_accepted'
+                          ? 'bg-sky-600'
+                          : 'bg-rose-700'
+                      "
                     >
-                      {{ (notif.actor?.name || '?')[0].toUpperCase() }}
+                      @if (notif.type === 'friend_request' || notif.type === 'friend_accepted') {
+                        <span class="material-symbols-outlined" style="font-size: 18px"
+                          >people</span
+                        >
+                      } @else {
+                        {{ (notif.actor?.name || '?')[0].toUpperCase() }}
+                      }
                     </div>
                   }
                   <div class="min-w-0 flex-1">
                     <p class="text-sm text-zinc-700 leading-snug">
                       <span class="font-bold text-zinc-900">{{
-                        notif.actor?.name || 'Quelqu’un'
+                        notif.actor?.name || "Quelqu'un"
                       }}</span>
                       {{ notifLabel(notif.type) }}
                       @if (notif.thread) {
@@ -222,3 +249,6 @@
     <app-footer />
   </div>
 </div>
+
+<!-- Chat widget (always visible on authenticated pages) -->
+<app-chat-widget />

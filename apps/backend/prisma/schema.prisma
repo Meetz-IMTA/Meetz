@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,6 +5,11 @@ generator client {
 
 datasource db {
   provider = "mysql"
+}
+
+enum ConversationType {
+  PRIVATE
+  EVENT_GROUP
 }
 
 model User {
@@ -44,12 +44,16 @@ model User {
   reports            Report[]
   notifications      Notification[] @relation("UserNotifications")
   actedNotifications Notification[] @relation("ActorNotifications")
+  readReceipts       Boolean                   @default(true)
+  conversations      ConversationParticipant[]
+  sentMessages       Message[]
+  messageReactions   MessageReaction[]
 }
 
 model Event {
-  id           Int      @id @default(autoincrement())
+  id           Int                @id @default(autoincrement())
   name         String
-  description  String?  @db.Text
+  description  String?            @db.Text
   date         DateTime
   location     String?
   category     String?
@@ -57,9 +61,10 @@ model Event {
   imageUrl     String?
   isPrivate    Boolean  @default(false)
   organizerId  Int
-  organizer    User     @relation(fields: [organizerId], references: [id])
+  organizer    User               @relation(fields: [organizerId], references: [id])
   participations EventParticipation[]
   notifications  Notification[]
+  conversation Conversation?
 }
 
 model EventParticipation {
@@ -130,10 +135,10 @@ model Thread {
   updatedAt  DateTime      @updatedAt
   author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   category   Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  images        ThreadImage[]
-  comments      Comment[]
-  likes         ThreadLike[]
-  reports       Report[]
+  images     ThreadImage[]
+  comments   Comment[]
+  likes      ThreadLike[]
+  reports    Report[]
   notifications Notification[]
 
   @@index([categoryId])
@@ -193,16 +198,32 @@ model Report {
   id         Int      @id @default(autoincrement())
   threadId   Int?
   commentId  Int?
+  messageId  Int?
   reporterId Int?
   reason     String?  @db.Text
   status     String   @default("pending")
   createdAt  DateTime @default(now())
   thread     Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
   comment    Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  message    Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
   reporter   User?    @relation(fields: [reporterId], references: [id], onDelete: SetNull)
 
   @@index([threadId])
   @@index([commentId])
+  @@index([messageId])
+}
+
+model MessageReaction {
+  id        Int      @id @default(autoincrement())
+  messageId Int
+  userId    Int
+  emoji     String
+  createdAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
 }
 
 model Notification {
@@ -221,4 +242,40 @@ model Notification {
   event     Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model Conversation {
+  id           Int                       @id @default(autoincrement())
+  type         ConversationType
+  name         String?
+  createdAt    DateTime                  @default(now())
+  eventId      Int?                      @unique
+  event        Event?                    @relation(fields: [eventId], references: [id])
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  conversationId Int
+  userId         Int
+  joinedAt       DateTime     @default(now())
+  lastReadAt     DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  content        String?      @db.Text
+  imageUrl       String?
+  gifUrl         String?
+  conversationId Int
+  senderId       Int
+  createdAt      DateTime     @default(now())
+  conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User              @relation(fields: [senderId], references: [id])
+  reactions      MessageReaction[]
+  reports        Report[]
 }

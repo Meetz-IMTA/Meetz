@@ -21,7 +21,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isApi = req.url.startsWith(API_BASE);
   const isAuthCall = req.url.includes('/auth/');
 
-  // Attach the access token to our own API calls (never to external services).
   let authReq = req;
   const token = auth.getAccessToken();
   if (isApi && token && !req.headers.has('Authorization')) {

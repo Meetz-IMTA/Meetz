@@ -1,0 +1,661 @@
+<div class="flex h-[calc(100vh-4rem)]">
+  <!-- ═══ Left panel: conversation list ═══ -->
+  <div class="w-80 flex-shrink-0 border-r border-zinc-200 bg-white flex flex-col">
+    <!-- Header -->
+    <div class="p-4 border-b border-zinc-200">
+      <div class="flex items-center justify-between mb-3">
+        <h1 class="text-lg font-bold text-zinc-800">Messages</h1>
+        <button
+          (click)="openNewChatDialog()"
+          class="p-2 rounded-full hover:bg-rose-50 text-zinc-500 transition-colors"
+          title="Nouveau message"
+          type="button"
+        >
+          <span class="material-symbols-outlined" style="font-size: 20px">edit_square</span>
+        </button>
+      </div>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Rechercher..."
+        class="w-full px-3 py-2 rounded-lg border border-zinc-200 bg-zinc-50 text-sm focus:outline-none focus:ring-2 focus:ring-rose-700/20"
+      />
+    </div>
+
+    <!-- List -->
+    <div class="flex-1 overflow-y-auto">
+      @if (loading()) {
+        <div class="flex items-center justify-center h-24 text-zinc-400 text-sm">Chargement…</div>
+      } @else if (filteredConversations().length === 0) {
+        <div class="flex flex-col items-center justify-center h-48 text-zinc-400 px-6 text-center">
+          <span class="material-symbols-outlined text-4xl mb-2">chat_bubble</span>
+          <p class="text-sm mb-3">Aucune conversation</p>
+          <button
+            (click)="openNewChatDialog()"
+            class="text-rose-700 text-sm font-medium hover:underline"
+            type="button"
+          >
+            Démarrer une discussion
+          </button>
+        </div>
+      } @else {
+        @for (conv of filteredConversations(); track conv.id) {
+          <div
+            (click)="selectConversation(conv)"
+            class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-50 transition-colors border-b border-zinc-100"
+            [class.bg-rose-50]="activeConversation()?.id === conv.id"
+          >
+            <!-- Avatar -->
+            <div class="relative flex-shrink-0">
+              <div
+                class="h-11 w-11 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-sm"
+              >
+                {{ getInitial(conv) }}
+              </div>
+              @if (conv.type === 'EVENT_GROUP') {
+                <span
+                  class="absolute -bottom-0.5 -right-0.5 h-4 w-4 bg-rose-600 rounded-full flex items-center justify-center"
+                >
+                  <span class="material-symbols-outlined text-white" style="font-size: 10px"
+                    >groups</span
+                  >
+                </span>
+              }
+            </div>
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-baseline gap-1">
+                <span class="font-semibold text-sm text-zinc-800 truncate">{{
+                  getDisplayName(conv)
+                }}</span>
+                @if (conv.lastMessage) {
+                  <span class="text-xs text-zinc-400 flex-shrink-0">{{
+                    formatTime(conv.lastMessage.createdAt)
+                  }}</span>
+                }
+              </div>
+              <div class="flex justify-between items-center mt-0.5 gap-1">
+                <span class="text-xs text-zinc-400 truncate">{{ lastMessagePreview(conv) }}</span>
+                @if (conv.unreadCount > 0) {
+                  <span
+                    class="flex-shrink-0 h-5 min-w-5 px-1 rounded-full bg-rose-600 flex items-center justify-center text-white text-xs font-bold"
+                  >
+                    {{ conv.unreadCount > 9 ? '9+' : conv.unreadCount }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- ═══ Right panel: messages ═══ -->
+  @if (activeConversation(); as conv) {
+    <div class="flex-1 flex flex-col min-w-0">
+      <!-- Chat header -->
+      <div
+        class="flex items-center gap-3 px-6 py-4 border-b border-zinc-200 bg-white flex-shrink-0"
+      >
+        <div
+          class="h-9 w-9 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-sm"
+        >
+          {{ getInitial(conv) }}
+        </div>
+        <div>
+          <h2 class="font-semibold text-zinc-800 leading-tight">{{ getDisplayName(conv) }}</h2>
+          @if (conv.type === 'EVENT_GROUP') {
+            <span class="text-xs text-zinc-400">{{ conv.participants.length }} participant(s)</span>
+          }
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div #messagesContainer class="flex-1 overflow-y-auto p-6 space-y-2 bg-zinc-50">
+        @for (msg of messages(); track msg.id) {
+          <div class="flex gap-2" [class.flex-row-reverse]="isMe(msg)" (click)="closePopovers()">
+            @if (!isMe(msg)) {
+              <div
+                class="h-7 w-7 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600 font-bold text-xs flex-shrink-0 self-end mb-4"
+              >
+                {{ msg.sender.name[0].toUpperCase() }}
+              </div>
+            }
+            <div class="max-w-xs lg:max-w-md xl:max-w-lg">
+              @if (!isMe(msg)) {
+                <span class="text-xs text-zinc-400 mb-1 block pl-1">{{ msg.sender.name }}</span>
+              }
+
+              <!-- Wrapper hover — action bar DANS le bubble, aucun gap possible -->
+              <div
+                class="relative"
+                (mouseenter)="msgMouseEnter(msg.id)"
+                (mouseleave)="msgMouseLeave()"
+              >
+                <!-- Bubble -->
+                <div
+                  class="rounded-2xl overflow-hidden text-sm leading-relaxed"
+                  [class.bg-rose-600]="isMe(msg)"
+                  [class.text-white]="isMe(msg)"
+                  [class.rounded-tr-sm]="isMe(msg)"
+                  [class.bg-white]="!isMe(msg)"
+                  [class.text-zinc-800]="!isMe(msg)"
+                  [class.shadow-sm]="!isMe(msg)"
+                  [class.border]="!isMe(msg)"
+                  [class.border-zinc-200]="!isMe(msg)"
+                  [class.rounded-tl-sm]="!isMe(msg)"
+                >
+                  @if (msg.content) {
+                    <div class="px-4 pt-2.5 pb-8">{{ msg.content }}</div>
+                  }
+                  @if (msg.imageUrl) {
+                    <img
+                      [src]="msg.imageUrl"
+                      class="block w-full max-h-64 object-cover"
+                      alt="Photo"
+                      loading="lazy"
+                    />
+                  } @else if (msg.gifUrl) {
+                    <img
+                      [src]="msg.gifUrl"
+                      class="block w-full max-h-64 object-contain"
+                      alt="GIF"
+                      loading="lazy"
+                    />
+                  }
+                  @if (!msg.content && !msg.imageUrl && !msg.gifUrl) {
+                    <div class="px-4 py-2.5 text-zinc-400 italic text-xs">Message vide</div>
+                  }
+                </div>
+
+                <!-- Action bar : coin bas-droit à l'intérieur de la bubble → 0 gap garanti -->
+                <div
+                  class="absolute bottom-2 right-2 z-10 flex items-center gap-1 transition-opacity"
+                  [class.pointer-events-none]="
+                    hoveredMsgId() !== msg.id && emojiPickerMsgId() !== msg.id
+                  "
+                  [style.opacity]="
+                    hoveredMsgId() === msg.id || emojiPickerMsgId() === msg.id ? '1' : '0'
+                  "
+                >
+                  <!-- Emoji reaction -->
+                  <div class="relative">
+                    <button
+                      (click)="toggleEmojiPicker(msg.id, $event)"
+                      class="h-6 w-6 rounded-full bg-white/90 border border-zinc-300 shadow-sm flex items-center justify-center text-zinc-500 hover:text-rose-600 transition-colors"
+                      title="Ajouter une réaction"
+                      type="button"
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 13px"
+                        >add_reaction</span
+                      >
+                    </button>
+                    @if (emojiPickerMsgId() === msg.id) {
+                      <div
+                        class="absolute bottom-full right-0 mb-2 z-20 bg-white border border-zinc-200 rounded-2xl shadow-lg px-2 py-1.5 flex gap-1"
+                        (click)="$event.stopPropagation()"
+                      >
+                        @for (emoji of EMOJIS; track emoji) {
+                          <button
+                            (click)="sendReaction(msg, emoji)"
+                            class="text-xl leading-none p-1 rounded-lg hover:bg-zinc-100 transition-colors hover:scale-125"
+                            type="button"
+                          >
+                            {{ emoji }}
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                  <!-- Signalement (pas sur ses propres messages) -->
+                  @if (!isMe(msg)) {
+                    <button
+                      (click)="openReport(msg.id, $event)"
+                      class="h-6 w-6 rounded-full bg-white/90 border border-zinc-300 shadow-sm flex items-center justify-center text-zinc-500 hover:text-red-500 transition-colors"
+                      title="Signaler le message"
+                      type="button"
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 13px">flag</span>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Reaction chips -->
+              @if (msg.reactions?.length) {
+                <div class="flex flex-wrap gap-1 mt-1 px-1" [class.justify-end]="isMe(msg)">
+                  @for (r of groupedReactions(msg.reactions); track r.emoji) {
+                    <button
+                      (click)="sendReaction(msg, r.emoji); $event.stopPropagation()"
+                      class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs border transition-colors"
+                      [class.bg-rose-50]="r.hasMe"
+                      [class.border-rose-300]="r.hasMe"
+                      [class.bg-zinc-100]="!r.hasMe"
+                      [class.border-zinc-200]="!r.hasMe"
+                      type="button"
+                    >
+                      <span>{{ r.emoji }}</span>
+                      <span class="text-zinc-600 font-medium">{{ r.count }}</span>
+                    </button>
+                  }
+                </div>
+              }
+
+              <span class="text-xs text-zinc-400 mt-1 block px-1" [class.text-right]="isMe(msg)">
+                {{ formatTime(msg.createdAt) }}
+                @if (isMe(msg) && msg.id === lastSeenMessageId()) {
+                  <span class="ml-1 text-rose-400 font-medium">Vu</span>
+                }
+              </span>
+            </div>
+          </div>
+        } @empty {
+          <div class="flex items-center justify-center h-full text-zinc-400 text-sm">
+            Envoyez le premier message !
+          </div>
+        }
+
+        <!-- Typing indicator -->
+        @if (typingUserIds().length > 0) {
+          <div class="flex gap-2 items-end">
+            <div class="h-7 w-7 rounded-full bg-zinc-200 flex-shrink-0"></div>
+            <div
+              class="bg-white border border-zinc-200 shadow-sm px-4 py-3 rounded-2xl rounded-tl-sm"
+            >
+              <div class="flex gap-1 items-center">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Input area -->
+      <div class="px-4 py-3 border-t border-zinc-200 bg-white flex-shrink-0">
+        <!-- Error -->
+        @if (attachmentError()) {
+          <div class="text-xs text-red-500 mb-1.5 px-1">{{ attachmentError() }}</div>
+        }
+
+        <!-- Attachment preview -->
+        @if (imagePreview() || selectedGifUrl()) {
+          <div class="mb-2 flex items-center gap-2">
+            <div class="relative inline-block">
+              <img
+                [src]="(imagePreview() || selectedGifUrl())!"
+                class="h-16 rounded-xl object-cover border border-zinc-200"
+                alt="Aperçu"
+              />
+              <button
+                (click)="clearAttachment()"
+                class="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-zinc-700 text-white flex items-center justify-center shadow"
+                type="button"
+              >
+                <span class="material-symbols-outlined" style="font-size: 12px">close</span>
+              </button>
+            </div>
+            <span class="text-xs text-zinc-400">
+              {{ imagePreview() ? 'Photo sélectionnée' : 'GIF sélectionné' }}
+            </span>
+          </div>
+        }
+
+        <!-- GIF picker panel -->
+        @if (showGifPicker()) {
+          <div class="mb-2 rounded-xl border border-zinc-200 overflow-hidden bg-white shadow-sm">
+            <div class="p-2 border-b border-zinc-100">
+              <input
+                type="text"
+                [value]="gifQuery"
+                (input)="onGifSearch($any($event.target).value)"
+                placeholder="Rechercher un GIF…"
+                class="w-full px-3 py-1.5 rounded-lg border border-zinc-200 bg-zinc-50 text-sm focus:outline-none focus:ring-2 focus:ring-rose-700/20"
+                autofocus
+              />
+            </div>
+            <div class="h-44 overflow-y-auto p-2">
+              @if (gifLoading()) {
+                <div class="flex items-center justify-center h-full text-zinc-400 text-xs">
+                  Chargement…
+                </div>
+              } @else if (gifs().length === 0) {
+                <div class="flex items-center justify-center h-full text-zinc-400 text-xs">
+                  Aucun GIF trouvé
+                </div>
+              } @else {
+                <div class="grid grid-cols-3 gap-1.5">
+                  @for (gif of gifs(); track gif.id) {
+                    <div
+                      (click)="selectGif(gif)"
+                      class="relative aspect-video bg-zinc-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                    >
+                      <img
+                        [src]="gif.previewUrl"
+                        [alt]="gif.title"
+                        class="absolute inset-0 w-full h-full object-contain"
+                        loading="lazy"
+                      />
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Input row -->
+        <div class="flex gap-2 items-end relative">
+          <!-- Emoji input picker popover -->
+          @if (showInputEmojiPicker()) {
+            <div
+              class="absolute bottom-full mb-2 left-0 z-30 bg-white border border-zinc-200 rounded-2xl shadow-xl p-3 w-72"
+              (click)="$event.stopPropagation()"
+            >
+              <div class="grid grid-cols-8 gap-1">
+                @for (e of INPUT_EMOJIS; track e) {
+                  <button
+                    (click)="insertEmoji(e)"
+                    class="text-xl leading-none p-1 rounded-lg hover:bg-zinc-100 transition-colors hover:scale-125"
+                    type="button"
+                  >
+                    {{ e }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+          <!-- Attachment buttons -->
+          <div class="flex items-center gap-0.5 flex-shrink-0 self-end mb-1.5">
+            <button
+              (click)="showInputEmojiPicker.set(!showInputEmojiPicker()); showGifPicker.set(false)"
+              class="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-zinc-100 transition-colors"
+              [class.text-rose-600]="showInputEmojiPicker()"
+              [class.bg-rose-50]="showInputEmojiPicker()"
+              [class.text-zinc-400]="!showInputEmojiPicker()"
+              title="Emoji"
+              type="button"
+            >
+              <span class="material-symbols-outlined" style="font-size: 20px"
+                >sentiment_satisfied</span
+              >
+            </button>
+            <button
+              (click)="triggerPhotoUpload()"
+              class="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600 transition-colors"
+              title="Envoyer une photo"
+              type="button"
+            >
+              <span class="material-symbols-outlined" style="font-size: 20px">image</span>
+            </button>
+            <button
+              (click)="toggleGifPicker()"
+              class="h-8 px-2 flex items-center justify-center rounded-lg hover:bg-zinc-100 text-xs font-bold transition-colors"
+              [class.text-rose-600]="showGifPicker()"
+              [class.bg-rose-50]="showGifPicker()"
+              [class.text-zinc-400]="!showGifPicker()"
+              title="Envoyer un GIF"
+              type="button"
+            >
+              GIF
+            </button>
+          </div>
+          <!-- Textarea -->
+          <textarea
+            [(ngModel)]="messageText"
+            (keydown.enter)="onEnterKey($event)"
+            (input)="onInput()"
+            (blur)="clearTyping()"
+            rows="1"
+            placeholder="Écrire un message… (Entrée pour envoyer, Shift+Entrée pour un saut)"
+            class="flex-1 resize-none px-4 py-2.5 rounded-2xl border border-zinc-200 bg-zinc-50 text-sm focus:outline-none focus:ring-2 focus:ring-rose-700/20"
+            style="min-height: 44px; max-height: 120px"
+          >
+          </textarea>
+          <!-- Send button -->
+          <button
+            (click)="sendMessage()"
+            [disabled]="!canSend"
+            class="flex-shrink-0 h-11 w-11 rounded-full bg-rose-600 hover:bg-rose-700 disabled:bg-zinc-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center text-white"
+            type="button"
+          >
+            @if (imageUploading()) {
+              <span class="material-symbols-outlined chat-spin" style="font-size: 20px"
+                >progress_activity</span
+              >
+            } @else {
+              <span class="material-symbols-outlined" style="font-size: 20px">send</span>
+            }
+          </button>
+        </div>
+
+        <!-- Hidden file input -->
+        <input
+          #photoInput
+          type="file"
+          accept="image/*"
+          (change)="onImageSelected($event)"
+          class="hidden"
+        />
+      </div>
+    </div>
+  } @else {
+    <!-- Empty state -->
+    <div class="flex-1 flex items-center justify-center bg-zinc-50">
+      <div class="text-center text-zinc-400 px-8">
+        <span class="material-symbols-outlined text-6xl block mb-4 text-zinc-300"
+          >chat_bubble_outline</span
+        >
+        <p class="text-lg font-semibold text-zinc-500">Vos messages</p>
+        <p class="text-sm mt-1 mb-4">Sélectionnez une conversation ou démarrez-en une nouvelle.</p>
+        <button
+          (click)="openNewChatDialog()"
+          class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium transition-colors"
+          type="button"
+        >
+          Nouveau message
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ═══ Report modal ═══ -->
+@if (reportMsgId() !== null) {
+  <div
+    class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
+    (click)="reportMsgId.set(null); reportCategory.set(null); reportStep.set(1)"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+        <div class="flex items-center gap-2">
+          @if (reportStep() === 2) {
+            <button
+              (click)="reportStep.set(1)"
+              class="p-1 rounded-full hover:bg-zinc-100 text-zinc-400 transition-colors -ml-1"
+              type="button"
+            >
+              <span class="material-symbols-outlined" style="font-size: 20px">arrow_back</span>
+            </button>
+          }
+          <h3 class="font-bold text-zinc-800">Signaler ce message</h3>
+        </div>
+        <button
+          (click)="reportMsgId.set(null); reportCategory.set(null); reportStep.set(1)"
+          class="p-1.5 rounded-full hover:bg-zinc-100 text-zinc-400 transition-colors"
+          type="button"
+        >
+          <span class="material-symbols-outlined" style="font-size: 20px">close</span>
+        </button>
+      </div>
+
+      <!-- Step 1 — Choose category -->
+      @if (reportStep() === 1) {
+        <div class="px-5 py-4">
+          <p class="text-sm text-zinc-500 mb-4">Pourquoi souhaitez-vous signaler ce message ?</p>
+          <div class="space-y-1">
+            @for (
+              cat of [
+                'Spam',
+                'Contenu inapproprié',
+                'Harcèlement ou intimidation',
+                'Discours haineux',
+                'Fausses informations',
+                'Autre',
+              ];
+              track cat
+            ) {
+              <button
+                (click)="reportCategory.set(cat)"
+                class="w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm text-left transition-colors"
+                [class.border-red-400]="reportCategory() === cat"
+                [class.bg-red-50]="reportCategory() === cat"
+                [class.text-red-700]="reportCategory() === cat"
+                [class.font-semibold]="reportCategory() === cat"
+                [class.border-zinc-200]="reportCategory() !== cat"
+                [class.bg-white]="reportCategory() !== cat"
+                [class.text-zinc-700]="reportCategory() !== cat"
+                [class.hover:bg-zinc-50]="reportCategory() !== cat"
+                type="button"
+              >
+                <span>{{ cat }}</span>
+                @if (reportCategory() === cat) {
+                  <span class="material-symbols-outlined text-red-500" style="font-size: 18px"
+                    >check_circle</span
+                  >
+                }
+              </button>
+            }
+          </div>
+        </div>
+        <div class="px-5 pb-4 flex justify-end gap-2">
+          <button
+            (click)="reportMsgId.set(null); reportCategory.set(null)"
+            class="px-4 py-2 rounded-lg text-sm text-zinc-500 hover:bg-zinc-100 transition-colors"
+            type="button"
+          >
+            Annuler
+          </button>
+          <button
+            (click)="reportStep.set(2)"
+            [disabled]="!reportCategory()"
+            class="px-4 py-2 rounded-lg text-sm bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold transition-colors flex items-center gap-1.5"
+            type="button"
+          >
+            Suivant
+            <span class="material-symbols-outlined" style="font-size: 16px">arrow_forward</span>
+          </button>
+        </div>
+      }
+
+      <!-- Step 2 — Optional details + confirm -->
+      @if (reportStep() === 2) {
+        @if (reportDone() === reportMsgId()) {
+          <div class="px-5 py-8 flex flex-col items-center gap-3">
+            <span class="material-symbols-outlined text-green-500" style="font-size: 48px"
+              >check_circle</span
+            >
+            <p class="text-sm font-semibold text-zinc-800">Message signalé. Merci.</p>
+            <p class="text-xs text-zinc-400 text-center">
+              Notre équipe examinera votre signalement dans les plus brefs délais.
+            </p>
+          </div>
+        } @else {
+          <div class="px-5 py-4">
+            <div
+              class="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 border border-red-200 mb-4"
+            >
+              <span class="material-symbols-outlined text-red-500" style="font-size: 16px"
+                >flag</span
+              >
+              <span class="text-sm font-semibold text-red-700">{{ reportCategory() }}</span>
+            </div>
+            <p class="text-sm text-zinc-500 mb-2">
+              Souhaitez-vous ajouter des précisions ? <span class="text-zinc-400">(optionnel)</span>
+            </p>
+            <textarea
+              [(ngModel)]="reportReason"
+              placeholder="Décrivez le problème en quelques mots…"
+              rows="3"
+              class="w-full text-sm px-3 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 resize-none focus:outline-none focus:ring-2 focus:ring-rose-700/20"
+            ></textarea>
+          </div>
+          <div class="px-5 pb-4 flex justify-end gap-2">
+            <button
+              (click)="reportMsgId.set(null); reportCategory.set(null); reportStep.set(1)"
+              class="px-4 py-2 rounded-lg text-sm text-zinc-500 hover:bg-zinc-100 transition-colors"
+              type="button"
+            >
+              Annuler
+            </button>
+            <button
+              (click)="submitReport(reportMsgId()!)"
+              class="px-4 py-2 rounded-lg text-sm bg-red-500 hover:bg-red-600 text-white font-semibold transition-colors"
+              type="button"
+            >
+              Envoyer le signalement
+            </button>
+          </div>
+        }
+      }
+    </div>
+  </div>
+}
+
+<!-- ═══ New chat dialog ═══ -->
+@if (showNewChatDialog()) {
+  <div
+    class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
+    (click)="closeNewChatDialog()"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-2xl w-96 max-h-[480px] flex flex-col overflow-hidden"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+        <h3 class="font-bold text-zinc-800">Nouveau message</h3>
+        <button
+          (click)="closeNewChatDialog()"
+          class="p-1.5 rounded-full hover:bg-zinc-100 text-zinc-400 transition-colors"
+          type="button"
+        >
+          <span class="material-symbols-outlined" style="font-size: 20px">close</span>
+        </button>
+      </div>
+      <div class="p-3 border-b border-zinc-100">
+        <input
+          type="text"
+          [(ngModel)]="userSearch"
+          placeholder="Rechercher un utilisateur…"
+          class="w-full px-3 py-2 rounded-lg border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-700/20"
+        />
+      </div>
+      <div class="overflow-y-auto flex-1">
+        @for (user of filteredUsers(); track user.id) {
+          <div
+            (click)="startPrivateChat(user)"
+            class="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50 cursor-pointer transition-colors"
+          >
+            <div
+              class="h-9 w-9 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-sm flex-shrink-0"
+            >
+              {{ user.name[0].toUpperCase() }}
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-zinc-800">{{ user.name }}</p>
+              <p class="text-xs text-zinc-400">{{ user.email }}</p>
+            </div>
+          </div>
+        } @empty {
+          <p class="text-center text-sm text-zinc-400 py-8">Aucun utilisateur trouvé</p>
+        }
+      </div>
+    </div>
+  </div>
+}

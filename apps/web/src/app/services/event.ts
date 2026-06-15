@@ -59,7 +59,7 @@ export class EventService {
     if (filters?.privateOnly) params = params.set('private', 'true');
 
     return this.http
-      .get<MeetzEvent[]>(this.apiUrl, { params })
+      .get<MeetzEvent[]>(this.apiUrl, { params, headers: this.authHeader })
       .pipe(tap((data) => this.cache.set(key, { data, at: Date.now() })));
   }
 

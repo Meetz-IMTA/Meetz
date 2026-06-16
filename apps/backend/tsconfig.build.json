@@ -1,0 +1,15 @@
+{
+  // Config dédiée au build de production (voir docker/backend/Dockerfile).
+  // tsconfig.json reste volontairement sans rootDir/outDir/include pour que
+  // tsx (dev) et le type-check CI puissent couvrir tout le projet, y compris
+  // prisma.config.ts, prisma/seed.ts et vitest.config.ts. Ces fichiers sont
+  // exécutés directement (tsx/prisma/vitest), jamais compilés vers dist/ —
+  // on restreint donc le programme tsc à src/ pour la compilation.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "noEmit": false
+  },
+  "include": ["src/**/*"]
+}

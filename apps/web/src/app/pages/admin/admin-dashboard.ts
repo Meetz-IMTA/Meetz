@@ -44,6 +44,9 @@ export class AdminDashboard implements OnInit {
   usersError = signal('');
   usersTotalPages = signal(1);
   usersPage = signal(1);
+  usersSearch = signal('');
+  private searchDebounceTimer?: ReturnType<typeof setTimeout>;
+  private readonly usersPageSize = 10;
 
   private filters: ReportFilters = { type: 'all', status: 'all', page: 1 };
 
@@ -159,22 +162,37 @@ export class AdminDashboard implements OnInit {
   loadUsers() {
     this.usersLoading.set(true);
     this.usersError.set('');
-    this.adminService.getUsers({ page: this.usersPage() }).subscribe({
-      next: (res: AdminUsersResponse) => {
-        this.users.set(res.users);
-        this.usersTotalPages.set(res.totalPages);
-        this.usersLoading.set(false);
-      },
-      error: () => {
-        this.usersError.set('Impossible de charger les utilisateurs.');
-        this.usersLoading.set(false);
-      },
-    });
+    this.adminService
+      .getUsers({
+        page: this.usersPage(),
+        limit: this.usersPageSize,
+        search: this.usersSearch().trim() || undefined,
+      })
+      .subscribe({
+        next: (res: AdminUsersResponse) => {
+          this.users.set(res.users);
+          this.usersTotalPages.set(res.totalPages);
+          this.usersLoading.set(false);
+        },
+        error: () => {
+          this.usersError.set('Impossible de charger les utilisateurs.');
+          this.usersLoading.set(false);
+        },
+      });
   }
 
   onUsersPageChange(page: number) {
     this.usersPage.set(page);
     this.loadUsers();
+  }
+
+  onUsersSearchInput(value: string) {
+    this.usersSearch.set(value);
+    clearTimeout(this.searchDebounceTimer);
+    this.searchDebounceTimer = setTimeout(() => {
+      this.usersPage.set(1);
+      this.loadUsers();
+    }, 300);
   }
 
   onBanFromUsersTab(event: { userId: number; reason?: string }) {

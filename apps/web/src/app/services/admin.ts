@@ -38,11 +38,12 @@ export class AdminService {
     return this.http.post(`${this.base}/users/${userId}/unban`, {});
   }
 
-  getUsers(filters: { search?: string; banned?: boolean; page?: number }) {
+  getUsers(filters: { search?: string; banned?: boolean; page?: number; limit?: number }) {
     let params = new HttpParams();
     if (filters.search) params = params.set('search', filters.search);
     if (filters.banned != null) params = params.set('banned', String(filters.banned));
     if (filters.page != null) params = params.set('page', String(filters.page));
+    if (filters.limit != null) params = params.set('limit', String(filters.limit));
     return this.http.get<AdminUsersResponse>(`${this.base}/users`, { params });
   }
 

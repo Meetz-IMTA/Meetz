@@ -205,6 +205,14 @@ jobs:
             docker load < meetz-web.tar.gz
             echo "✓ Images chargées."
 
+            echo "=== [DEPLOY] Tag des images chargées en :latest ==="
+            # docker save/load ne conservent que le tag explicitement sauvegardé
+            # (le SHA du commit) — docker-compose.prod.yml et l'étape de
+            # migrations référencent :latest, donc on le ré-applique ici.
+            docker tag meetz-backend:${{ env.IMAGE_TAG }} meetz-backend:latest
+            docker tag meetz-web:${{ env.IMAGE_TAG }} meetz-web:latest
+            echo "✓ Images taguées en :latest."
+
             echo "=== [DEPLOY] Exécution des migrations Prisma ==="
             # On lance le container backend en mode migration uniquement.
             # La variable DATABASE_URL est lue depuis /opt/meetz/.env.prod.

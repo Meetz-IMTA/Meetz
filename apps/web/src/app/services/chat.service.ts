@@ -52,7 +52,7 @@ export class ChatService implements OnDestroy {
   private http = inject(HttpClient);
   private auth = inject(Auth);
 
-  private apiUrl = 'http://localhost:3000/api/v1/chat';
+  private apiUrl = '/api/v1/chat';
   private socket: Socket | null = null;
 
   readonly conversations$ = new BehaviorSubject<Conversation[]>([]);
@@ -64,7 +64,7 @@ export class ChatService implements OnDestroy {
     this.pendingOpenConversationId$.next(id);
   }
 
-  private apiUsersUrl = 'http://localhost:3000/api/v1/users';
+  private apiUsersUrl = '/api/v1/users';
 
   private activeConversationId: number | null = null;
   private messageSubject = new Subject<Message>();
@@ -113,7 +113,7 @@ export class ChatService implements OnDestroy {
   connect(): void {
     if (this.socket?.connected) return;
     const token = this.auth.getAccessToken();
-    this.socket = io('http://localhost:3000', { auth: { token } });
+    this.socket = io({ auth: { token } });
 
     this.socket.on('message:new', (msg: Message) => {
       this.messageSubject.next(msg);

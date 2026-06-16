@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
 import { Observable, catchError, finalize, map, shareReplay, switchMap, throwError } from 'rxjs';
 import { Auth } from '../services/auth';
 
-const API_BASE = 'http://localhost:3000/api/v1';
+const API_BASE = '/api/v1';
 
 // Shared single-flight refresh so concurrent 401s trigger only one refresh call.
 let refresh$: Observable<string> | null = null;

@@ -5,7 +5,7 @@ import { NotificationList } from '../models/notification.model';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  private readonly apiUrl = 'http://localhost:3000/api/v1/notifications';
+  private readonly apiUrl = '/api/v1/notifications';
   private http = inject(HttpClient);
   private auth = inject(Auth);
 

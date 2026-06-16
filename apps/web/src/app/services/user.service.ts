@@ -4,7 +4,7 @@ import { Observable, catchError, map, of } from 'rxjs';
 import type { UserProfile, UserRole } from '../shared/models';
 import type { ReportReason } from '../shared/models';
 
-const API = 'http://localhost:3000/api/v1';
+const API = '/api/v1';
 
 // Badges et événements restent en mock jusqu'à l'implémentation backend
 const MOCK_BADGES = [

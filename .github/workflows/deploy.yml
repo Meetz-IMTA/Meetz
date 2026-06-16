@@ -259,7 +259,7 @@ jobs:
             # On teste depuis l'hôte VM sur le port mappé (3000).
             BACKEND_OK=false
             for i in 1 2 3; do
-              if curl -sf --max-time 5 http://localhost:3000/api/v1 > /dev/null; then
+              if docker exec meetz-backend curl -sf --max-time 5 http://localhost:3000/api/v1 > /dev/null; then
                 BACKEND_OK=true
                 break
               fi

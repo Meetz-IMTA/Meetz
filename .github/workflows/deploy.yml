@@ -48,6 +48,17 @@ jobs:
       - name: Installation des dépendances (npm ci)
         run: npm ci
 
+      # ── Génération du client Prisma ────────────────────────────────────
+      # Nécessaire avant le type-check et les tests : src/generated/prisma
+      # est gitignored et n'est jamais créé par npm ci seul.
+      # DATABASE_URL factice : prisma generate ne se connecte pas à la DB,
+      # il lit uniquement le schéma (même approche que docker/backend/Dockerfile).
+      - name: Génération du client Prisma
+        run: |
+          DATABASE_URL="mysql://dummy:dummy@localhost:3306/dummy" \
+            npx --prefix apps/backend prisma generate \
+            --schema=apps/backend/prisma/schema.prisma
+
       # ── Qualité du code ────────────────────────────────────────────────
       - name: Vérification du formatage (Prettier)
         run: npx prettier --check "apps/**/*.{ts,html,css}"

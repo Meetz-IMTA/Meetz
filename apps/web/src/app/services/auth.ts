@@ -88,7 +88,12 @@ export class Auth {
 
   getUser() {
     const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    if (!user) return null;
+    const parsed = JSON.parse(user);
+    if (typeof parsed.role === 'string') {
+      parsed.role = parsed.role.toLowerCase();
+    }
+    return parsed;
   }
 
   isLoggedIn() {

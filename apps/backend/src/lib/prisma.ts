@@ -2,14 +2,10 @@ import "dotenv/config";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "../generated/prisma/client.js";
 
-const adapter = new PrismaMariaDb({
-  host: "localhost",
-  port: 3306,
-  user: "meetz",
-  password: "meetz",
-  database: "meetz",
-  connectionLimit: 5,
-});
+const connectionUrl = new URL(process.env.DATABASE_URL!);
+connectionUrl.searchParams.set("connectionLimit", "5");
+
+const adapter = new PrismaMariaDb(connectionUrl.toString());
 
 const prisma = new PrismaClient({ adapter });
 

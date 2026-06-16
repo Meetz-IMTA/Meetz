@@ -17,9 +17,15 @@ COPY apps/backend/package.json ./apps/backend/
 COPY packages/shared/package.json ./packages/shared/
 
 # --omit=dev exclut vitest, nodemon, @types/* → image finale plus légère.
-# --ignore-scripts évite l'exécution de postinstall hooks potentiellement
-# dangereux pendant le build (ex: husky).
-RUN npm ci --omit=dev --ignore-scripts
+# --ignore-scripts évite l'exécution du script "prepare" racine (husky) :
+# avec --omit=dev, le paquet husky lui-même n'est pas installé, donc son
+# binaire est introuvable et le script échouerait (exit 127).
+# On force ensuite explicitement le postinstall de @prisma/engines, qui
+# télécharge le binaire schema-engine pour la plateforme du conteneur
+# (Debian/glibc) — requis par `prisma migrate deploy` en prod. Avant ce
+# correctif, ce binaire n'était jamais téléchargé et les migrations
+# échouaient silencieusement en production.
+RUN npm ci --omit=dev --ignore-scripts && npm rebuild @prisma/engines
 
 # ── Stage 2 : Dépendances complètes + Build TypeScript ────────────────────
 FROM node:22-slim AS builder
@@ -73,6 +79,13 @@ RUN groupadd --system --gid 1001 nodejs \
 COPY --from=builder  --chown=nodeapp:nodejs /app/apps/backend/dist ./dist
 COPY --from=builder  --chown=nodeapp:nodejs /app/apps/backend/package.json ./package.json
 COPY --from=prod-deps --chown=nodeapp:nodejs /app/node_modules ./node_modules
+
+# Schéma + migrations + config Prisma : nécessaires à `prisma migrate deploy`
+# (lancé en prod via un `docker run` ponctuel sur cette même image — voir
+# .github/workflows/deploy.yml). Ils n'étaient pas copiés auparavant, ce qui
+# faisait échouer silencieusement les migrations en production.
+COPY --from=builder --chown=nodeapp:nodejs /app/apps/backend/prisma ./prisma
+COPY --from=builder --chown=nodeapp:nodejs /app/apps/backend/prisma.config.ts ./prisma.config.ts
 
 ENV NODE_ENV=production \
     PORT=3000

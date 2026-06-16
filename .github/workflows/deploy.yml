@@ -216,22 +216,14 @@ jobs:
             echo "=== [DEPLOY] Exécution des migrations Prisma ==="
             # On lance le container backend en mode migration uniquement.
             # La variable DATABASE_URL est lue depuis /opt/meetz/.env.prod.
+            # Échec bloquant intentionnel (set -e) : déployer une nouvelle
+            # version sans ses migrations applique du code contre un schéma
+            # obsolète, ce qui doit arrêter le déploiement, pas être ignoré.
             docker run --rm \
               --network meetz_meetz-net \
               --env-file /opt/meetz/.env.prod \
               meetz-backend:latest \
-              node -e "
-                import('@prisma/client').then(() => {
-                  const { execSync } = require('child_process');
-                  execSync('npx prisma migrate deploy', { stdio: 'inherit' });
-                });
-              " 2>/dev/null || \
-            docker run --rm \
-              --network meetz_meetz-net \
-              --env-file /opt/meetz/.env.prod \
-              meetz-backend:latest \
-              sh -c 'npx prisma migrate deploy' 2>/dev/null || \
-            echo "⚠ Migrations ignorées (peut nécessiter une exécution manuelle)."
+              npx prisma migrate deploy
 
             echo "=== [DEPLOY] Redémarrage des services ==="
             docker compose -f docker-compose.prod.yml up -d --remove-orphans

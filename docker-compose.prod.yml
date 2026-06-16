@@ -54,7 +54,7 @@ services:
     ports:
       # Exposé sur l'interface hôte de la VM → accessible par le Nginx du LXC
       # via l'IP locale de la VM (ex: 192.168.100.10:3000).
-      - "127.0.0.1:3000:3000"
+      - "10.0.0.3:3000:3000"
 
     env_file:
       - /opt/meetz/.env.prod
@@ -83,7 +83,7 @@ services:
       # Port 8080 sur l'hôte VM → le Nginx du LXC proxy ici pour les pages web.
       # On ne bind pas sur 0.0.0.0 — la VM est air-gapped donc ça n'a pas
       # d'importance ici, mais c'est une bonne habitude.
-      - "127.0.0.1:8080:80"
+      - "10.0.0.3:8080:80"
 
     deploy:
       resources:

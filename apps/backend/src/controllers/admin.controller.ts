@@ -8,6 +8,8 @@ import {
   adminDeleteThread,
   adminDeleteComment,
   getAdminUsers,
+  type ReportFilters,
+  type AdminUserFilters,
 } from "../services/admin.service.js";
 
 export const getStatsHandler = async (_req: Request, res: Response) => {
@@ -21,20 +23,18 @@ export const getStatsHandler = async (_req: Request, res: Response) => {
 export const listReportsHandler = async (req: Request, res: Response) => {
   try {
     const { type, status, page, limit } = req.query;
-    res.json(
-      await getReports({
-        type: type as "thread" | "comment" | "all" | undefined,
-        status: status as
-          | "pending"
-          | "reviewed"
-          | "resolved"
-          | "ignored"
-          | "all"
-          | undefined,
-        page: page ? Number(page) : undefined,
-        limit: limit ? Number(limit) : undefined,
-      }),
-    );
+    const filters: ReportFilters = {};
+    if (type !== undefined) filters.type = type as "thread" | "comment" | "all";
+    if (status !== undefined)
+      filters.status = status as
+        | "pending"
+        | "reviewed"
+        | "resolved"
+        | "ignored"
+        | "all";
+    if (page) filters.page = Number(page);
+    if (limit) filters.limit = Number(limit);
+    res.json(await getReports(filters));
   } catch {
     res.status(500).json({ error: "Erreur serveur." });
   }
@@ -97,15 +97,13 @@ export const adminDeleteCommentHandler = async (
 export const listUsersHandler = async (req: Request, res: Response) => {
   try {
     const { search, banned, page, limit } = req.query;
-    res.json(
-      await getAdminUsers({
-        search: search as string | undefined,
-        banned:
-          banned === "true" ? true : banned === "false" ? false : undefined,
-        page: page ? Number(page) : undefined,
-        limit: limit ? Number(limit) : undefined,
-      }),
-    );
+    const filters: AdminUserFilters = {};
+    if (search !== undefined) filters.search = search as string;
+    if (banned === "true") filters.banned = true;
+    else if (banned === "false") filters.banned = false;
+    if (page) filters.page = Number(page);
+    if (limit) filters.limit = Number(limit);
+    res.json(await getAdminUsers(filters));
   } catch {
     res.status(500).json({ error: "Erreur serveur." });
   }

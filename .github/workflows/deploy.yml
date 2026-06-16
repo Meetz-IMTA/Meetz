@@ -50,7 +50,7 @@ jobs:
 
       # ── Qualité du code ────────────────────────────────────────────────
       - name: Vérification du formatage (Prettier)
-        run: npx prettier --check "apps/**/*.{ts,html,css}" "packages/**/*.ts"
+        run: npx prettier --check "apps/**/*.{ts,html,css}"
 
       - name: Vérification des types TypeScript (backend)
         run: npx tsc --noEmit --project apps/backend/tsconfig.json

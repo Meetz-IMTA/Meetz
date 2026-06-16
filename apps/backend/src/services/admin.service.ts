@@ -154,12 +154,14 @@ export const adminDeleteComment = async (commentId: number) => {
   }
 };
 
-export const getAdminUsers = async (filters: {
+export interface AdminUserFilters {
   search?: string;
   banned?: boolean;
   page?: number;
   limit?: number;
-}) => {
+}
+
+export const getAdminUsers = async (filters: AdminUserFilters) => {
   const { search, banned, page = 1, limit = 20 } = filters;
   const where: Record<string, unknown> = { isVerified: true };
   if (search)

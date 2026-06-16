@@ -40,7 +40,7 @@ export const adminMiddleware = async (
       where: { id: payload.userId },
       select: { role: true },
     });
-    if (!user || user.role !== "admin") {
+    if (!user || user.role !== "ADMIN") {
       res.status(403).json({ error: "Accès réservé aux administrateurs." });
       return;
     }

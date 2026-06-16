@@ -11,7 +11,7 @@ import type {
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private http = inject(HttpClient);
-  private base = 'http://localhost:3000/api/v1/admin';
+  private base = '/api/v1/admin';
 
   getStats() {
     return this.http.get<AdminStats>(`${this.base}/stats`);

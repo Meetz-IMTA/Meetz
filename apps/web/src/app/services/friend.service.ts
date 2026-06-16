@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Auth } from './auth';
 import type { Friend, FriendRequest, UserRelation } from '../shared/models';
 
-const API = 'http://localhost:3000/api/v1';
+const API = '/api/v1';
 
 @Injectable({ providedIn: 'root' })
 export class FriendService {

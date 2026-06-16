@@ -24,7 +24,7 @@ export interface EventFilters {
 
 @Injectable({ providedIn: 'root' })
 export class EventService {
-  private readonly apiUrl = 'http://localhost:3000/api/v1/events';
+  private readonly apiUrl = '/api/v1/events';
   private http = inject(HttpClient);
   private auth = inject(Auth);
 

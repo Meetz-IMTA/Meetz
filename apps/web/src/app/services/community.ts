@@ -20,7 +20,7 @@ export interface ThreadPayload {
 
 @Injectable({ providedIn: 'root' })
 export class CommunityService {
-  private readonly apiUrl = 'http://localhost:3000/api/v1/community';
+  private readonly apiUrl = '/api/v1/community';
   private http = inject(HttpClient);
   private auth = inject(Auth);
 

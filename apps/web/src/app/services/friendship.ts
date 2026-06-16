@@ -13,7 +13,7 @@ interface FriendEntry {
 export class FriendshipService {
   private http = inject(HttpClient);
   private auth = inject(Auth);
-  private readonly apiUrl = 'http://localhost:3000/api/v1/friends';
+  private readonly apiUrl = '/api/v1/friends';
 
   /**
    * Returns the list of friend user IDs for the current user.

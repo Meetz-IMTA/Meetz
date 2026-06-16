@@ -46,14 +46,11 @@ RUN DATABASE_URL="mysql://dummy:dummy@localhost:3306/dummy" \
     --schema=apps/backend/prisma/schema.prisma
 
 # Compilation TypeScript → JavaScript.
-# rootDir/outDir sont commentés dans tsconfig.json (compatibilité dev),
-# on les passe explicitement en CLI pour le build de production.
-RUN npx --prefix apps/backend tsc \
-    --project apps/backend/tsconfig.json \
-    --rootDir apps/backend/src \
-    --outDir apps/backend/dist \
-    --noEmit false \
-    --skipLibCheck
+# tsconfig.build.json restreint le programme à src/ (rootDir/outDir/include) :
+# tsconfig.json seul inclut aussi prisma.config.ts, prisma/seed.ts et
+# vitest.config.ts, hors de src/, qui font échouer la compilation avec un
+# rootDir forcé (TS6059 — fichiers hors rootDir).
+RUN npx --prefix apps/backend tsc --project apps/backend/tsconfig.build.json
 
 # Le client Prisma généré (JS pur) n'est PAS compilé par tsc.
 # Il doit être copié manuellement dans dist/ car les imports résolus au runtime

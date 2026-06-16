@@ -2,13 +2,13 @@ import prisma from "../lib/prisma.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { MailtrapClient } from "mailtrap";
+import { Resend } from "resend";
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET!;
 const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET!;
 
-const mailtrap = process.env.MAILTRAP_TOKEN
-  ? new MailtrapClient({ token: process.env.MAILTRAP_TOKEN })
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
 const generateOtp = () =>
@@ -49,11 +49,11 @@ export const registerUser = async (data: {
     });
   }
 
-  if (mailtrap) {
-    mailtrap
+  if (resend) {
+    resend.emails
       .send({
-        from: { name: "Meetz", email: "hello@demomailtrap.co" },
-        to: [{ email: data.email }],
+        from: "Meetz <noreply@meetz.online>",
+        to: [data.email],
         subject: "Votre code de vérification Meetz",
         html: `
         <div style="background:#f4f4f5;padding:40px 16px;font-family:system-ui,-apple-system,sans-serif;">
@@ -222,11 +222,11 @@ export const forgotPasswordService = async (email: string) => {
 
   const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:4200"}/reset-password?token=${token}`;
 
-  if (mailtrap) {
-    mailtrap
+  if (resend) {
+    resend.emails
       .send({
-        from: { name: "Meetz", email: "hello@demomailtrap.co" },
-        to: [{ email }],
+        from: "Meetz <noreply@meetz.online>",
+        to: [email],
         subject: "Réinitialisation de ton mot de passe Meetz",
         html: `
         <div style="background:#f4f4f5;padding:40px 16px;font-family:system-ui,-apple-system,sans-serif;">

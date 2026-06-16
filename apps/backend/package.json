@@ -28,7 +28,11 @@
     "multer": "^2.1.1",
     "nodemailer": "^8.0.5",
     "prisma": "^7.6.0",
+<<<<<<< HEAD
     "resend": "^4.8.0",
+=======
+    "resend": "^6.12.4",
+>>>>>>> dev
     "socket.io": "^4.8.3"
   },
   "devDependencies": {

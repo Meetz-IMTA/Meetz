@@ -1,0 +1,104 @@
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  Meetz — Docker Compose PRODUCTION                                        ║
+# ║  Cible : VM Debian 13 air-gapped (aucun accès Internet)                   ║
+# ║                                                                            ║
+# ║  Toutes les images sont chargées localement via `docker load`.             ║
+# ║  pull_policy: never garantit que Docker ne tentera JAMAIS de contacter    ║
+# ║  un registry externe (Docker Hub, GHCR, etc.).                            ║
+# ║                                                                            ║
+# ║  Fichier .env.prod requis dans /opt/meetz/ avant le premier déploiement.  ║
+# ║  Voir le template : scripts/env.prod.template                              ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+services:
+
+  # ── Base de données MariaDB ──────────────────────────────────────────────
+  meetz-db:
+    image: mariadb:11
+    pull_policy: never          # Image pré-chargée sur la VM (docker load)
+    container_name: meetz-db
+    restart: unless-stopped
+    networks:
+      - meetz-net
+
+    # Variables séparées : MYSQL_* pour le démarrage de MariaDB,
+    # DATABASE_URL dans .env.prod pour Prisma (backend).
+    env_file:
+      - /opt/meetz/.env.prod
+
+    volumes:
+      # Volume EXTERNE : déclaré une fois manuellement, jamais supprimé par
+      # `docker compose down` (même avec -v). Protège les données en production.
+      - meetz-db-data:/var/lib/mysql
+      # Scripts d'initialisation SQL exécutés uniquement à la première création
+      # du volume (répertoire vide).
+      - /opt/meetz/db/init:/docker-entrypoint-initdb.d:ro
+
+    healthcheck:
+      # healthcheck.sh est le script officiel MariaDB pour tester la connexion.
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── Backend Node.js / Express / Socket.io ───────────────────────────────
+  meetz-backend:
+    image: meetz-backend:latest
+    pull_policy: never
+    container_name: meetz-backend
+    restart: unless-stopped
+    networks:
+      - meetz-net
+
+    ports:
+      # Exposé sur l'interface hôte de la VM → accessible par le Nginx du LXC
+      # via l'IP locale de la VM (ex: 192.168.100.10:3000).
+      - "127.0.0.1:3000:3000"
+
+    env_file:
+      - /opt/meetz/.env.prod
+
+    depends_on:
+      meetz-db:
+        condition: service_healthy   # Attend que MariaDB soit prêt avant de démarrer
+
+    # Limite des ressources (adapter selon la RAM/CPU de ta VM Proxmox)
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  # ── Frontend Angular (fichiers statiques servis par Nginx) ───────────────
+  meetz-web:
+    image: meetz-web:latest
+    pull_policy: never
+    container_name: meetz-web
+    restart: unless-stopped
+    networks:
+      - meetz-net
+
+    ports:
+      # Port 8080 sur l'hôte VM → le Nginx du LXC proxy ici pour les pages web.
+      # On ne bind pas sur 0.0.0.0 — la VM est air-gapped donc ça n'a pas
+      # d'importance ici, mais c'est une bonne habitude.
+      - "127.0.0.1:8080:80"
+
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 64M
+
+# ── Réseau interne Docker ────────────────────────────────────────────────
+networks:
+  meetz-net:
+    driver: bridge
+    name: meetz_meetz-net   # Nom explicite pour référencer depuis les scripts
+
+# ── Volumes persistants ──────────────────────────────────────────────────
+volumes:
+  meetz-db-data:
+    external: true   # Créé MANUELLEMENT une fois : `docker volume create meetz-db-data`
+                     # Ne sera JAMAIS supprimé par `docker compose down` ou `down -v`

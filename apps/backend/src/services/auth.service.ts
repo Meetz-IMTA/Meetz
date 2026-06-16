@@ -52,7 +52,7 @@ export const registerUser = async (data: {
   if (resend) {
     resend.emails
       .send({
-        from: "Meetz <noreply@meetz.online>",
+        from: "Meetz <hello@meetz.online>",
         to: [data.email],
         subject: "Votre code de vérification Meetz",
         html: `
@@ -83,6 +83,9 @@ export const registerUser = async (data: {
           </div>
         </div>
       `,
+      })
+      .then(({ error }) => {
+        if (error) console.warn("failedToSendMail", error.message);
       })
       .catch((err: any) => console.warn("failedToSendMail", err.message));
 
@@ -225,7 +228,7 @@ export const forgotPasswordService = async (email: string) => {
   if (resend) {
     resend.emails
       .send({
-        from: "Meetz <noreply@meetz.online>",
+        from: "Meetz <hello@meetz.online>",
         to: [email],
         subject: "Réinitialisation de ton mot de passe Meetz",
         html: `
@@ -256,6 +259,9 @@ export const forgotPasswordService = async (email: string) => {
           </div>
         </div>
       `,
+      })
+      .then(({ error }) => {
+        if (error) console.warn("failedToSendResetMail", error.message);
       })
       .catch((err: any) => console.warn("failedToSendResetMail", err.message));
   }

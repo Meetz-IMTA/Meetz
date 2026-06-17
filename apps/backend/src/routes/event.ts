@@ -3,6 +3,7 @@ import multer from "multer";
 import {
   authMiddleware,
   optionalAuthMiddleware,
+  organizerMiddleware,
 } from "../middlewares/auth.middleware.js";
 import {
   listEvents,
@@ -31,7 +32,12 @@ const upload = multer({
 router.get("/", optionalAuthMiddleware, listEvents);
 router.get("/featured", listFeaturedEvents);
 router.get("/:id", optionalAuthMiddleware, getEvent);
-router.post("/", authMiddleware, upload.single("image"), createEventHandler);
+router.post(
+  "/",
+  organizerMiddleware,
+  upload.single("image"),
+  createEventHandler,
+);
 router.put("/:id", authMiddleware, upload.single("image"), updateEventHandler);
 router.delete("/:id", authMiddleware, deleteEventHandler);
 router.post("/:id/join", authMiddleware, joinHandler);

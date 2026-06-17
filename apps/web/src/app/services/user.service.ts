@@ -110,6 +110,10 @@ export class UserService {
     return this.http.post<void>(`${API}/users/${reportedUserId}/report`, { reason, details });
   }
 
+  coopt(userId: string): Observable<{ id: number; role: string }> {
+    return this.http.post<{ id: number; role: string }>(`${API}/users/${userId}/coopt`, {});
+  }
+
   timeAgo(date: Date): string {
     const ms = Date.now() - new Date(date).getTime();
     const days = Math.floor(Math.abs(ms) / 86_400_000);
@@ -141,11 +145,25 @@ export class UserService {
       ...this.mapToUser(data),
       badges: MOCK_BADGES,
       recentEvents: [],
-      cooptations: [],
+      cooptations: (data.cooptations ?? []).map((c: any) => ({
+        user: {
+          id: String(c.user.id),
+          name: c.user.name,
+          email: '',
+          avatarUrl: c.user.avatarUrl ?? null,
+          bannerUrl: null,
+          role: 'organizer' as UserRole,
+          rating: null,
+          bio: null,
+          joinedAt: new Date(),
+          isOnline: false,
+        },
+        date: new Date(c.date),
+      })),
       friendsCount: data.friendsCount ?? 0,
       eventsCount: data.eventsCount ?? 0,
-      cooptationsUsed: null,
-      cooptationsMax: null,
+      cooptationsUsed: data.cooptationsUsed ?? null,
+      cooptationsMax: data.cooptationsMax ?? null,
     };
   }
 }

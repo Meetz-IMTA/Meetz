@@ -5,7 +5,7 @@ import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import { definePreset } from '@primeng/themes';
 import routes from './app.routes';
-import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { authInterceptor } from './interceptors/auth.interceptor';
 
 const MeetzTheme = definePreset(Aura, {
   semantic: {

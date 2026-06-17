@@ -28,7 +28,12 @@ export class ReportCardComponent {
   @Output() action = new EventEmitter<ReportAction>();
 
   get reportedUser(): AdminUser | null {
-    return this.report.thread?.author ?? this.report.comment?.author ?? null;
+    return (
+      this.report.thread?.author ??
+      this.report.comment?.author ??
+      this.report.message?.sender ??
+      null
+    );
   }
 
   get contentLabel(): string {
@@ -36,6 +41,10 @@ export class ReportCardComponent {
     if (this.report.comment) {
       const content = this.report.comment.content ?? '';
       return content.length > 80 ? content.slice(0, 80) + '…' : content || '[image]';
+    }
+    if (this.report.message) {
+      const content = this.report.message.content ?? '';
+      return content.length > 80 ? content.slice(0, 80) + '…' : content || '[fichier]';
     }
     return '—';
   }
@@ -68,7 +77,7 @@ export class ReportCardComponent {
     this.action.emit({ type: 'unban', reportId: this.report.id, payload: userId });
   }
 
-  onDeleteContent(event: { type: 'thread' | 'comment'; id: number }) {
+  onDeleteContent(event: { type: 'thread' | 'comment' | 'message'; id: number }) {
     this.action.emit({ type: 'deleteContent', reportId: this.report.id, payload: event });
   }
 

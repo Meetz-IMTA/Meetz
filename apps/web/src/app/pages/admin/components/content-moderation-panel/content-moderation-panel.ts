@@ -7,7 +7,10 @@ import type { AdminReport } from '../../../../shared/models/admin.model';
 })
 export class ContentModerationPanelComponent {
   @Input({ required: true }) report!: AdminReport;
-  @Output() deleteContent = new EventEmitter<{ type: 'thread' | 'comment'; id: number }>();
+  @Output() deleteContent = new EventEmitter<{
+    type: 'thread' | 'comment' | 'message';
+    id: number;
+  }>();
   @Output() ignoreReport = new EventEmitter<number>();
   @Output() resolveReport = new EventEmitter<number>();
 
@@ -15,13 +18,17 @@ export class ContentModerationPanelComponent {
     return this.report.threadId != null;
   }
 
+  get isMessage(): boolean {
+    return this.report.messageId != null;
+  }
+
   get contentId(): number {
-    return (this.report.threadId ?? this.report.commentId)!;
+    return (this.report.threadId ?? this.report.commentId ?? this.report.messageId)!;
   }
 
   onDelete() {
-    const type = this.isThread ? 'thread' : 'comment';
-    const label = this.isThread ? 'ce post' : 'ce commentaire';
+    const type = this.isThread ? 'thread' : this.isMessage ? 'message' : 'comment';
+    const label = this.isThread ? 'ce post' : this.isMessage ? 'ce message' : 'ce commentaire';
     if (confirm(`Supprimer définitivement ${label} ?`)) {
       this.deleteContent.emit({ type, id: this.contentId });
     }

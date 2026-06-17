@@ -118,11 +118,13 @@ export class AdminDashboard implements OnInit {
         break;
       }
       case 'deleteContent': {
-        const p = action.payload as { type: 'thread' | 'comment'; id: number };
+        const p = action.payload as { type: 'thread' | 'comment' | 'message'; id: number };
         const req =
           p.type === 'thread'
             ? this.adminService.deleteThread(p.id)
-            : this.adminService.deleteComment(p.id);
+            : p.type === 'message'
+              ? this.adminService.deleteMessage(p.id)
+              : this.adminService.deleteComment(p.id);
         req.subscribe({
           next: () => {
             this.adminService

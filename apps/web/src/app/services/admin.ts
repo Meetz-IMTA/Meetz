@@ -54,4 +54,8 @@ export class AdminService {
   deleteComment(commentId: number) {
     return this.http.delete(`${this.base}/comments/${commentId}`);
   }
+
+  deleteMessage(messageId: number) {
+    return this.http.delete(`${this.base}/messages/${messageId}`);
+  }
 }

@@ -8,6 +8,7 @@ import {
   unbanUserHandler,
   adminDeleteThreadHandler,
   adminDeleteCommentHandler,
+  adminDeleteMessageHandler,
   listUsersHandler,
 } from "../controllers/admin.controller.js";
 
@@ -23,5 +24,6 @@ router.post("/users/:id/unban", unbanUserHandler);
 router.get("/users", listUsersHandler);
 router.delete("/threads/:id", adminDeleteThreadHandler);
 router.delete("/comments/:id", adminDeleteCommentHandler);
+router.delete("/messages/:id", adminDeleteMessageHandler);
 
 export default router;

@@ -1,5 +1,6 @@
 import prisma from "../lib/prisma.js";
 import { createEventGroupConversation } from "./chat.service.js";
+import { deleteImage } from "../lib/cloudinary.js";
 
 interface EventData {
   name: string;
@@ -188,4 +189,5 @@ export const deleteEvent = async (id: number, userId: number) => {
   if (event.organizerId !== userId)
     throw new Error("Non autorisé à supprimer cet événement.");
   await prisma.event.delete({ where: { id } });
+  await deleteImage(event.imageUrl); // purge Cloudinary (no-op si null/externe)
 };

@@ -523,6 +523,13 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
     return this.chatService.getConversationAvatar(conv, this.currentUser?.id ?? 0);
   }
 
+  getParticipantNames(conv: Conversation): string {
+    return conv.participants
+      .filter((p) => p.userId !== this.currentUser?.id)
+      .map((p) => p.user.name)
+      .join(', ');
+  }
+
   isMe(msg: Message): boolean {
     return msg.senderId === this.currentUser?.id;
   }

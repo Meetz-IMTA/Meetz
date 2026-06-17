@@ -131,6 +131,12 @@ export const unbanUserById = async (userId: number) => {
   });
 };
 
+export const pinThread = async (threadId: number, isPinned: boolean) => {
+  const thread = await prisma.thread.findUnique({ where: { id: threadId } });
+  if (!thread) throw new Error("Thread non trouvé.");
+  return prisma.thread.update({ where: { id: threadId }, data: { isPinned } });
+};
+
 export const adminDeleteThread = async (threadId: number) => {
   const thread = await prisma.thread.findUnique({ where: { id: threadId } });
   if (!thread) throw new Error("Thread non trouvé.");

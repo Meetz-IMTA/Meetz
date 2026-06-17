@@ -66,6 +66,21 @@
               Modifier
             </a>
           }
+          @if (isAdmin) {
+            <button
+              type="button"
+              (click)="togglePin()"
+              [disabled]="isPinning"
+              class="inline-flex items-center gap-1 text-xs font-semibold transition-colors disabled:opacity-50"
+              [class.text-amber-600]="thread.isPinned"
+              [class.hover:text-amber-800]="thread.isPinned"
+              [class.text-gray-400]="!thread.isPinned"
+              [class.hover:text-amber-600]="!thread.isPinned"
+            >
+              <span class="material-symbols-outlined" style="font-size: 16px">push_pin</span>
+              {{ thread.isPinned ? 'Désépingler' : 'Épingler' }}
+            </button>
+          }
           @if (isOwner || isAdmin) {
             <button
               type="button"

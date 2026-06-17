@@ -14,11 +14,26 @@ const resend = process.env.RESEND_API_KEY
 const generateOtp = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
+const validatePasswordStrength = (password: string): void => {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  if (score < 2) {
+    throw new Error(
+      "Le mot de passe doit contenir au moins 8 caractères et inclure une majuscule, un chiffre ou un caractère spécial.",
+    );
+  }
+};
+
 export const registerUser = async (data: {
   email: string;
   name: string;
   password: string;
 }) => {
+  validatePasswordStrength(data.password);
+
   const existing = await prisma.user.findUnique({
     where: { email: data.email },
   });
@@ -271,6 +286,8 @@ export const resetPasswordService = async (
   token: string,
   newPassword: string,
 ) => {
+  validatePasswordStrength(newPassword);
+
   const user = await prisma.user.findFirst({
     where: {
       resetToken: token,

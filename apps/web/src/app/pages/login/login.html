@@ -109,6 +109,10 @@
       </div>
 
       @if (mode() === 'register') {
+        <app-password-strength [password]="password" />
+      }
+
+      @if (mode() === 'register') {
         <div class="space-y-1">
           <label for="confirmPassword" class="text-xs font-bold text-gray-500 ml-1 uppercase"
             >Confirmer le mot de passe</label

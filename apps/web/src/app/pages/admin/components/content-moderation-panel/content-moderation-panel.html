@@ -6,7 +6,13 @@
       class="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
     >
       <span class="material-symbols-outlined" style="font-size: 14px">delete</span>
-      {{ isThread ? 'Supprimer le post' : 'Supprimer le commentaire' }}
+      {{
+        isThread
+          ? 'Supprimer le post'
+          : isMessage
+            ? 'Supprimer le message'
+            : 'Supprimer le commentaire'
+      }}
     </button>
   }
 

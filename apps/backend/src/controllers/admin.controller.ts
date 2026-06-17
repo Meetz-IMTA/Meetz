@@ -8,6 +8,8 @@ import {
   pinThread,
   adminDeleteThread,
   adminDeleteComment,
+  adminDeleteMessage,
+  getMessageContext,
   getAdminUsers,
   type ReportFilters,
   type AdminUserFilters,
@@ -26,7 +28,7 @@ export const listReportsHandler = async (req: Request, res: Response) => {
     const { type, status, page, limit } = req.query;
     const filters: ReportFilters = {};
     if (type !== undefined)
-      filters.type = type as "thread" | "comment" | "user" | "all";
+      filters.type = type as "thread" | "comment" | "user" | "message" | "all";
     if (status !== undefined)
       filters.status = status as
         | "pending"
@@ -105,6 +107,27 @@ export const adminDeleteCommentHandler = async (
   try {
     await adminDeleteComment(Number(req.params["id"]));
     res.status(204).send();
+  } catch (error: any) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
+export const adminDeleteMessageHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    await adminDeleteMessage(Number(req.params["id"]));
+    res.status(204).send();
+  } catch (error: any) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
+export const getMessageContextHandler = async (req: Request, res: Response) => {
+  try {
+    const context = await getMessageContext(Number(req.params["id"]));
+    res.json(context);
   } catch (error: any) {
     res.status(404).json({ error: error.message });
   }

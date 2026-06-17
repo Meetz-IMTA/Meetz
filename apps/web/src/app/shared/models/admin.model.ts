@@ -6,7 +6,7 @@ export interface AdminStats {
 }
 
 export type ReportStatus = 'pending' | 'reviewed' | 'resolved' | 'ignored';
-export type ReportType = 'thread' | 'comment' | 'user';
+export type ReportType = 'thread' | 'comment' | 'message';
 
 export interface AdminUser {
   id: number;
@@ -25,7 +25,8 @@ export interface AdminReport {
   createdAt: string;
   threadId: number | null;
   commentId: number | null;
-  reporter: { id: number; name: string; email: string } | null;
+  messageId: number | null;
+  reporter: AdminUser | null;
   thread: {
     id: number;
     title: string;
@@ -37,7 +38,19 @@ export interface AdminReport {
     author: AdminUser;
     thread: { id: number; title: string };
   } | null;
-  reportedUser: AdminUser | null;
+  message: {
+    id: number;
+    content: string | null;
+    sender: AdminUser;
+  } | null;
+}
+
+export interface ContextMessage {
+  id: number;
+  content: string | null;
+  createdAt: string;
+  sender: { id: number; name: string };
+  isReported: boolean;
 }
 
 export interface AdminReportsResponse {
@@ -55,7 +68,7 @@ export interface AdminUsersResponse {
 }
 
 export interface ReportFilters {
-  type: 'all' | 'thread' | 'comment' | 'user';
+  type: 'all' | 'thread' | 'comment' | 'message';
   status: 'all' | ReportStatus;
   page: number;
 }

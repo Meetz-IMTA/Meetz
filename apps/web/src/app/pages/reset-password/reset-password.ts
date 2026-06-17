@@ -38,9 +38,26 @@ export class ResetPassword implements OnInit {
     }
   }
 
+  private passwordStrength(p: string): number {
+    let score = 0;
+    if (p.length >= 8) score++;
+    if (/[A-Z]/.test(p)) score++;
+    if (/[0-9]/.test(p)) score++;
+    if (/[^A-Za-z0-9]/.test(p)) score++;
+    return score;
+  }
+
   onSubmit() {
     this.passwordMismatch = false;
     this.resetFailed = false;
+
+    if (this.passwordStrength(this.password) < 2) {
+      this.resetFailed = true;
+      this.errorMessage =
+        'Le mot de passe est trop faible. Il doit contenir au moins 8 caractères et inclure une majuscule, un chiffre ou un caractère spécial.';
+      this.cdr.detectChanges();
+      return;
+    }
 
     if (this.password !== this.confirmPassword) {
       this.passwordMismatch = true;

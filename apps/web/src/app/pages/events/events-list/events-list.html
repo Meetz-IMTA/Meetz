@@ -16,13 +16,15 @@
           <p class="text-xs text-gray-400">Alès, France</p>
         </div>
       </div>
-      <a
-        routerLink="/create-event"
-        class="flex items-center justify-center gap-2 py-2 px-4 bg-rose-700 text-white text-sm font-semibold rounded-lg hover:bg-rose-800 transition-colors"
-      >
-        <span class="material-symbols-outlined" style="font-size: 16px">add</span>
-        Créer un événement
-      </a>
+      @if (canCreateEvents) {
+        <a
+          routerLink="/create-event"
+          class="flex items-center justify-center gap-2 py-2 px-4 bg-rose-700 text-white text-sm font-semibold rounded-lg hover:bg-rose-800 transition-colors"
+        >
+          <span class="material-symbols-outlined" style="font-size: 16px">add</span>
+          Créer un événement
+        </a>
+      }
     </div>
 
     <!-- Category filters -->

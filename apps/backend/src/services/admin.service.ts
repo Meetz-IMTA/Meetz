@@ -26,7 +26,7 @@ export const getAdminStats = async () => {
 };
 
 export interface ReportFilters {
-  type?: "thread" | "comment" | "message" | "all";
+  type?: "thread" | "comment" | "user" | "message" | "all";
   status?: "pending" | "reviewed" | "resolved" | "ignored" | "all";
   page?: number;
   limit?: number;
@@ -40,6 +40,7 @@ export const getReports = async (filters: ReportFilters = {}) => {
   if (type === "thread") where["threadId"] = { not: null };
   else if (type === "comment") where["commentId"] = { not: null };
   else if (type === "message") where["messageId"] = { not: null };
+  else if (type === "user") where["reportedUserId"] = { not: null };
 
   const [reports, total] = await Promise.all([
     prisma.report.findMany({
@@ -72,6 +73,7 @@ export const getReports = async (filters: ReportFilters = {}) => {
             sender: safeUserSelect,
           },
         },
+        reportedUser: { select: safeUserSelect.select },
       },
     }),
     prisma.report.count({ where }),
@@ -128,6 +130,12 @@ export const unbanUserById = async (userId: number) => {
     data: { isBanned: false, bannedAt: null, banReason: null },
     select: safeUserSelect.select,
   });
+};
+
+export const pinThread = async (threadId: number, isPinned: boolean) => {
+  const thread = await prisma.thread.findUnique({ where: { id: threadId } });
+  if (!thread) throw new Error("Thread non trouvé.");
+  return prisma.thread.update({ where: { id: threadId }, data: { isPinned } });
 };
 
 export const adminDeleteThread = async (threadId: number) => {

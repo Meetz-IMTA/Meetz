@@ -6,6 +6,7 @@ import {
   updateReportStatusHandler,
   banUserHandler,
   unbanUserHandler,
+  pinThreadHandler,
   adminDeleteThreadHandler,
   adminDeleteCommentHandler,
   adminDeleteMessageHandler,
@@ -23,6 +24,7 @@ router.patch("/reports/:id/status", updateReportStatusHandler);
 router.post("/users/:id/ban", banUserHandler);
 router.post("/users/:id/unban", unbanUserHandler);
 router.get("/users", listUsersHandler);
+router.patch("/threads/:id/pin", pinThreadHandler);
 router.delete("/threads/:id", adminDeleteThreadHandler);
 router.delete("/comments/:id", adminDeleteCommentHandler);
 router.delete("/messages/:id", adminDeleteMessageHandler);

@@ -23,6 +23,7 @@ import { CreateThread } from './pages/community/create-thread/create-thread';
 import { EditThread } from './pages/community/edit-thread/edit-thread';
 import { AdminDashboard } from './pages/admin/admin-dashboard';
 import { adminGuard } from './guards/admin.guard';
+import { organizerGuard } from './guards/organizer.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -41,7 +42,11 @@ const routes: Routes = [
       { path: 'community/category/:id', component: CommunityCategory },
       { path: 'community/thread/:id', component: CommunityThread },
       { path: 'community/thread/:id/edit', component: EditThread },
-      { path: 'create-event', component: CreateEvent },
+      {
+        path: 'create-event',
+        component: CreateEvent,
+        canActivate: [organizerGuard],
+      },
       { path: 'events', component: EventsList },
       { path: 'events/:id', component: EventDetail },
       { path: 'events/:id/edit', component: EditEvent },

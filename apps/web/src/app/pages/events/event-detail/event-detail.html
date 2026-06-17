@@ -36,11 +36,11 @@
 @else if (event) {
   <!-- HERO -->
   <div class="relative w-full h-64 md:h-[400px] overflow-hidden bg-zinc-800">
-    @if (event.imageUrl) {
-      <img [src]="event.imageUrl" [alt]="event.name" class="w-full h-full object-cover" />
-    } @else {
-      <div class="hero-placeholder w-full h-full"></div>
-    }
+    <img
+      [src]="event.imageUrl | eventImage: event.category"
+      [alt]="event.name"
+      class="w-full h-full object-cover"
+    />
     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
 
     <!-- Back link -->

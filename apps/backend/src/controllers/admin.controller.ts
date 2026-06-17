@@ -5,6 +5,7 @@ import {
   updateReportStatus,
   banUserById,
   unbanUserById,
+  pinThread,
   adminDeleteThread,
   adminDeleteComment,
   adminDeleteMessage,
@@ -27,7 +28,7 @@ export const listReportsHandler = async (req: Request, res: Response) => {
     const { type, status, page, limit } = req.query;
     const filters: ReportFilters = {};
     if (type !== undefined)
-      filters.type = type as "thread" | "comment" | "message" | "all";
+      filters.type = type as "thread" | "comment" | "user" | "message" | "all";
     if (status !== undefined)
       filters.status = status as
         | "pending"
@@ -73,6 +74,20 @@ export const unbanUserHandler = async (req: Request, res: Response) => {
     res.json(user);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
+  }
+};
+
+export const pinThreadHandler = async (req: Request, res: Response) => {
+  try {
+    const { isPinned } = req.body;
+    if (typeof isPinned !== "boolean") {
+      res.status(400).json({ error: "isPinned doit être un booléen." });
+      return;
+    }
+    const thread = await pinThread(Number(req.params["id"]), isPinned);
+    res.json(thread);
+  } catch (error: any) {
+    res.status(404).json({ error: error.message });
   }
 };
 

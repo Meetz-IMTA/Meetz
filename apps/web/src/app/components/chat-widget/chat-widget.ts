@@ -23,6 +23,7 @@ import {
 } from '../../services/chat.service';
 import { Auth } from '../../services/auth';
 import { GifService, type Gif } from '../../services/gif';
+import { FriendService } from '../../services/friend.service';
 
 type WidgetView = 'list' | 'chat' | 'new-chat';
 
@@ -37,6 +38,7 @@ export class ChatWidget implements OnInit, AfterViewChecked, OnDestroy {
   private auth = inject(Auth);
   private router = inject(Router);
   private gifService = inject(GifService);
+  private friendService = inject(FriendService);
 
   isOnChatPage = signal(false);
 
@@ -279,7 +281,13 @@ export class ChatWidget implements OnInit, AfterViewChecked, OnDestroy {
   openNewChatView(): void {
     this.view.set('new-chat');
     this.userSearch.set('');
-    this.chatService.getUsers().subscribe((users) => this.allUsers.set(users));
+    const friends = this.friendService.friends().map((f) => ({
+      id: Number(f.user.id),
+      name: f.user.name,
+      email: f.user.email,
+      avatarUrl: f.user.avatarUrl,
+    }));
+    this.allUsers.set(friends);
   }
 
   startPrivateChat(user: ChatUser): void {

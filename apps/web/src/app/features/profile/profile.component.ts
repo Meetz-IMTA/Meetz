@@ -14,6 +14,7 @@ import { map } from 'rxjs/operators';
 import { UserService } from '../../services/user.service';
 import { FriendService } from '../../services/friend.service';
 import { EventService } from '../../services/event';
+import { ToastService } from '../../services/toast';
 import { AvatarComponent } from '../../shared/components/avatar/avatar.component';
 import { StarRatingComponent } from '../../shared/components/star-rating/star-rating.component';
 import { RoleBadgeComponent } from '../../shared/components/role-badge/role-badge.component';
@@ -46,6 +47,7 @@ export class ProfileComponent {
   private readonly userService = inject(UserService);
   private readonly friendService = inject(FriendService);
   private readonly eventService = inject(EventService);
+  private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
 
@@ -100,12 +102,77 @@ export class ProfileComponent {
     return this.friendService.getUserRelation(p.id);
   });
 
-  readonly isCreator = computed(() => this.profile()?.role === 'creator');
+  readonly isOrganizer = computed(() => this.profile()?.role === 'organizer');
   readonly friends = this.friendService.friends;
+
+  /** L'utilisateur courant peut-il créer des événements ? (organisateur/admin) */
+  readonly canCreateEvents = computed(() => {
+    const role = this.userService.currentUser()?.role;
+    return role === 'organizer' || role === 'admin';
+  });
+
+  /**
+   * Le visiteur peut-il coopter ce profil ? Il doit être organisateur (ou
+   * admin), ami avec la cible, et la cible doit être un simple membre. Pour un
+   * organisateur, le quota restant doit être > 0.
+   */
+  readonly canCoopt = computed(() => {
+    if (this.isOwner()) return false;
+    const me = this.userService.currentUser();
+    const target = this.profile();
+    if (!me || !target) return false;
+    if (me.role !== 'organizer' && me.role !== 'admin') return false;
+    if (this.relation().status !== 'friend') return false;
+    if (target.role !== 'user') return false;
+    if (me.role === 'organizer') {
+      const used = me.cooptationsUsed ?? 0;
+      const max = me.cooptationsMax ?? 0;
+      if (used >= max) return false;
+    }
+    return true;
+  });
+
+  // Cooptation
+  readonly cooptOpen = signal(false);
+  readonly cooptLoading = signal(false);
+
+  /** Cooptations restantes de l'utilisateur courant (null = illimité, ex. admin). */
+  readonly cooptRemaining = computed(() => {
+    const me = this.userService.currentUser();
+    if (!me || me.role === 'admin' || me.cooptationsMax === null) return null;
+    return Math.max(0, me.cooptationsMax - (me.cooptationsUsed ?? 0));
+  });
 
   // Signalement
   readonly reportOpen = signal(false);
   readonly reportConfirmed = signal(false);
+
+  openCoopt(): void {
+    this.cooptOpen.set(true);
+  }
+  closeCoopt(): void {
+    if (!this.cooptLoading()) this.cooptOpen.set(false);
+  }
+
+  confirmCoopt(): void {
+    const target = this.profile();
+    if (!target || this.cooptLoading()) return;
+    this.cooptLoading.set(true);
+    this.userService.coopt(target.id).subscribe({
+      next: () => {
+        this.toast.success(`${target.name} est désormais organisateur.`);
+        this.cooptLoading.set(false);
+        this.cooptOpen.set(false);
+        // Rafraîchit le profil affiché et le quota de l'utilisateur courant.
+        this.profileResource.reload();
+        this.userService.loadCurrentUser();
+      },
+      error: (err) => {
+        this.cooptLoading.set(false);
+        this.toast.error(err?.error?.message ?? 'La cooptation a échoué.');
+      },
+    });
+  }
 
   openReport(): void {
     this.reportConfirmed.set(false);
@@ -118,9 +185,11 @@ export class ProfileComponent {
   onReportSubmitted(event: { reason: ReportReason; details: string | null }): void {
     const p = this.profile();
     if (!p) return;
-    this.userService.submitReport(p.id, event.reason, event.details);
     this.reportOpen.set(false);
-    this.reportConfirmed.set(true);
+    this.userService.submitReport(p.id, event.reason, event.details).subscribe({
+      next: () => this.reportConfirmed.set(true),
+      error: () => this.reportConfirmed.set(true),
+    });
   }
 
   goBack(): void {

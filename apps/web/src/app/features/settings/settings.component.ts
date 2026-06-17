@@ -2,13 +2,14 @@ import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@ang
 import { RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { ChatService } from '../../services/chat.service';
+import { PasswordStrength } from '../../components/password-strength/password-strength';
 
 type Section = 'general' | 'account' | 'privacy' | 'messaging' | 'language';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, PasswordStrength],
   templateUrl: './settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -99,14 +100,25 @@ export class SettingsComponent implements OnInit {
     this.confirmPwd.set((e.target as HTMLInputElement).value);
   }
 
+  private passwordStrength(p: string): number {
+    let score = 0;
+    if (p.length >= 8) score++;
+    if (/[A-Z]/.test(p)) score++;
+    if (/[0-9]/.test(p)) score++;
+    if (/[^A-Za-z0-9]/.test(p)) score++;
+    return score;
+  }
+
   savePassword(): void {
     this.pwdError.set('');
     if (!this.currentPwd()) {
       this.pwdError.set('Veuillez saisir votre mot de passe actuel.');
       return;
     }
-    if (this.newPwd().length < 8) {
-      this.pwdError.set('Le nouveau mot de passe doit contenir au moins 8 caractères.');
+    if (this.passwordStrength(this.newPwd()) < 2) {
+      this.pwdError.set(
+        'Le mot de passe est trop faible. Il doit contenir au moins 8 caractères et inclure une majuscule, un chiffre ou un caractère spécial.',
+      );
       return;
     }
     if (this.newPwd() !== this.confirmPwd()) {

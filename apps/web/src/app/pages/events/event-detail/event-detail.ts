@@ -9,12 +9,13 @@ import { EventService } from '../../../services/event';
 import { Auth } from '../../../services/auth';
 import { MeetzEvent } from '../../../models/event.model';
 import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
+import { EventImagePipe } from '../../../shared/pipes/event-image.pipe';
 
 const GEO_CACHE_PREFIX = 'meetz_geo_';
 
 @Component({
   selector: 'app-event-detail',
-  imports: [CommonModule, RouterLink, AvatarComponent],
+  imports: [CommonModule, RouterLink, AvatarComponent, EventImagePipe],
   templateUrl: './event-detail.html',
   styleUrl: './event-detail.css',
 })

@@ -1,10 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-/**
- * Avatar utilisateur, avec pastille "en ligne" optionnelle.
- * Usage : <mz-avatar [src]="user.avatarUrl" [alt]="user.name" [seed]="user.id"
- *                    [size]="48" [online]="user.isOnline ?? false" />
- */
 @Component({
   selector: 'mz-avatar',
   standalone: true,
@@ -15,11 +10,20 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
       [style.width.px]="size()"
       [style.height.px]="size()"
     >
-      <img
-        [src]="resolvedSrc()"
-        [alt]="alt()"
-        class="w-full h-full rounded-full object-cover border border-mz-border bg-mz-surface-2"
-      />
+      @if (src()) {
+        <img
+          [src]="src()!"
+          [alt]="alt()"
+          class="w-full h-full rounded-full object-cover border border-mz-border"
+        />
+      } @else {
+        <span
+          class="flex items-center justify-center w-full h-full rounded-full bg-mz-surface-2 border border-mz-border text-mz-text-muted font-bold select-none"
+          [style.font-size.px]="fontSize()"
+          aria-hidden="true"
+          >{{ initial() }}</span
+        >
+      }
       @if (online()) {
         <span
           class="absolute bottom-0 right-0 block rounded-full bg-mz-success border-2 border-mz-bg"
@@ -38,6 +42,7 @@ export class AvatarComponent {
   readonly online = input<boolean>(false);
   readonly seed = input<string>('user');
 
-  readonly resolvedSrc = computed(() => this.src() ?? `https://i.pravatar.cc/160?u=${this.seed()}`);
+  readonly initial = computed(() => (this.alt() || this.seed() || '?')[0].toUpperCase());
   readonly dotSize = computed(() => Math.max(8, Math.round(this.size() / 4)));
+  readonly fontSize = computed(() => Math.max(10, Math.round(this.size() / 2.5)));
 }

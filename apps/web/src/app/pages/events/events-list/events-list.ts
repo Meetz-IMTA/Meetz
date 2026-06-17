@@ -47,6 +47,11 @@ export class EventsList implements OnInit, OnDestroy {
   isLoading = true;
   error = '';
 
+  get canCreateEvents(): boolean {
+    const role = this.auth.getUser()?.role;
+    return role === 'organizer' || role === 'admin';
+  }
+
   // Distance filter state
   distanceRadius: number | null = null;
   cityCoords: Coords | null = null;

@@ -4,19 +4,11 @@
 >
   <!-- Image zone -->
   <div class="relative h-44 w-full overflow-hidden bg-gray-100 shrink-0">
-    @if (event.imageUrl) {
-      <img
-        [src]="event.imageUrl"
-        [alt]="event.name"
-        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-      />
-    } @else {
-      <div
-        class="w-full h-full flex items-center justify-center bg-gradient-to-br from-rose-50 to-rose-100"
-      >
-        <span class="material-symbols-outlined text-rose-200" style="font-size: 56px">event</span>
-      </div>
-    }
+    <img
+      [src]="event.imageUrl | eventImage: event.category"
+      [alt]="event.name"
+      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+    />
     @if (event.category) {
       <span class="badge absolute top-3 left-3" [ngClass]="'badge-' + event.category">{{
         event.category

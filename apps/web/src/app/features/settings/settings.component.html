@@ -249,6 +249,9 @@
                   [value]="newPwd()"
                   (input)="onNewPwd($event)"
                 />
+                <div class="mt-2">
+                  <app-password-strength [password]="newPwd()" />
+                </div>
               </div>
               <div>
                 <label

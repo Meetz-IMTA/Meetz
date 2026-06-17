@@ -47,6 +47,10 @@ export class AdminService {
     return this.http.get<AdminUsersResponse>(`${this.base}/users`, { params });
   }
 
+  pinThread(threadId: number, isPinned: boolean) {
+    return this.http.patch(`${this.base}/threads/${threadId}/pin`, { isPinned });
+  }
+
   deleteThread(threadId: number) {
     return this.http.delete(`${this.base}/threads/${threadId}`);
   }

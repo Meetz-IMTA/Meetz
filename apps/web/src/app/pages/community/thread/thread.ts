@@ -46,6 +46,7 @@ export class CommunityThread implements OnInit, OnDestroy {
 
   isLiking = false;
 
+  isPinning = false;
   isDeleting = false;
   showDeleteConfirm = false;
 
@@ -167,6 +168,24 @@ export class CommunityThread implements OnInit, OnDestroy {
       next: (thread) => {
         this.thread = thread;
         this.commentTree = this.buildTree(thread.comments ?? []);
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  togglePin() {
+    if (!this.thread || this.isPinning) return;
+    this.isPinning = true;
+    this.adminService.pinThread(this.thread.id, !this.thread.isPinned).subscribe({
+      next: () => {
+        this.thread!.isPinned = !this.thread!.isPinned;
+        this.toast.success(this.thread!.isPinned ? 'Thread épinglé.' : 'Thread désépinglé.');
+        this.isPinning = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.toast.error("Impossible de modifier l'épinglage.");
+        this.isPinning = false;
         this.cdr.detectChanges();
       },
     });

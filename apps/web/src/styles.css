@@ -190,6 +190,31 @@ body {
     'opsz' 24;
 }
 
+/* ── Responsive page sidebar (events, community) ── */
+.page-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .page-sidebar {
+    position: fixed;
+    top: 4rem;
+    bottom: 4rem;
+    left: 0;
+    z-index: 40;
+    width: min(18rem, 90vw);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease-in-out;
+    overflow-y: auto;
+    height: auto;
+  }
+  .page-sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+}
+
 /* ===================== MEETZ THEME — début ===================== */
 /* Tokens de design Meetz. Préfixés mz- pour éviter toute collision.
    Ne pas mélanger avec d'autres design tokens. */

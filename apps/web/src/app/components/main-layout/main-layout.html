@@ -258,7 +258,7 @@
 
 <!-- Layout body -->
 <div class="flex min-h-[calc(100vh-4rem)]">
-  <div class="flex-1 min-w-0 flex flex-col bg-zinc-50">
+  <div class="flex-1 min-w-0 flex flex-col bg-zinc-50 pb-16 md:pb-0">
     <router-outlet />
     <app-footer />
   </div>
@@ -266,3 +266,18 @@
 
 <!-- Chat widget (always visible on authenticated pages) -->
 <app-chat-widget />
+
+<!-- Mobile bottom navigation -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 flex md:hidden bg-white border-t border-zinc-200">
+  @for (item of navItems; track item.route) {
+    <a
+      [routerLink]="item.route"
+      routerLinkActive="bottom-nav-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="bottom-nav-item flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-zinc-500 hover:text-rose-700 transition-colors"
+    >
+      <span class="material-symbols-outlined" style="font-size: 22px">{{ item.icon }}</span>
+      <span class="text-[10px] font-semibold leading-none">{{ item.label }}</span>
+    </a>
+  }
+</nav>

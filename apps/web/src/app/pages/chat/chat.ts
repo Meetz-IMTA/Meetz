@@ -244,6 +244,11 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
     if (this.hoverTimer) clearTimeout(this.hoverTimer);
   }
 
+  backToList(): void {
+    this.activeConversation.set(null);
+    this.messages.set([]);
+  }
+
   selectConversation(conv: Conversation): void {
     this.activeConversation.set(conv);
     this.typingUserIds.set([]);

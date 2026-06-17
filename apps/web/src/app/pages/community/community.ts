@@ -40,6 +40,7 @@ export class Community implements OnInit {
   isLoadingThreads = true;
   isLoadingMore = false;
   error = '';
+  mobileSidebarOpen = false;
 
   readonly skeletons = Array.from({ length: 6 }, (_, i) => i);
 
@@ -201,6 +202,7 @@ export class Community implements OnInit {
   selectCategory(id: number | null) {
     if (this.selectedCategoryId === id) return;
     this.selectedCategoryId = id;
+    this.mobileSidebarOpen = false;
     this.reloadThreads();
   }
 

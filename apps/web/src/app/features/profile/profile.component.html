@@ -140,6 +140,32 @@
                   }
                 }
 
+                <!-- Coopter comme organisateur -->
+                @if (canCoopt()) {
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1.5 text-sm font-semibold text-mz-primary bg-mz-primary/10 hover:bg-mz-primary/20 border border-mz-primary/30 rounded-mz-btn px-4 py-2 transition-colors"
+                    (click)="openCoopt()"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M19 8v6M22 11h-6" />
+                    </svg>
+                    Coopter
+                  </button>
+                }
+
                 <!-- Bouton Signaler -->
                 <button
                   type="button"
@@ -220,7 +246,7 @@
               <p class="font-mz-display font-bold text-lg text-mz-text">{{ p.eventsCount }}</p>
               <p class="text-xs text-mz-text-dim">Événements</p>
             </div>
-            @if (isCreator() && p.cooptationsMax !== null) {
+            @if (isOwner() && isOrganizer() && p.cooptationsMax !== null) {
               <div>
                 <p class="font-mz-display font-bold text-lg text-mz-text">
                   {{ p.cooptationsUsed }}/{{ p.cooptationsMax }}
@@ -366,7 +392,7 @@
           <h2 class="font-mz-display font-bold text-lg text-mz-text">
             {{ isOwner() ? 'Mes événements' : 'Événements' }}
           </h2>
-          @if (isOwner()) {
+          @if (isOwner() && canCreateEvents()) {
             <a
               [routerLink]="['/create-event']"
               class="text-sm font-semibold text-mz-primary hover:underline"
@@ -453,7 +479,7 @@
                 isOwner() ? "Vous n'avez pas encore créé d'événement." : 'Aucun événement public.'
               }}
             </p>
-            @if (isOwner()) {
+            @if (isOwner() && canCreateEvents()) {
               <a [routerLink]="['/create-event']" class="mz-btn-primary text-sm mt-4 inline-flex">
                 Créer un événement
               </a>
@@ -463,7 +489,7 @@
       </section>
 
       <!-- ===== Cooptations (propriétaire + créateur) ===== -->
-      @if (isOwner() && isCreator() && p.cooptations.length > 0) {
+      @if (isOwner() && isOrganizer() && p.cooptations.length > 0) {
         <section class="mb-6">
           <h2 class="font-mz-display font-bold text-lg text-mz-text mb-3">Mes cooptations</h2>
           <ul class="flex flex-col gap-3">
@@ -495,6 +521,53 @@
         </section>
       }
     </div>
+
+    <!-- ===== Confirmation de cooptation ===== -->
+    @if (cooptOpen()) {
+      <div
+        class="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4"
+        (click)="closeCoopt()"
+      >
+        <div
+          class="mz-card w-full max-w-md p-6"
+          role="dialog"
+          aria-modal="true"
+          (click)="$event.stopPropagation()"
+        >
+          <h2 class="font-mz-display font-bold text-lg text-mz-text">
+            Coopter {{ p.name }} comme organisateur ?
+          </h2>
+          <p class="text-sm text-mz-text-muted leading-relaxed mt-3">
+            {{ p.name }} pourra créer des événements et coopter à son tour. Cette action est
+            <strong class="text-mz-text">définitive</strong> : elle ne peut pas être annulée et
+            décompte <strong class="text-mz-text">un point</strong> de votre quota de cooptations.
+          </p>
+          @if (cooptRemaining() !== null) {
+            <p class="text-xs text-mz-text-dim mt-2">
+              Il vous restera {{ cooptRemaining()! - 1 }} cooptation(s) après celle-ci.
+            </p>
+          }
+          <div class="flex items-center justify-end gap-2 mt-6">
+            <button
+              type="button"
+              class="mz-btn-ghost text-sm"
+              [disabled]="cooptLoading()"
+              (click)="closeCoopt()"
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              class="mz-btn-primary text-sm"
+              [disabled]="cooptLoading()"
+              (click)="confirmCoopt()"
+            >
+              {{ cooptLoading() ? 'Cooptation…' : 'Confirmer la cooptation' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
 
     <mz-report-dialog
       [open]="reportOpen()"

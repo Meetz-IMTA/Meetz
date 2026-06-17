@@ -102,6 +102,11 @@ export class UserService {
     );
   }
 
+  /** Coopte un utilisateur comme organisateur. Action définitive. */
+  coopt(userId: string): Observable<{ id: number; role: string }> {
+    return this.http.post<{ id: number; role: string }>(`${API}/users/${userId}/coopt`, {});
+  }
+
   submitReport(reportedUserId: string, reason: ReportReason, details: string | null): void {
     // TODO: connecter à POST /api/v1/reports quand l'endpoint sera créé
     console.log('Signalement soumis', { reportedUserId, reason, details });
@@ -138,11 +143,25 @@ export class UserService {
       ...this.mapToUser(data),
       badges: MOCK_BADGES,
       recentEvents: [],
-      cooptations: [],
+      cooptations: (data.cooptations ?? []).map((c: any) => ({
+        user: {
+          id: String(c.user.id),
+          name: c.user.name,
+          email: '',
+          avatarUrl: c.user.avatarUrl ?? null,
+          bannerUrl: null,
+          role: 'organizer' as UserRole,
+          rating: null,
+          bio: null,
+          joinedAt: new Date(),
+          isOnline: false,
+        },
+        date: new Date(c.date),
+      })),
       friendsCount: data.friendsCount ?? 0,
       eventsCount: data.eventsCount ?? 0,
-      cooptationsUsed: null,
-      cooptationsMax: null,
+      cooptationsUsed: data.cooptationsUsed ?? null,
+      cooptationsMax: data.cooptationsMax ?? null,
     };
   }
 }

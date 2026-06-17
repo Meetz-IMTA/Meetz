@@ -50,6 +50,37 @@ export const adminMiddleware = async (
   }
 };
 
+// Rôles autorisés à créer des événements et à coopter.
+// Un ADMIN possède les droits d'organisateur.
+export const ORGANIZER_ROLES = ["ADMIN", "ORGANIZER"] as const;
+
+export const organizerMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    res.status(401).json({ error: "Token manquant" });
+    return;
+  }
+  try {
+    const payload: any = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!);
+    req.userId = payload.userId;
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { role: true },
+    });
+    if (!user || !ORGANIZER_ROLES.includes(user.role as any)) {
+      res.status(403).json({ error: "Accès réservé aux organisateurs." });
+      return;
+    }
+    next();
+  } catch {
+    res.status(401).json({ error: "Token invalide ou expiré" });
+  }
+};
+
 export const optionalAuthMiddleware = (
   req: Request,
   _res: Response,

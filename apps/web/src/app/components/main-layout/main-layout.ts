@@ -26,6 +26,7 @@ const NOTIF_LABELS: Record<NotificationType, string> = {
   event_join: "s'est inscrit·e à votre événement",
   event_leave: "s'est désinscrit·e de votre événement",
   event_full: 'a rempli la dernière place de votre événement',
+  cooptation: 'vous a coopté comme organisateur',
 };
 
 @Component({
@@ -111,7 +112,7 @@ export class MainLayout implements OnInit, OnDestroy {
     }
     if (notif.type === 'friend_request') {
       this.router.navigate(['/friends'], { queryParams: { tab: 'requests' } });
-    } else if (notif.type === 'friend_accepted' && notif.actorId) {
+    } else if ((notif.type === 'friend_accepted' || notif.type === 'cooptation') && notif.actorId) {
       this.router.navigate(['/profile', notif.actorId]);
     } else if (notif.eventId) {
       this.router.navigate(['/events', notif.eventId]);

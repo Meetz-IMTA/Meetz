@@ -1,5 +1,32 @@
 import prisma from "../lib/prisma.js";
 import { v2 as cloudinary } from "cloudinary";
+import { COOPTATION_QUOTA } from "./cooptation.service.js";
+
+// Cooptations effectuées par l'utilisateur, à inclure dans son profil.
+const COOPTED_INCLUDE = {
+  coopted: {
+    select: { id: true, name: true, avatarUrl: true, cooptedAt: true },
+    orderBy: { cooptedAt: "desc" as const },
+  },
+};
+
+type CooptedUser = {
+  id: number;
+  name: string;
+  avatarUrl: string | null;
+  cooptedAt: Date | null;
+};
+
+// Met en forme les informations de cooptation. Le quota n'est exposé que pour
+// les organisateurs (les simples USER renvoient null).
+const cooptationInfo = (role: string, coopted: CooptedUser[]) => ({
+  cooptations: coopted.map((u) => ({
+    user: { id: u.id, name: u.name, avatarUrl: u.avatarUrl },
+    date: u.cooptedAt,
+  })),
+  cooptationsUsed: role === "ORGANIZER" ? coopted.length : null,
+  cooptationsMax: role === "ORGANIZER" ? COOPTATION_QUOTA : null,
+});
 
 const PUBLIC_SELECT = {
   id: true,
@@ -22,6 +49,7 @@ export const getMe = async (userId: number) => {
           events: true,
         },
       },
+      ...COOPTED_INCLUDE,
     },
   });
   if (!user) throw new Error("Utilisateur introuvable.");
@@ -34,12 +62,14 @@ export const getMe = async (userId: number) => {
     resetToken,
     resetTokenExpiry,
     _count,
+    coopted,
     ...safe
   } = user;
   return {
     ...safe,
     friendsCount: _count.friendshipsA + _count.friendshipsB,
     eventsCount: _count.events,
+    ...cooptationInfo(user.role, coopted),
   };
 };
 
@@ -108,6 +138,7 @@ export const getUserById = async (currentUserId: number, targetId: number) => {
     _count,
     ...safe
   } = user;
+  // Le quota et la liste de cooptations restent privés : non exposés ici.
   return {
     ...safe,
     friendsCount: _count.friendshipsA + _count.friendshipsB,

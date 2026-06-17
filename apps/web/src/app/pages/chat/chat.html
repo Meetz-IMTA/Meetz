@@ -114,7 +114,9 @@
         <div>
           <h2 class="font-semibold text-zinc-800 leading-tight">{{ getDisplayName(conv) }}</h2>
           @if (conv.type === 'EVENT_GROUP') {
-            <span class="text-xs text-zinc-400">{{ conv.participants.length }} participant(s)</span>
+            <span class="text-xs text-zinc-400 truncate max-w-xs">{{
+              getParticipantNames(conv)
+            }}</span>
           }
         </div>
       </div>
@@ -209,7 +211,9 @@
                     </button>
                     @if (emojiPickerMsgId() === msg.id) {
                       <div
-                        class="absolute bottom-full right-0 mb-2 z-20 bg-white border border-zinc-200 rounded-2xl shadow-lg px-2 py-1.5 flex gap-1"
+                        class="absolute bottom-full mb-2 z-20 bg-white border border-zinc-200 rounded-2xl shadow-lg px-2 py-1.5 flex gap-1"
+                        [class.right-0]="isMe(msg)"
+                        [class.left-0]="!isMe(msg)"
                         (click)="$event.stopPropagation()"
                       >
                         @for (emoji of EMOJIS; track emoji) {

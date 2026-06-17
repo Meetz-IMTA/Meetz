@@ -145,25 +145,11 @@ export class UserService {
       ...this.mapToUser(data),
       badges: MOCK_BADGES,
       recentEvents: [],
-      cooptations: (data.cooptations ?? []).map((c: any) => ({
-        user: {
-          id: String(c.user.id),
-          name: c.user.name,
-          email: '',
-          avatarUrl: c.user.avatarUrl ?? null,
-          bannerUrl: null,
-          role: 'organizer' as UserRole,
-          rating: null,
-          bio: null,
-          joinedAt: new Date(),
-          isOnline: false,
-        },
-        date: new Date(c.date),
-      })),
+      cooptations: [],
       friendsCount: data.friendsCount ?? 0,
       eventsCount: data.eventsCount ?? 0,
-      cooptationsUsed: data.cooptationsUsed ?? null,
-      cooptationsMax: data.cooptationsMax ?? null,
+      cooptationsUsed: null,
+      cooptationsMax: null,
     };
   }
 }

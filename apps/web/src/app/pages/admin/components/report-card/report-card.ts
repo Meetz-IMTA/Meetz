@@ -28,7 +28,9 @@ export class ReportCardComponent {
   @Output() action = new EventEmitter<ReportAction>();
 
   get reportedUser(): AdminUser | null {
-    return this.report.thread?.author ?? this.report.comment?.author ?? null;
+    return (
+      this.report.thread?.author ?? this.report.comment?.author ?? this.report.reportedUser ?? null
+    );
   }
 
   get contentLabel(): string {

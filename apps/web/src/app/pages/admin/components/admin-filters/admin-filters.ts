@@ -17,6 +17,7 @@ export class AdminFiltersComponent {
     { label: 'Tous', value: 'all' },
     { label: 'Posts', value: 'thread' },
     { label: 'Commentaires', value: 'comment' },
+    { label: 'Utilisateurs', value: 'user' },
   ];
 
   readonly statusOptions: { label: string; value: ReportFilters['status'] }[] = [

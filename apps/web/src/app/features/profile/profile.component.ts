@@ -118,9 +118,11 @@ export class ProfileComponent {
   onReportSubmitted(event: { reason: ReportReason; details: string | null }): void {
     const p = this.profile();
     if (!p) return;
-    this.userService.submitReport(p.id, event.reason, event.details);
     this.reportOpen.set(false);
-    this.reportConfirmed.set(true);
+    this.userService.submitReport(p.id, event.reason, event.details).subscribe({
+      next: () => this.reportConfirmed.set(true),
+      error: () => this.reportConfirmed.set(true),
+    });
   }
 
   goBack(): void {

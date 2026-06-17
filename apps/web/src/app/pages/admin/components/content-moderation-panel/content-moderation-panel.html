@@ -1,5 +1,5 @@
 <div class="flex items-center gap-2 flex-wrap">
-  @if (report.status !== 'resolved') {
+  @if (report.status !== 'resolved' && (report.threadId || report.commentId)) {
     <button
       type="button"
       (click)="onDelete()"

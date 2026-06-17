@@ -59,6 +59,25 @@ export const searchUsers = async (req: Request, res: Response) => {
   }
 };
 
+export const reportUserHandler = async (req: Request, res: Response) => {
+  try {
+    const { reason, details } = req.body;
+    if (!reason) {
+      res.status(400).json({ message: "Le motif est requis." });
+      return;
+    }
+    const result = await userService.reportUser(
+      req.userId!,
+      Number(req.params.id),
+      reason,
+      details ?? null,
+    );
+    res.status(201).json(result);
+  } catch (e: any) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
 export const uploadBanner = async (req: Request, res: Response) => {
   try {
     if (!req.file) {

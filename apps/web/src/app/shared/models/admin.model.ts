@@ -6,7 +6,7 @@ export interface AdminStats {
 }
 
 export type ReportStatus = 'pending' | 'reviewed' | 'resolved' | 'ignored';
-export type ReportType = 'thread' | 'comment';
+export type ReportType = 'thread' | 'comment' | 'user';
 
 export interface AdminUser {
   id: number;
@@ -37,6 +37,7 @@ export interface AdminReport {
     author: AdminUser;
     thread: { id: number; title: string };
   } | null;
+  reportedUser: AdminUser | null;
 }
 
 export interface AdminReportsResponse {
@@ -54,7 +55,7 @@ export interface AdminUsersResponse {
 }
 
 export interface ReportFilters {
-  type: 'all' | 'thread' | 'comment';
+  type: 'all' | 'thread' | 'comment' | 'user';
   status: 'all' | ReportStatus;
   page: number;
 }

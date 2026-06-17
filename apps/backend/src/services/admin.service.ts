@@ -138,6 +138,56 @@ export const adminDeleteThread = async (threadId: number) => {
   await prisma.thread.delete({ where: { id: threadId } });
 };
 
+export const getMessageContext = async (messageId: number) => {
+  const reported = await prisma.message.findUnique({
+    where: { id: messageId },
+    select: {
+      id: true,
+      content: true,
+      createdAt: true,
+      conversationId: true,
+      sender: { select: { id: true, name: true } },
+    },
+  });
+  if (!reported) throw new Error("Message non trouvé.");
+
+  const [before, after] = await Promise.all([
+    prisma.message.findMany({
+      where: { conversationId: reported.conversationId, id: { lt: messageId } },
+      orderBy: { id: "desc" },
+      take: 5,
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        sender: { select: { id: true, name: true } },
+      },
+    }),
+    prisma.message.findMany({
+      where: { conversationId: reported.conversationId, id: { gt: messageId } },
+      orderBy: { id: "asc" },
+      take: 5,
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        sender: { select: { id: true, name: true } },
+      },
+    }),
+  ]);
+
+  const dec = (c: string | null) =>
+    c ? (isEncrypted(c) ? decrypt(c) : c) : null;
+
+  return [
+    ...before
+      .reverse()
+      .map((m) => ({ ...m, content: dec(m.content), isReported: false })),
+    { ...reported, content: dec(reported.content), isReported: true },
+    ...after.map((m) => ({ ...m, content: dec(m.content), isReported: false })),
+  ];
+};
+
 export const adminDeleteMessage = async (messageId: number) => {
   const message = await prisma.message.findUnique({ where: { id: messageId } });
   if (!message) throw new Error("Message non trouvé.");

@@ -154,23 +154,60 @@
     </div>
   </div>
 
-  <!-- Actions divider -->
-  <div class="border-t border-zinc-100 pt-3 flex flex-col gap-2">
-    <!-- Content actions -->
+  <!-- Message context (message reports only) -->
+  @if (report.messageId) {
+    <div class="border-t border-zinc-100 pt-2">
+      <button
+        type="button"
+        (click)="toggleContext()"
+        class="flex items-center gap-1.5 text-[11px] font-semibold text-violet-600 hover:text-violet-800 transition-colors"
+      >
+        <span class="material-symbols-outlined" style="font-size: 14px">{{
+          showContext() ? 'unfold_less' : 'unfold_more'
+        }}</span>
+        {{ showContext() ? 'Masquer le contexte' : 'Voir le contexte (±5 messages)' }}
+        @if (contextLoading()) {
+          <span class="material-symbols-outlined animate-spin text-zinc-400" style="font-size: 14px"
+            >progress_activity</span
+          >
+        }
+      </button>
+
+      @if (showContext() && contextMessages().length > 0) {
+        <div class="mt-2 flex flex-col gap-1 bg-zinc-50 rounded-xl p-3 max-h-72 overflow-y-auto">
+          @for (msg of contextMessages(); track msg.id) {
+            <div
+              class="flex flex-col gap-0.5 px-3 py-2 rounded-lg text-xs"
+              [class.bg-violet-100]="msg.isReported"
+              [class.border]="msg.isReported"
+              [class.border-violet-300]="msg.isReported"
+              [class.bg-white]="!msg.isReported"
+            >
+              <div class="flex items-center gap-1.5">
+                <span class="font-semibold text-zinc-700">{{ msg.sender.name }}</span>
+                @if (msg.isReported) {
+                  <span
+                    class="px-1.5 py-0 text-[10px] font-bold bg-violet-200 text-violet-700 rounded"
+                    >signalé</span
+                  >
+                }
+                <span class="text-zinc-400 ml-auto">{{ msg.createdAt | timeAgo }}</span>
+              </div>
+              <p class="text-zinc-600 break-words">{{ msg.content ?? '[fichier]' }}</p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Actions -->
+  <div class="border-t border-zinc-100 pt-3">
     <app-content-moderation-panel
       [report]="report"
       (deleteContent)="onDeleteContent($event)"
       (ignoreReport)="onIgnore($event)"
       (resolveReport)="onResolve($event)"
     />
-
-    <!-- User moderation -->
-    @if (reportedUser) {
-      <app-user-moderation-panel
-        [user]="reportedUser"
-        (banUser)="onBanUser($event)"
-        (unbanUser)="onUnbanUser($event)"
-      />
-    }
   </div>
 </div>

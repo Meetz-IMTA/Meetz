@@ -1,10 +1,11 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TimeAgoPipe } from '../../../../shared/pipes/time-ago.pipe';
 import { UserModerationPanelComponent } from '../user-moderation-panel/user-moderation-panel';
 import { ContentModerationPanelComponent } from '../content-moderation-panel/content-moderation-panel';
-import type { AdminReport, AdminUser } from '../../../../shared/models/admin.model';
+import { AdminService } from '../../../../services/admin';
+import type { AdminReport, AdminUser, ContextMessage } from '../../../../shared/models/admin.model';
 
 export interface ReportAction {
   type: 'ban' | 'unban' | 'deleteContent' | 'ignore' | 'resolve';
@@ -26,6 +27,12 @@ export interface ReportAction {
 export class ReportCardComponent {
   @Input({ required: true }) report!: AdminReport;
   @Output() action = new EventEmitter<ReportAction>();
+
+  private adminService = inject(AdminService);
+
+  showContext = signal(false);
+  contextMessages = signal<ContextMessage[]>([]);
+  contextLoading = signal(false);
 
   get reportedUser(): AdminUser | null {
     return (
@@ -68,6 +75,26 @@ export class ReportCardComponent {
     resolved: 'bg-emerald-100 text-emerald-700',
     ignored: 'bg-zinc-100 text-zinc-500',
   };
+
+  toggleContext(): void {
+    if (this.showContext()) {
+      this.showContext.set(false);
+      return;
+    }
+    if (this.contextMessages().length > 0) {
+      this.showContext.set(true);
+      return;
+    }
+    this.contextLoading.set(true);
+    this.adminService.getMessageContext(this.report.messageId!).subscribe({
+      next: (msgs) => {
+        this.contextMessages.set(msgs);
+        this.contextLoading.set(false);
+        this.showContext.set(true);
+      },
+      error: () => this.contextLoading.set(false),
+    });
+  }
 
   onBanUser(event: { userId: number; reason?: string }) {
     this.action.emit({ type: 'ban', reportId: this.report.id, payload: event });

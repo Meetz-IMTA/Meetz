@@ -9,6 +9,7 @@ import {
   adminDeleteThreadHandler,
   adminDeleteCommentHandler,
   adminDeleteMessageHandler,
+  getMessageContextHandler,
   listUsersHandler,
 } from "../controllers/admin.controller.js";
 
@@ -25,5 +26,6 @@ router.get("/users", listUsersHandler);
 router.delete("/threads/:id", adminDeleteThreadHandler);
 router.delete("/comments/:id", adminDeleteCommentHandler);
 router.delete("/messages/:id", adminDeleteMessageHandler);
+router.get("/messages/:id/context", getMessageContextHandler);
 
 export default router;

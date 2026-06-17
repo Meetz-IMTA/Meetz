@@ -8,6 +8,7 @@ import {
   adminDeleteThread,
   adminDeleteComment,
   adminDeleteMessage,
+  getMessageContext,
   getAdminUsers,
   type ReportFilters,
   type AdminUserFilters,
@@ -103,6 +104,15 @@ export const adminDeleteMessageHandler = async (
   try {
     await adminDeleteMessage(Number(req.params["id"]));
     res.status(204).send();
+  } catch (error: any) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
+export const getMessageContextHandler = async (req: Request, res: Response) => {
+  try {
+    const context = await getMessageContext(Number(req.params["id"]));
+    res.json(context);
   } catch (error: any) {
     res.status(404).json({ error: error.message });
   }

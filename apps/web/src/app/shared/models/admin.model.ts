@@ -45,6 +45,14 @@ export interface AdminReport {
   } | null;
 }
 
+export interface ContextMessage {
+  id: number;
+  content: string | null;
+  createdAt: string;
+  sender: { id: number; name: string };
+  isReported: boolean;
+}
+
 export interface AdminReportsResponse {
   reports: AdminReport[];
   total: number;

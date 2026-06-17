@@ -6,6 +6,7 @@ import type {
   AdminReportsResponse,
   AdminUsersResponse,
   ReportStatus,
+  ContextMessage,
 } from '../shared/models/admin.model';
 
 @Injectable({ providedIn: 'root' })
@@ -57,5 +58,9 @@ export class AdminService {
 
   deleteMessage(messageId: number) {
     return this.http.delete(`${this.base}/messages/${messageId}`);
+  }
+
+  getMessageContext(messageId: number) {
+    return this.http.get<ContextMessage[]>(`${this.base}/messages/${messageId}/context`);
   }
 }

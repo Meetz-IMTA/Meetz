@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { logoutAuthMiddleware } from "../middlewares/auth.middleware.js";
 import {
   register,
   login,
@@ -15,7 +16,7 @@ router.post("/register", register);
 router.post("/verify-otp", verifyOtp);
 router.post("/login", login);
 router.post("/refresh", refreshToken);
-router.post("/logout", logout);
+router.post("/logout", logoutAuthMiddleware, logout);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 

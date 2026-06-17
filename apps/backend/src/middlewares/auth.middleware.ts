@@ -23,6 +23,30 @@ export const authMiddleware = (
   }
 };
 
+// Variante de authMiddleware tolérante à l'expiration, réservée à /logout :
+// permet d'invalider le refresh token en base même si l'access token vient
+// d'expirer. La signature du token reste vérifiée (un token forgé est rejeté).
+export const logoutAuthMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    res.status(401).json({ error: "Token manquant" });
+    return;
+  }
+  try {
+    const payload: any = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!, {
+      ignoreExpiration: true,
+    });
+    req.userId = payload.userId;
+    next();
+  } catch {
+    res.status(401).json({ error: "Token invalide" });
+  }
+};
+
 export const adminMiddleware = async (
   req: Request,
   res: Response,

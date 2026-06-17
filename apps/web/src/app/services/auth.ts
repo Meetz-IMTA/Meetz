@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { tap } from 'rxjs/operators';
+import { finalize, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -70,10 +70,16 @@ export class Auth {
   }
 
   logout(refreshToken: string) {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    return this.http.post(`${this.apiUrl}/logout`, { refreshToken });
+    // On vide le localStorage seulement une fois la requête envoyée :
+    // l'intercepteur y lit l'access token pour poser l'en-tête Authorization,
+    // dont le backend a désormais besoin pour invalider le refresh token.
+    return this.http.post(`${this.apiUrl}/logout`, { refreshToken }).pipe(
+      finalize(() => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+      }),
+    );
   }
 
   refresh(refreshToken: string) {

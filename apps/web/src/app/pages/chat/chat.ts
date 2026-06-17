@@ -10,6 +10,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Subscription, Subject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import {
@@ -21,10 +22,11 @@ import {
 } from '../../services/chat.service';
 import { Auth } from '../../services/auth';
 import { GifService, type Gif } from '../../services/gif';
+import { FriendService } from '../../services/friend.service';
 
 @Component({
   selector: 'app-chat',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './chat.html',
   styleUrl: './chat.css',
 })
@@ -32,6 +34,7 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
   private chatService = inject(ChatService);
   private auth = inject(Auth);
   private gifService = inject(GifService);
+  private friendService = inject(FriendService);
 
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('photoInput') private photoInput?: ElementRef<HTMLInputElement>;
@@ -382,7 +385,13 @@ export class Chat implements OnInit, AfterViewChecked, OnDestroy {
 
   openNewChatDialog(): void {
     this.showNewChatDialog.set(true);
-    this.chatService.getUsers().subscribe((users) => this.allUsers.set(users));
+    const friends = this.friendService.friends().map((f) => ({
+      id: Number(f.user.id),
+      name: f.user.name,
+      email: f.user.email,
+      avatarUrl: f.user.avatarUrl,
+    }));
+    this.allUsers.set(friends);
   }
 
   closeNewChatDialog(): void {

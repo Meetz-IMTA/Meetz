@@ -2,10 +2,11 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MeetzEvent } from '../../models/event.model';
+import { EventImagePipe } from '../../shared/pipes/event-image.pipe';
 
 @Component({
   selector: 'app-event-card',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, EventImagePipe],
   templateUrl: './event-card.html',
   styleUrl: './event-card.css',
 })

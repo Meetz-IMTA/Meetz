@@ -132,6 +132,14 @@
                             >people</span
                           >
                         </span>
+                      } @else if (notif.type === 'cooptation') {
+                        <span
+                          class="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-amber-500 flex items-center justify-center ring-1 ring-white"
+                        >
+                          <span class="material-symbols-outlined text-white" style="font-size: 10px"
+                            >workspace_premium</span
+                          >
+                        </span>
                       }
                     </div>
                   } @else {
@@ -140,12 +148,18 @@
                       [class]="
                         notif.type === 'friend_request' || notif.type === 'friend_accepted'
                           ? 'bg-sky-600'
-                          : 'bg-rose-700'
+                          : notif.type === 'cooptation'
+                            ? 'bg-amber-500'
+                            : 'bg-rose-700'
                       "
                     >
                       @if (notif.type === 'friend_request' || notif.type === 'friend_accepted') {
                         <span class="material-symbols-outlined" style="font-size: 18px"
                           >people</span
+                        >
+                      } @else if (notif.type === 'cooptation') {
+                        <span class="material-symbols-outlined" style="font-size: 18px"
+                          >workspace_premium</span
                         >
                       } @else {
                         {{ (notif.actor?.name || '?')[0].toUpperCase() }}

@@ -21,6 +21,11 @@ export class MyEvents implements OnInit {
   isLoading = true;
   error = '';
 
+  get canCreateEvents(): boolean {
+    const role = this.auth.getUser()?.role;
+    return role === 'organizer' || role === 'admin';
+  }
+
   ngOnInit() {
     const user = this.auth.getUser();
     if (!user?.id) {

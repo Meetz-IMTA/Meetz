@@ -10,6 +10,7 @@ import {
   searchUsers,
   reportUserHandler,
 } from "../controllers/user.controller.js";
+import { coopt } from "../controllers/cooptation.controller.js";
 
 const router = Router();
 const upload = multer({
@@ -30,5 +31,6 @@ router.post("/me/banner", upload.single("banner"), uploadBanner);
 router.get("/search", searchUsers);
 router.post("/:id/report", reportUserHandler);
 router.get("/:id", getUserById);
+router.post("/:id/coopt", coopt);
 
 export default router;

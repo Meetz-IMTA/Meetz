@@ -9,7 +9,8 @@ export type NotificationType =
   | "friend_accepted"
   | "event_join"
   | "event_leave"
-  | "event_full";
+  | "event_full"
+  | "cooptation";
 
 interface NotificationInput {
   userId: number; // recipient

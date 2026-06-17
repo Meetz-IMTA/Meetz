@@ -31,6 +31,12 @@ model User {
   bannerUrl        String?
   role             UserRole  @default(USER)
   createdAt        DateTime  @default(now())
+  // Cooptation : qui a coopté cet utilisateur comme ORGANIZER, et quand.
+  // Le quota « à vie » d'un organisateur se dérive en comptant ses `coopted`.
+  cooptedById      Int?
+  cooptedAt        DateTime?
+  cooptedBy        User?     @relation("Cooptation", fields: [cooptedById], references: [id], onDelete: SetNull)
+  coopted          User[]    @relation("Cooptation")
   sentRequests     FriendRequest[] @relation("RequestSender")
   receivedRequests FriendRequest[] @relation("RequestReceiver")
   friendshipsA     Friendship[]    @relation("FriendA")

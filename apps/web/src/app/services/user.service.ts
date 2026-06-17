@@ -110,6 +110,10 @@ export class UserService {
     return this.http.post<void>(`${API}/users/${reportedUserId}/report`, { reason, details });
   }
 
+  coopt(userId: string): Observable<{ id: number; role: string }> {
+    return this.http.post<{ id: number; role: string }>(`${API}/users/${userId}/coopt`, {});
+  }
+
   timeAgo(date: Date): string {
     const ms = Date.now() - new Date(date).getTime();
     const days = Math.floor(Math.abs(ms) / 86_400_000);

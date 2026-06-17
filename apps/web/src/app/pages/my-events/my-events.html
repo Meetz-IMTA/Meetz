@@ -5,13 +5,15 @@
       <h1 class="text-3xl font-extrabold text-gray-900">Mes événements</h1>
       <p class="text-gray-500 mt-1 text-sm">Les événements que vous avez créés</p>
     </div>
-    <a
-      routerLink="/create-event"
-      class="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-700 text-white font-semibold text-sm rounded-lg hover:bg-rose-800 transition-colors"
-    >
-      <span class="material-symbols-outlined" style="font-size: 18px">add</span>
-      Créer un événement
-    </a>
+    @if (canCreateEvents) {
+      <a
+        routerLink="/create-event"
+        class="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-700 text-white font-semibold text-sm rounded-lg hover:bg-rose-800 transition-colors"
+      >
+        <span class="material-symbols-outlined" style="font-size: 18px">add</span>
+        Créer un événement
+      </a>
+    }
   </div>
 
   <!-- Loading -->
@@ -43,9 +45,11 @@
         >event_busy</span
       >
       <p class="font-semibold text-gray-500">Vous n'avez pas encore créé d'événements</p>
-      <a routerLink="/create-event" class="text-sm text-rose-700 underline"
-        >Créer votre premier événement</a
-      >
+      @if (canCreateEvents) {
+        <a routerLink="/create-event" class="text-sm text-rose-700 underline"
+          >Créer votre premier événement</a
+        >
+      }
     </div>
   }
 

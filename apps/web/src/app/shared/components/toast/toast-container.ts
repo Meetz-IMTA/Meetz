@@ -4,7 +4,7 @@ import { ToastService, ToastType } from '../../../services/toast';
 @Component({
   selector: 'app-toast-container',
   template: `
-    <div class="fixed top-4 right-4 z-[200] flex flex-col gap-2 w-80 max-w-[calc(100vw-2rem)]">
+    <div class="fixed top-4 right-4 z-[1000] flex flex-col gap-2 w-80 max-w-[calc(100vw-2rem)]">
       @for (toast of toasts.toasts(); track toast.id) {
         <div
           class="mz-toast flex items-start gap-3 px-4 py-3 rounded-xl shadow-lg border bg-white"

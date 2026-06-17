@@ -102,9 +102,12 @@ export class UserService {
     );
   }
 
-  submitReport(reportedUserId: string, reason: ReportReason, details: string | null): void {
-    // TODO: connecter à POST /api/v1/reports quand l'endpoint sera créé
-    console.log('Signalement soumis', { reportedUserId, reason, details });
+  submitReport(
+    reportedUserId: string,
+    reason: ReportReason,
+    details: string | null,
+  ): Observable<void> {
+    return this.http.post<void>(`${API}/users/${reportedUserId}/report`, { reason, details });
   }
 
   timeAgo(date: Date): string {

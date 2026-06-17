@@ -24,7 +24,8 @@ export const listReportsHandler = async (req: Request, res: Response) => {
   try {
     const { type, status, page, limit } = req.query;
     const filters: ReportFilters = {};
-    if (type !== undefined) filters.type = type as "thread" | "comment" | "all";
+    if (type !== undefined)
+      filters.type = type as "thread" | "comment" | "user" | "all";
     if (status !== undefined)
       filters.status = status as
         | "pending"

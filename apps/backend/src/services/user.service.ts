@@ -169,6 +169,28 @@ export const searchUsers = async (currentUserId: number, query: string) => {
   });
 };
 
+export const reportUser = async (
+  reporterId: number,
+  reportedUserId: number,
+  reason: string,
+  details?: string | null,
+) => {
+  const target = await prisma.user.findUnique({
+    where: { id: reportedUserId },
+  });
+  if (!target) throw new Error("Utilisateur introuvable.");
+  if (reporterId === reportedUserId)
+    throw new Error("Vous ne pouvez pas vous signaler vous-même.");
+
+  return prisma.report.create({
+    data: {
+      reporterId,
+      reportedUserId,
+      reason: [reason, details].filter(Boolean).join(" — ") || null,
+    },
+  });
+};
+
 export const uploadBanner = async (userId: number, buffer: Buffer) => {
   const result = await new Promise<any>((resolve, reject) => {
     cloudinary.uploader

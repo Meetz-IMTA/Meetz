@@ -41,7 +41,8 @@ model User {
   comments           Comment[]
   threadLikes        ThreadLike[]
   commentLikes       CommentLike[]
-  reports            Report[]
+  reports            Report[]          @relation("Reporter")
+  receivedReports    Report[]          @relation("ReportedUser")
   notifications      Notification[] @relation("UserNotifications")
   actedNotifications Notification[] @relation("ActorNotifications")
   readReceipts       Boolean                   @default(true)
@@ -206,11 +207,14 @@ model Report {
   thread     Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
   comment    Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
   message    Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  reporter   User?    @relation(fields: [reporterId], references: [id], onDelete: SetNull)
+  reporter       User?    @relation("Reporter", fields: [reporterId], references: [id], onDelete: SetNull)
+  reportedUserId Int?
+  reportedUser   User?    @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: SetNull)
 
   @@index([threadId])
   @@index([commentId])
   @@index([messageId])
+  @@index([reportedUserId])
 }
 
 model MessageReaction {

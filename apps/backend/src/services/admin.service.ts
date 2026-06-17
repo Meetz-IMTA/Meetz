@@ -26,7 +26,7 @@ export const getAdminStats = async () => {
 };
 
 export interface ReportFilters {
-  type?: "thread" | "comment" | "all";
+  type?: "thread" | "comment" | "user" | "all";
   status?: "pending" | "reviewed" | "resolved" | "ignored" | "all";
   page?: number;
   limit?: number;
@@ -39,6 +39,7 @@ export const getReports = async (filters: ReportFilters = {}) => {
   if (status !== "all") where["status"] = status;
   if (type === "thread") where["threadId"] = { not: null };
   else if (type === "comment") where["commentId"] = { not: null };
+  else if (type === "user") where["reportedUserId"] = { not: null };
 
   const [reports, total] = await Promise.all([
     prisma.report.findMany({
@@ -71,6 +72,7 @@ export const getReports = async (filters: ReportFilters = {}) => {
             sender: { select: { id: true, name: true } },
           },
         },
+        reportedUser: { select: safeUserSelect.select },
       },
     }),
     prisma.report.count({ where }),

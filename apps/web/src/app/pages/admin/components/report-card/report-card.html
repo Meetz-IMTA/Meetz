@@ -7,10 +7,15 @@
           class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-rose-100 text-rose-700 uppercase tracking-wide"
           >Post</span
         >
-      } @else {
+      } @else if (report.commentId) {
         <span
           class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-blue-100 text-blue-700 uppercase tracking-wide"
           >Commentaire</span
+        >
+      } @else {
+        <span
+          class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-violet-100 text-violet-700 uppercase tracking-wide"
+          >Utilisateur</span
         >
       }
       <span

@@ -45,6 +45,12 @@ export class EventDetail implements OnInit {
     return !!user && user.id === this.event?.organizerId;
   }
 
+  // Capacité atteinte : on bloque l'inscription côté UI (déjà bloquée côté API).
+  get isFull(): boolean {
+    const max = this.event?.maxAttendees;
+    return max != null && this.participantCount >= max;
+  }
+
   get isAuthenticated(): boolean {
     return this.auth.getUser() != null;
   }

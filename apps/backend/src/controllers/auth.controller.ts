@@ -47,8 +47,8 @@ export const login = async (req: Request, res: Response) => {
 
 export const refreshToken = async (req: Request, res: Response) => {
   try {
-    const { token } = req.body;
-    const result = await refreshTokenService(token);
+    const { refreshToken } = req.body;
+    const result = await refreshTokenService(refreshToken);
     res.json(result);
   } catch (error) {
     console.error("Error refreshing token:", error);
@@ -60,8 +60,7 @@ export const refreshToken = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
   try {
-    const { refreshToken } = req.body;
-    await logoutUser(refreshToken);
+    await logoutUser(req.userId!);
     res.json({ message: "Déconnexion réussie" });
   } catch (error) {
     res.status(500).json({ error: "Erreur lors de la déconnexion" });

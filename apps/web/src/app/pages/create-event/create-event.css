@@ -1,0 +1,103 @@
+.light-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.category-chip {
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
+  cursor: pointer;
+}
+
+.category-chip:hover {
+  background-color: #fce7eb;
+  border-color: #f43f5e;
+  color: #be123c;
+}
+
+.category-chip.active {
+  background-color: #be123c;
+  color: white;
+  border-color: #be123c;
+}
+
+/* Inputs */
+input[type='text'],
+input[type='date'],
+input[type='time'],
+input[type='number'],
+textarea {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #be123c;
+  box-shadow: 0 0 0 3px rgba(190, 18, 60, 0.08);
+}
+
+.input-error {
+  border-color: #f87171 !important;
+}
+
+/* Location dropdown */
+.location-dropdown {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.location-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.location-dropdown::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.location-dropdown::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+/* Draft button states */
+.draft-default {
+  color: #6b7280;
+  border-color: #e5e7eb;
+  background: transparent;
+}
+
+.draft-default:hover {
+  color: #374151;
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+.draft-saved {
+  color: #15803d;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+/* Spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 0.75s linear infinite;
+}
+
+/* Text clamp */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

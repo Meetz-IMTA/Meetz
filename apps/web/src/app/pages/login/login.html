@@ -1,0 +1,170 @@
+<app-auth-shell
+  description="Rejoins une communauté de passionnés dans laquelle tu te reconnais. Découvre des événements qui font vibrer."
+  iconTop="celebration"
+  iconBottom="groups"
+>
+  <ng-container headline>
+    Rejoins. <br />
+    <span class="text-primary">Crée.</span> <br />
+    Appartiens.
+  </ng-container>
+
+  <div class="mb-10">
+    @if (mode() === 'login') {
+      <h2 class="text-3xl font-headline font-extrabold text-gray-900 mb-2">Bon retour !</h2>
+      <p class="text-on-surface-variant font-medium">
+        Connectez-vous pour explorer les nouveautés.
+      </p>
+    } @else {
+      <h2 class="text-3xl font-headline font-extrabold text-gray-900 mb-2">Rejoins-nous !</h2>
+      <p class="text-on-surface-variant font-medium">Crée ton compte et découvre la communauté.</p>
+    }
+  </div>
+
+  <div class="space-y-6">
+    <!-- Tabs connexion / inscription -->
+    <div class="flex bg-gray-200/50 p-1 rounded-lg mb-6">
+      <button
+        type="button"
+        (click)="switchMode('login')"
+        class="flex-1 py-2 text-xs font-bold rounded-md transition-all"
+        [class.bg-white]="mode() === 'login'"
+        [class.shadow-sm]="mode() === 'login'"
+        [class.text-gray-900]="mode() === 'login'"
+        [class.text-gray-500]="mode() !== 'login'"
+      >
+        CONNEXION
+      </button>
+      <button
+        type="button"
+        (click)="switchMode('register')"
+        class="flex-1 py-2 text-xs font-bold rounded-md transition-all"
+        [class.bg-white]="mode() === 'register'"
+        [class.shadow-sm]="mode() === 'register'"
+        [class.text-gray-900]="mode() === 'register'"
+        [class.text-gray-500]="mode() !== 'register'"
+      >
+        S'INSCRIRE
+      </button>
+    </div>
+
+    <!-- Formulaire -->
+    <form class="space-y-4" (ngSubmit)="onSubmit()">
+      @if (mode() === 'register') {
+        <div class="space-y-1">
+          <label for="name" class="text-xs font-bold text-gray-500 ml-1 uppercase"
+            >Nom complet</label
+          >
+          <input
+            id="name"
+            name="name"
+            type="text"
+            [(ngModel)]="name"
+            placeholder="John Doe"
+            required
+            class="w-full bg-white border border-gray-200 rounded-btn px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+          />
+        </div>
+      }
+
+      <div class="space-y-1">
+        <label for="email" class="text-xs font-bold text-gray-500 ml-1 uppercase"
+          >Adresse Email</label
+        >
+        <input
+          id="email"
+          name="email"
+          type="email"
+          [(ngModel)]="email"
+          placeholder="nom@exemple.com"
+          required
+          class="w-full bg-white border border-gray-200 rounded-btn px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+          [class.border-red-500]="loginFailed || registerFailed"
+        />
+      </div>
+
+      <div class="space-y-1">
+        <div class="flex justify-between items-center px-1">
+          <label for="password" class="text-xs font-bold text-gray-500 uppercase"
+            >Mot de passe</label
+          >
+          @if (mode() === 'login') {
+            <a
+              routerLink="/forget-password"
+              class="text-xs font-semibold text-primary hover:underline"
+              >Oublié ?</a
+            >
+          }
+        </div>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          [(ngModel)]="password"
+          placeholder="••••••••"
+          required
+          class="w-full bg-white border border-gray-200 rounded-btn px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+          [class.border-red-500]="loginFailed || registerFailed || passwordMismatch"
+        />
+      </div>
+
+      @if (mode() === 'register') {
+        <app-password-strength [password]="password" />
+      }
+
+      @if (mode() === 'register') {
+        <div class="space-y-1">
+          <label for="confirmPassword" class="text-xs font-bold text-gray-500 ml-1 uppercase"
+            >Confirmer le mot de passe</label
+          >
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            [(ngModel)]="confirmPassword"
+            placeholder="••••••••"
+            required
+            class="w-full bg-white border border-gray-200 rounded-btn px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+            [class.border-red-500]="passwordMismatch"
+          />
+        </div>
+      }
+
+      @if (passwordMismatch) {
+        <p class="text-red-500 text-xs ml-1">Les mots de passe ne correspondent pas.</p>
+      } @else if (loginFailed || registerFailed) {
+        <p class="text-red-500 text-xs ml-1">{{ errorMessage }}</p>
+      }
+
+      <button
+        type="submit"
+        class="w-full bg-primary text-white font-bold py-4 rounded-btn hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4 shadow-lg shadow-primary/20"
+      >
+        {{ mode() === 'login' ? 'Se connecter' : 'Créer mon compte' }}
+        <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+      </button>
+    </form>
+  </div>
+
+  <p class="text-center mt-12 text-sm text-gray-500">
+    @if (mode() === 'login') {
+      Pas encore de compte ?
+      <button
+        type="button"
+        (click)="switchMode('register')"
+        class="text-primary font-bold hover:underline"
+      >
+        Rejoindre la communauté
+      </button>
+    } @else {
+      Déjà un compte ?
+      <button
+        type="button"
+        (click)="switchMode('login')"
+        class="text-primary font-bold hover:underline"
+      >
+        Se connecter
+      </button>
+    }
+  </p>
+</app-auth-shell>

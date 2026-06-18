@@ -1,0 +1,269 @@
+<div class="min-h-screen bg-mz-bg text-mz-text">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-6">
+    <!-- Nav -->
+
+    <!-- Header -->
+    <header class="flex items-center justify-between gap-4 mb-6">
+      <h1 class="font-mz-display font-bold text-2xl text-mz-text">Mes amis</h1>
+      <a [routerLink]="['/friends/search']" class="mz-btn-primary text-sm">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        Ajouter un ami
+      </a>
+    </header>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-mz-border mb-6" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        class="px-4 py-3 text-sm font-semibold -mb-px border-b-2 transition-colors"
+        [class.text-mz-primary]="activeTab() === 'friends'"
+        [class.border-mz-primary]="activeTab() === 'friends'"
+        [class.text-mz-text-muted]="activeTab() !== 'friends'"
+        [class.border-transparent]="activeTab() !== 'friends'"
+        (click)="setTab('friends')"
+      >
+        Amis ({{ friends().length }})
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="px-4 py-3 text-sm font-semibold -mb-px border-b-2 transition-colors flex items-center gap-2"
+        [class.text-mz-primary]="activeTab() === 'requests'"
+        [class.border-mz-primary]="activeTab() === 'requests'"
+        [class.text-mz-text-muted]="activeTab() !== 'requests'"
+        [class.border-transparent]="activeTab() !== 'requests'"
+        (click)="setTab('requests')"
+      >
+        Demandes
+        @if (pendingCount() > 0) {
+          <span
+            class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-mz-pill bg-mz-primary text-mz-on-primary text-xs font-bold"
+          >
+            {{ pendingCount() }}
+          </span>
+        }
+      </button>
+    </div>
+
+    <!-- ===== Onglet Amis ===== -->
+    @if (activeTab() === 'friends') {
+      <div class="relative mb-5">
+        <svg
+          class="absolute left-3 top-1/2 -translate-y-1/2 text-mz-text-dim pointer-events-none"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <input
+          type="text"
+          class="mz-input pl-9"
+          placeholder="Filtrer mes amis…"
+          (input)="onSearch($event)"
+        />
+      </div>
+
+      @if (filteredFriends().length === 0) {
+        <div class="flex flex-col items-center text-center py-16">
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            class="text-mz-text-dim mb-4"
+            aria-hidden="true"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <p class="text-mz-text-muted font-medium">Aucun ami trouvé</p>
+          @if (searchQuery()) {
+            <p class="text-mz-text-dim text-sm mt-1">Aucun résultat pour « {{ searchQuery() }} »</p>
+          } @else {
+            <p class="text-mz-text-dim text-sm mt-1">
+              Ajoutez des amis pour les voir apparaître ici.
+            </p>
+          }
+        </div>
+      } @else {
+        <ul class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          @for (friend of filteredFriends(); track trackFriend($index, friend)) {
+            <li class="mz-card p-4 flex items-center gap-4">
+              <!-- Avatar cliquable -->
+              <a [routerLink]="['/profile', friend.user.id]" class="shrink-0">
+                <mz-avatar
+                  [src]="friend.user.avatarUrl"
+                  [alt]="friend.user.name"
+                  [seed]="friend.user.id"
+                  [size]="48"
+                  [online]="friend.user.isOnline ?? false"
+                />
+              </a>
+
+              <div class="flex-1 min-w-0">
+                <!-- Nom cliquable -->
+                <a
+                  [routerLink]="['/profile', friend.user.id]"
+                  class="font-mz-display font-semibold text-mz-text truncate block hover:text-mz-primary transition-colors"
+                >
+                  {{ friend.user.name }}
+                </a>
+                <div class="flex items-center gap-2 mt-1 flex-wrap">
+                  <mz-role-badge [role]="friend.user.role" />
+                  <span class="text-xs text-mz-text-dim"
+                    >ami depuis {{ timeAgo(friend.since) }}</span
+                  >
+                </div>
+                @if (friend.user.rating !== null) {
+                  <div class="mt-1.5"><mz-star-rating [rating]="friend.user.rating" /></div>
+                }
+              </div>
+
+              <div class="flex flex-col gap-2 shrink-0 w-24">
+                <a [routerLink]="['/profile', friend.user.id]" class="mz-btn-ghost text-sm w-full"
+                  >Profil</a
+                >
+                <button
+                  type="button"
+                  class="mz-btn-danger text-sm w-full"
+                  (click)="removeFriend(friend.user.id)"
+                >
+                  Retirer
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    }
+
+    <!-- ===== Onglet Demandes ===== -->
+    @if (activeTab() === 'requests') {
+      @if (hasNoRequests()) {
+        <div class="flex flex-col items-center text-center py-16">
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            class="text-mz-text-dim mb-4"
+            aria-hidden="true"
+          >
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <path d="m22 7-10 5L2 7" />
+          </svg>
+          <p class="text-mz-text-muted font-medium">Aucune demande en cours</p>
+        </div>
+      }
+
+      @if (incomingRequests().length > 0) {
+        <section class="mb-8">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-mz-text-dim mb-3">
+            Demandes reçues
+          </h2>
+          <ul class="flex flex-col gap-3">
+            @for (req of incomingRequests(); track trackRequest($index, req)) {
+              <li class="mz-card p-4 flex items-center gap-4">
+                <a [routerLink]="['/profile', req.from.id]" class="shrink-0">
+                  <mz-avatar
+                    [src]="req.from.avatarUrl"
+                    [alt]="req.from.name"
+                    [seed]="req.from.id"
+                    [size]="44"
+                  />
+                </a>
+                <div class="flex-1 min-w-0">
+                  <a
+                    [routerLink]="['/profile', req.from.id]"
+                    class="font-semibold text-mz-text truncate block hover:text-mz-primary transition-colors"
+                  >
+                    {{ req.from.name }}
+                  </a>
+                  <p class="text-xs text-mz-text-dim mt-0.5">{{ timeAgo(req.sentAt) }}</p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    class="mz-btn-primary text-sm"
+                    (click)="acceptRequest(req.id)"
+                  >
+                    Accepter
+                  </button>
+                  <button
+                    type="button"
+                    class="mz-btn-ghost text-sm"
+                    (click)="declineRequest(req.id)"
+                  >
+                    Refuser
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (outgoingRequests().length > 0) {
+        <section>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-mz-text-dim mb-3">
+            Demandes envoyées
+          </h2>
+          <ul class="flex flex-col gap-3">
+            @for (req of outgoingRequests(); track trackRequest($index, req)) {
+              <li class="mz-card p-4 flex items-center gap-4">
+                <a [routerLink]="['/profile', req.to.id]" class="shrink-0">
+                  <mz-avatar
+                    [src]="req.to.avatarUrl"
+                    [alt]="req.to.name"
+                    [seed]="req.to.id"
+                    [size]="44"
+                  />
+                </a>
+                <div class="flex-1 min-w-0">
+                  <a
+                    [routerLink]="['/profile', req.to.id]"
+                    class="font-semibold text-mz-text truncate block hover:text-mz-primary transition-colors"
+                  >
+                    {{ req.to.name }}
+                  </a>
+                  <p class="text-xs text-mz-text-dim mt-0.5">envoyée {{ timeAgo(req.sentAt) }}</p>
+                </div>
+                <button
+                  type="button"
+                  class="mz-btn-ghost text-sm shrink-0"
+                  (click)="cancelRequest(req.id)"
+                >
+                  Annuler
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,101 @@
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  Meetz — Dockerfile Backend                                               ║
+# ║  Stack   : Node.js 22, TypeScript (ESM), Express 5, Prisma 7             ║
+# ║  DB      : MariaDB 11 via @prisma/adapter-mariadb                        ║
+# ║  Build   : Multi-stage (deps → build → runner)                           ║
+# ║  Context : Racine du monorepo (docker build -f docker/backend/Dockerfile .) ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+# ── Stage 1 : Dépendances de production uniquement ────────────────────────
+# Ce stage isolé permet au cache Docker de ne pas être invalidé si seul
+# le code source change (et non les dépendances npm).
+FROM node:22-slim AS prod-deps
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+COPY apps/backend/package.json ./apps/backend/
+COPY packages/shared/package.json ./packages/shared/
+
+# --omit=dev exclut vitest, nodemon, @types/* → image finale plus légère.
+# --ignore-scripts évite l'exécution du script "prepare" racine (husky) :
+# avec --omit=dev, le paquet husky lui-même n'est pas installé, donc son
+# binaire est introuvable et le script échouerait (exit 127).
+# On force ensuite explicitement le postinstall de @prisma/engines, qui
+# télécharge le binaire schema-engine pour la plateforme du conteneur
+# (Debian/glibc) — requis par `prisma migrate deploy` en prod. Avant ce
+# correctif, ce binaire n'était jamais téléchargé et les migrations
+# échouaient silencieusement en production.
+RUN npm ci --omit=dev --ignore-scripts && npm rebuild @prisma/engines
+
+# ── Stage 2 : Dépendances complètes + Build TypeScript ────────────────────
+FROM node:22-slim AS builder
+WORKDIR /app
+
+# OpenSSL requis par Prisma pour chiffrer les connexions MySQL/MariaDB.
+RUN apt-get update && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copie des manifestes et installation de TOUTES les dépendances (y compris dev).
+COPY package.json package-lock.json ./
+COPY apps/backend/package.json ./apps/backend/
+COPY packages/shared/package.json ./packages/shared/
+RUN npm ci --ignore-scripts
+
+# Copie du code source complet du monorepo.
+COPY . .
+
+# Génération du client Prisma (sortie : apps/backend/src/generated/prisma).
+# DATABASE_URL factice : prisma generate n'établit aucune connexion réelle,
+# il lit uniquement le schéma pour générer le code TypeScript/JavaScript.
+RUN DATABASE_URL="mysql://dummy:dummy@localhost:3306/dummy" \
+    npx --prefix apps/backend prisma generate \
+    --schema=apps/backend/prisma/schema.prisma
+
+# Compilation TypeScript → JavaScript.
+# tsconfig.build.json restreint le programme à src/ (rootDir/outDir/include) :
+# tsconfig.json seul inclut aussi prisma.config.ts, prisma/seed.ts et
+# vitest.config.ts, hors de src/, qui font échouer la compilation avec un
+# rootDir forcé (TS6059 — fichiers hors rootDir).
+RUN npx --prefix apps/backend tsc --project apps/backend/tsconfig.build.json
+
+# Le client Prisma généré (JS pur) n'est PAS compilé par tsc.
+# Il doit être copié manuellement dans dist/ car les imports résolus au runtime
+# cherchent le chemin ../generated/prisma relatif aux fichiers dans dist/.
+RUN cp -r apps/backend/src/generated apps/backend/dist/generated
+
+# ── Stage 3 : Image de production minimale ────────────────────────────────
+FROM node:22-slim AS runner
+WORKDIR /app
+
+# Même version d'OpenSSL que le stage builder pour la compatibilité Prisma.
+RUN apt-get update && apt-get install -y --no-install-recommends openssl curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Utilisateur non-root : principe du moindre privilège.
+RUN groupadd --system --gid 1001 nodejs \
+    && useradd --system --uid 1001 --gid nodejs --shell /bin/false nodeapp
+
+# Copie sélective des artefacts strictement nécessaires au runtime.
+COPY --from=builder  --chown=nodeapp:nodejs /app/apps/backend/dist ./dist
+COPY --from=builder  --chown=nodeapp:nodejs /app/apps/backend/package.json ./package.json
+COPY --from=prod-deps --chown=nodeapp:nodejs /app/node_modules ./node_modules
+
+# Schéma + migrations + config Prisma : nécessaires à `prisma migrate deploy`
+# (lancé en prod via un `docker run` ponctuel sur cette même image — voir
+# .github/workflows/deploy.yml). Ils n'étaient pas copiés auparavant, ce qui
+# faisait échouer silencieusement les migrations en production.
+COPY --from=builder --chown=nodeapp:nodejs /app/apps/backend/prisma ./prisma
+COPY --from=builder --chown=nodeapp:nodejs /app/apps/backend/prisma.config.ts ./prisma.config.ts
+
+ENV NODE_ENV=production \
+    PORT=3000
+
+USER nodeapp
+EXPOSE 3000
+
+# Healthcheck natif Docker : vérifie que le serveur Express répond.
+# start-period laisse le temps à Prisma de se connecter à MariaDB au démarrage.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -sf http://localhost:3000/api/v1 || exit 1
+
+CMD ["node", "dist/index.js"]

@@ -1,0 +1,90 @@
+<a
+  [routerLink]="['/community/thread', thread.id]"
+  class="group relative block bg-white border border-gray-200 rounded-2xl p-4 hover:border-rose-300 hover:shadow-md transition-all"
+>
+  @if (isAdmin) {
+    <button
+      type="button"
+      (click)="onAdminDelete($event)"
+      title="Supprimer (admin)"
+      class="absolute top-3 right-3 z-10 flex items-center justify-center h-7 w-7 rounded-lg bg-white border border-red-200 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-50 transition-all shadow-sm"
+    >
+      <span class="material-symbols-outlined" style="font-size: 15px">delete</span>
+    </button>
+  }
+  <div class="flex gap-4">
+    <!-- Author avatar -->
+    <mz-avatar
+      [src]="thread.author.avatarUrl"
+      [alt]="thread.author.name"
+      [seed]="thread.author.id.toString()"
+      [size]="40"
+    />
+
+    <div class="min-w-0 flex-1">
+      <!-- Meta -->
+      <div class="flex items-center gap-2 text-xs text-gray-400 mb-1 flex-wrap">
+        @if (thread.isPinned) {
+          <span class="inline-flex items-center gap-0.5 text-rose-600 font-semibold">
+            <span class="material-symbols-outlined" style="font-size: 14px">push_pin</span>
+            Épinglé
+          </span>
+        }
+        <span class="inline-flex items-center gap-1 text-rose-700 font-semibold">
+          <span class="material-symbols-outlined" style="font-size: 14px">{{
+            thread.category.icon || 'forum'
+          }}</span>
+          {{ thread.category.name }}
+        </span>
+        <span>·</span>
+        <span class="font-medium text-gray-500">{{ thread.author.name }}</span>
+        <span>·</span>
+        <span>{{ thread.createdAt | timeAgo }}</span>
+      </div>
+
+      <!-- Title -->
+      <h3
+        class="font-bold text-gray-900 group-hover:text-rose-700 transition-colors leading-snug line-clamp-2"
+      >
+        {{ thread.title }}
+      </h3>
+
+      <!-- Excerpt -->
+      <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ thread.content }}</p>
+
+      <!-- Image thumbnails -->
+      @if (thread.images.length) {
+        <div class="flex gap-2 mt-3">
+          @for (img of thread.images.slice(0, 3); track img.id) {
+            <div class="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+              <img [src]="img.imageUrl | cloudImg: 160" alt="" class="w-full h-full object-cover" />
+            </div>
+          }
+          @if (thread.images.length > 3) {
+            <div
+              class="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-500 shrink-0"
+            >
+              +{{ thread.images.length - 3 }}
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Stats -->
+      <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
+        <span class="inline-flex items-center gap-1">
+          <span class="material-symbols-outlined" style="font-size: 16px">favorite</span>
+          {{ thread.likesCount }}
+        </span>
+        <span class="inline-flex items-center gap-1">
+          <span class="material-symbols-outlined" style="font-size: 16px">chat_bubble</span>
+          {{ thread.commentsCount }}
+        </span>
+        <span class="inline-flex items-center gap-1">
+          <span class="material-symbols-outlined" style="font-size: 16px">visibility</span>
+          {{ thread.viewsCount }}
+        </span>
+      </div>
+    </div>
+  </div>
+</a>

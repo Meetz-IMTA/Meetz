@@ -1,0 +1,189 @@
+<div class="min-h-screen bg-zinc-50">
+  <!-- Page header -->
+  <div class="bg-white border-b border-zinc-200 px-6 py-5">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-lg bg-rose-700 flex items-center justify-center">
+          <span class="material-symbols-outlined text-white" style="font-size: 20px"
+            >admin_panel_settings</span
+          >
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-zinc-900">Administration</h1>
+          <p class="text-xs text-zinc-500">Panneau de modération Meetz</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-6">
+    <!-- Stats -->
+    <app-admin-stats [stats]="stats()" [loading]="statsLoading()" />
+
+    <!-- Tabs -->
+    <div class="flex gap-1 border-b border-zinc-200">
+      <button
+        type="button"
+        (click)="switchTab('reports')"
+        class="px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors"
+        [class.border-rose-700]="activeTab() === 'reports'"
+        [class.text-rose-700]="activeTab() === 'reports'"
+        [class.border-transparent]="activeTab() !== 'reports'"
+        [class.text-zinc-500]="activeTab() !== 'reports'"
+      >
+        Signalements
+      </button>
+      <button
+        type="button"
+        (click)="switchTab('users')"
+        class="px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors"
+        [class.border-rose-700]="activeTab() === 'users'"
+        [class.text-rose-700]="activeTab() === 'users'"
+        [class.border-transparent]="activeTab() !== 'users'"
+        [class.text-zinc-500]="activeTab() !== 'users'"
+      >
+        Utilisateurs
+      </button>
+    </div>
+
+    <!-- Reports tab -->
+    @if (activeTab() === 'reports') {
+      <div class="flex flex-col gap-4">
+        <app-admin-filters (filterChange)="onFilterChange($event)" />
+
+        @if (reportsError()) {
+          <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+            {{ reportsError() }}
+          </div>
+        }
+
+        <app-reports-table
+          [reports]="reports()"
+          [loading]="reportsLoading()"
+          [totalPages]="totalPages()"
+          [currentPage]="currentPage()"
+          (actionDone)="onReportAction($event)"
+          (pageChange)="onPageChange($event)"
+        />
+      </div>
+    }
+
+    <!-- Users tab -->
+    @if (activeTab() === 'users') {
+      <div class="flex flex-col gap-4">
+        <div class="relative max-w-sm">
+          <span
+            class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400"
+            style="font-size: 18px"
+            >search</span
+          >
+          <input
+            type="text"
+            placeholder="Rechercher un utilisateur (nom, email)…"
+            [value]="usersSearch()"
+            (input)="onUsersSearchInput($any($event.target).value)"
+            class="w-full pl-9 pr-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-300"
+          />
+        </div>
+
+        @if (usersError()) {
+          <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+            {{ usersError() }}
+          </div>
+        }
+
+        @if (usersLoading()) {
+          <div class="flex flex-col gap-3">
+            @for (s of [1, 2, 3, 4, 5]; track s) {
+              <div class="bg-white rounded-xl border border-zinc-200 h-20 animate-pulse"></div>
+            }
+          </div>
+        } @else if (users().length === 0) {
+          <div class="flex flex-col items-center justify-center py-16 text-center">
+            <span class="material-symbols-outlined text-zinc-200 mb-3" style="font-size: 48px"
+              >group</span
+            >
+            <p class="text-sm font-semibold text-zinc-400">Aucun utilisateur trouvé</p>
+          </div>
+        } @else {
+          <div class="flex flex-col gap-3">
+            @for (user of users(); track user.id) {
+              <div class="bg-white rounded-xl border border-zinc-200 shadow-sm p-4">
+                <div class="flex items-start gap-4 flex-wrap">
+                  <!-- Avatar + info -->
+                  <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <div
+                      class="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
+                      [class.bg-red-200]="user.isBanned"
+                      [class.text-red-700]="user.isBanned"
+                      [class.bg-rose-700]="!user.isBanned"
+                      [class.text-white]="!user.isBanned"
+                    >
+                      {{ user.name[0].toUpperCase() }}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <p class="text-sm font-bold text-zinc-800 truncate">{{ user.name }}</p>
+                        @if (user.isBanned) {
+                          <span
+                            class="px-1.5 py-0 text-[10px] font-bold bg-red-100 text-red-600 rounded"
+                            >Banni</span
+                          >
+                        }
+                        @if (user.role === 'admin') {
+                          <span
+                            class="px-1.5 py-0 text-[10px] font-bold bg-rose-100 text-rose-700 rounded"
+                            >Admin</span
+                          >
+                        }
+                      </div>
+                      <p class="text-xs text-zinc-400 truncate">{{ user.email }}</p>
+                      @if (user.isBanned && user.bannedAt) {
+                        <p class="text-xs text-red-500 mt-0.5">
+                          Banni {{ user.bannedAt | timeAgo }}
+                        </p>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Moderation actions -->
+                  <div class="shrink-0">
+                    <app-user-moderation-panel
+                      [user]="user"
+                      (banUser)="onBanFromUsersTab($event)"
+                      (unbanUser)="onUnbanFromUsersTab($event)"
+                    />
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (usersTotalPages() > 1) {
+            <div class="flex items-center justify-center gap-2 mt-2">
+              <button
+                type="button"
+                (click)="onUsersPageChange(usersPage() - 1)"
+                [disabled]="usersPage() <= 1"
+                class="p-1.5 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span class="material-symbols-outlined" style="font-size: 18px">chevron_left</span>
+              </button>
+              <span class="text-sm font-semibold text-zinc-600"
+                >Page {{ usersPage() }} / {{ usersTotalPages() }}</span
+              >
+              <button
+                type="button"
+                (click)="onUsersPageChange(usersPage() + 1)"
+                [disabled]="usersPage() >= usersTotalPages()"
+                class="p-1.5 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span class="material-symbols-outlined" style="font-size: 18px">chevron_right</span>
+              </button>
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
+</div>

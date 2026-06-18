@@ -1,0 +1,49 @@
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  <!-- Total reports -->
+  <div class="bg-white rounded-xl border border-zinc-200 shadow-sm p-5">
+    @if (loading) {
+      <div class="h-8 w-16 bg-zinc-100 rounded animate-pulse mb-1"></div>
+      <div class="h-4 w-28 bg-zinc-100 rounded animate-pulse"></div>
+    } @else {
+      <p class="text-2xl font-bold text-zinc-900">{{ stats?.totalReports ?? 0 }}</p>
+      <p class="text-xs font-semibold text-zinc-500 mt-0.5">Signalements totaux</p>
+      <div class="mt-3 h-1 w-8 rounded-full bg-zinc-200"></div>
+    }
+  </div>
+
+  <!-- Pending reports -->
+  <div class="bg-white rounded-xl border border-amber-200 shadow-sm p-5">
+    @if (loading) {
+      <div class="h-8 w-16 bg-zinc-100 rounded animate-pulse mb-1"></div>
+      <div class="h-4 w-28 bg-zinc-100 rounded animate-pulse"></div>
+    } @else {
+      <p class="text-2xl font-bold text-amber-600">{{ stats?.pendingReports ?? 0 }}</p>
+      <p class="text-xs font-semibold text-zinc-500 mt-0.5">En attente</p>
+      <div class="mt-3 h-1 w-8 rounded-full bg-amber-300"></div>
+    }
+  </div>
+
+  <!-- Banned users -->
+  <div class="bg-white rounded-xl border border-red-200 shadow-sm p-5">
+    @if (loading) {
+      <div class="h-8 w-16 bg-zinc-100 rounded animate-pulse mb-1"></div>
+      <div class="h-4 w-28 bg-zinc-100 rounded animate-pulse"></div>
+    } @else {
+      <p class="text-2xl font-bold text-red-600">{{ stats?.bannedUsers ?? 0 }}</p>
+      <p class="text-xs font-semibold text-zinc-500 mt-0.5">Utilisateurs bannis</p>
+      <div class="mt-3 h-1 w-8 rounded-full bg-red-300"></div>
+    }
+  </div>
+
+  <!-- Total users -->
+  <div class="bg-white rounded-xl border border-rose-200 shadow-sm p-5">
+    @if (loading) {
+      <div class="h-8 w-16 bg-zinc-100 rounded animate-pulse mb-1"></div>
+      <div class="h-4 w-28 bg-zinc-100 rounded animate-pulse"></div>
+    } @else {
+      <p class="text-2xl font-bold text-rose-700">{{ stats?.totalUsers ?? 0 }}</p>
+      <p class="text-xs font-semibold text-zinc-500 mt-0.5">Utilisateurs actifs</p>
+      <div class="mt-3 h-1 w-8 rounded-full bg-rose-300"></div>
+    }
+  </div>
+</div>

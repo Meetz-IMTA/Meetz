@@ -1,3 +1,471 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
+@import 'leaflet/dist/leaflet.css';
+
+@import 'primeicons/primeicons.css';
+
+@theme {
+  --color-primary: #be123c;
+  --color-surface: #f9fafb;
+  --color-on-surface: #111827;
+  --color-on-surface-variant: #6b7280;
+
+  --color-meetz-red: #be123c;
+  --color-meetz-sky: #00bfff;
+  --color-meetz-charcoal: #212121;
+  --color-meetz-offwhite: #f8f8f8;
+  --color-meetz-border: #e0e0e0;
+
+  --font-headline: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --radius-btn: 8px;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background-color: #ffffff;
+  color: #111827;
+  font-family: 'Inter', sans-serif;
+}
+
+.vibrant-mesh {
+  background-color: #ffffff;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(190, 18, 60, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(190, 18, 60, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(245, 158, 11, 0.15) 0px, transparent 50%);
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.social-btn:hover {
+  background-color: #f9fafb;
+}
+
+/* ── Category badges (global — used in event cards, lists, detail) ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.badge-Sport {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.badge-Culture {
+  background: #faf5ff;
+  color: #7e22ce;
+}
+.badge-Gastro {
+  background: #fff7ed;
+  color: #c2410c;
+}
+.badge-Jeux {
+  background: #f0fdf4;
+  color: #15803d;
+}
+.badge-Musique {
+  background: #fdf2f8;
+  color: #be185d;
+}
+.badge-Savoir {
+  background: #eef2ff;
+  color: #4338ca;
+}
+.badge-default {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+/* ── Shared event form styles (create + edit) ── */
+.form-card,
+.light-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.category-chip {
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
+  cursor: pointer;
+}
+.category-chip:hover {
+  background-color: #fce7eb;
+  border-color: #f43f5e;
+  color: #be123c;
+}
+.category-chip.active {
+  background-color: #be123c;
+  color: white;
+  border-color: #be123c;
+}
+
+.form-input {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-input:focus {
+  border-color: #be123c;
+  box-shadow: 0 0 0 3px rgba(190, 18, 60, 0.08);
+}
+.input-error {
+  border-color: #f87171 !important;
+}
+
+.location-dropdown {
+  max-height: 220px;
+  overflow-y: auto;
+}
+.location-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+.location-dropdown::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+.location-dropdown::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.draft-default {
+  color: #6b7280;
+  border-color: #e5e7eb;
+  background: transparent;
+}
+.draft-default:hover {
+  color: #374151;
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+.draft-saved {
+  color: #15803d;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* ── Responsive page sidebar (events, community) ── */
+.page-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .page-sidebar {
+    position: fixed;
+    top: 4rem;
+    bottom: 4rem;
+    left: 0;
+    z-index: 40;
+    width: min(18rem, 90vw);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease-in-out;
+    overflow-y: auto;
+    height: auto;
+  }
+  .page-sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+}
+
+/* ===================== MEETZ THEME — début ===================== */
+/* Tokens de design Meetz. Préfixés mz- pour éviter toute collision.
+   Ne pas mélanger avec d'autres design tokens. */
+
+@theme inline {
+  --color-mz-bg: var(--mz-bg);
+  --color-mz-surface: var(--mz-surface);
+  --color-mz-surface-2: var(--mz-surface-2);
+
+  --color-mz-text: var(--mz-text);
+  --color-mz-text-muted: var(--mz-text-muted);
+  --color-mz-text-dim: var(--mz-text-dim);
+
+  --color-mz-border: var(--mz-border);
+  --color-mz-border-hover: var(--mz-border-hover);
+
+  --color-mz-primary: var(--mz-primary);
+  --color-mz-primary-hover: var(--mz-primary-hover);
+  --color-mz-on-primary: var(--mz-on-primary);
+  --color-mz-accent: var(--mz-accent);
+
+  --color-mz-success: var(--mz-success);
+  --color-mz-danger: var(--mz-danger);
+
+  --font-mz-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mz-body: 'Inter', system-ui, sans-serif;
+
+  --radius-mz-card: 12px;
+  --radius-mz-btn: 8px;
+  --radius-mz-badge: 6px;
+  --radius-mz-pill: 20px;
+}
+
+:root {
+  --mz-bg: #ffffff;
+  --mz-surface: #f9fafb;
+  --mz-surface-2: #f2ecf5;
+  --mz-text: #1d1b21;
+  --mz-text-muted: #5b4041;
+  --mz-text-dim: #8f6f70;
+  --mz-border: #e5e7eb;
+  --mz-border-hover: #d1d5db;
+  --mz-primary: #be123c;
+  --mz-primary-hover: #9b0f31;
+  --mz-on-primary: #ffffff;
+  --mz-accent: #ddd6fe;
+  --mz-success: #22c27a;
+  --mz-danger: #dc2626;
+}
+
+/* @layer components — classes utilitaires Meetz, sans risque de collision. */
+@layer components {
+  .mz-card {
+    background-color: var(--mz-surface);
+    border: 1px solid var(--mz-border);
+    border-radius: var(--radius-mz-card);
+  }
+  .mz-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: var(--mz-primary);
+    color: var(--mz-on-primary);
+    font-weight: 600;
+    border-radius: var(--radius-mz-btn);
+    padding: 0.625rem 1.25rem;
+    transition:
+      background-color 150ms ease,
+      transform 100ms ease;
+  }
+  .mz-btn-primary:hover {
+    background-color: var(--mz-primary-hover);
+  }
+  .mz-btn-primary:active {
+    transform: scale(0.98);
+  }
+  .mz-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: transparent;
+    color: var(--mz-text);
+    border: 1px solid var(--mz-border);
+    font-weight: 600;
+    border-radius: var(--radius-mz-btn);
+    padding: 0.625rem 1.25rem;
+    transition:
+      border-color 150ms ease,
+      transform 100ms ease;
+  }
+  .mz-btn-ghost:hover {
+    border-color: var(--mz-border-hover);
+  }
+  .mz-btn-ghost:active {
+    transform: scale(0.98);
+  }
+  .mz-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: transparent;
+    color: var(--mz-danger);
+    border: 1px solid var(--mz-danger);
+    font-weight: 600;
+    border-radius: var(--radius-mz-btn);
+    padding: 0.625rem 1.25rem;
+    transition:
+      background-color 150ms ease,
+      transform 100ms ease;
+  }
+  .mz-btn-danger:hover {
+    background-color: var(--mz-danger);
+    color: #fff;
+  }
+  .mz-btn-danger:active {
+    transform: scale(0.98);
+  }
+  .mz-input {
+    width: 100%;
+    background-color: var(--mz-bg);
+    border: 1px solid var(--mz-border);
+    border-radius: var(--radius-mz-btn);
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    color: var(--mz-text);
+    outline: none;
+    transition: border-color 150ms ease;
+  }
+  .mz-input::placeholder {
+    color: var(--mz-text-dim);
+  }
+  .mz-input:focus {
+    border-color: var(--mz-primary);
+  }
+}
+/* ===================== MEETZ THEME — fin ======================= */
+
+/* ── Community like button animation ── */
+@keyframes mz-like-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.45);
+  }
+  60% {
+    transform: scale(0.85);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes mz-like-burst {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.75;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.mz-like-icon {
+  display: inline-flex;
+  transition: color 0.2s ease;
+  font-variation-settings: 'FILL' 0;
+}
+.mz-like-icon.filled {
+  font-variation-settings: 'FILL' 1;
+}
+.mz-like-icon.animate {
+  animation: mz-like-pop 0.45s ease;
+}
+
+/* filled star for favorite categories */
+.mz-fav-star {
+  font-variation-settings: 'FILL' 0;
+}
+.mz-fav-star.filled {
+  font-variation-settings: 'FILL' 1;
+}
+
+/* generic filled material symbol (e.g. notification bell when unread) */
+.mz-fill-1 {
+  font-variation-settings: 'FILL' 1;
+}
+
+/* notification badge pop-in */
+@keyframes mz-badge-in {
+  0% {
+    transform: scale(0);
+  }
+  70% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.mz-badge {
+  animation: mz-badge-in 0.25s ease;
+}
+
+/* toast slide-in */
+@keyframes mz-toast-in {
+  0% {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.mz-toast {
+  animation: mz-toast-in 0.22s ease;
+}
+
+/* radial burst ring shown briefly when liking */
+.mz-like-burst {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(225, 29, 72, 0.45) 0%, rgba(225, 29, 72, 0) 70%);
+  pointer-events: none;
+  animation: mz-like-burst 0.5s ease-out forwards;
+}
+
+/* highlight pulse when scrolling to a comment via notification */
+@keyframes mz-highlight-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.25);
+    background-color: rgba(255, 241, 241, 0.7);
+  }
+  60% {
+    box-shadow: 0 0 0 6px rgba(225, 29, 72, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(225, 29, 72, 0);
+    background-color: transparent;
+  }
+}
+.mz-highlight {
+  border-radius: 12px;
+  animation: mz-highlight-pulse 2s ease forwards;
+}

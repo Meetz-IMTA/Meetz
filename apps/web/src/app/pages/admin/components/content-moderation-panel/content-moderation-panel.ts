@@ -1,0 +1,44 @@
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import type { AdminReport } from '../../../../shared/models/admin.model';
+
+@Component({
+  selector: 'app-content-moderation-panel',
+  templateUrl: './content-moderation-panel.html',
+})
+export class ContentModerationPanelComponent {
+  @Input({ required: true }) report!: AdminReport;
+  @Output() deleteContent = new EventEmitter<{
+    type: 'thread' | 'comment' | 'message';
+    id: number;
+  }>();
+  @Output() ignoreReport = new EventEmitter<number>();
+  @Output() resolveReport = new EventEmitter<number>();
+
+  get isThread(): boolean {
+    return this.report.threadId != null;
+  }
+
+  get isMessage(): boolean {
+    return this.report.messageId != null;
+  }
+
+  get contentId(): number {
+    return (this.report.threadId ?? this.report.commentId ?? this.report.messageId)!;
+  }
+
+  onDelete() {
+    const type = this.isThread ? 'thread' : this.isMessage ? 'message' : 'comment';
+    const label = this.isThread ? 'ce post' : this.isMessage ? 'ce message' : 'ce commentaire';
+    if (confirm(`Supprimer définitivement ${label} ?`)) {
+      this.deleteContent.emit({ type, id: this.contentId });
+    }
+  }
+
+  onIgnore() {
+    this.ignoreReport.emit(this.report.id);
+  }
+
+  onResolve() {
+    this.resolveReport.emit(this.report.id);
+  }
+}

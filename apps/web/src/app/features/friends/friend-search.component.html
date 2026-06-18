@@ -1,0 +1,200 @@
+<div class="min-h-screen bg-mz-bg text-mz-text">
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 py-6">
+    <!-- Nav -->
+
+    <!-- Retour -->
+    <a
+      [routerLink]="['/friends']"
+      class="inline-flex items-center gap-2 text-sm text-mz-text-muted hover:text-mz-text transition-colors mb-5"
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="m15 18-6-6 6-6" />
+      </svg>
+      Mes amis
+    </a>
+
+    <!-- Header -->
+    <header class="mb-6">
+      <h1 class="font-mz-display font-bold text-2xl text-mz-text">Trouver des amis</h1>
+      <p class="text-sm text-mz-text-muted mt-1">Recherchez par nom ou adresse email.</p>
+    </header>
+
+    <!-- Barre de recherche -->
+    <div class="relative mb-8">
+      <svg
+        class="absolute left-4 top-1/2 -translate-y-1/2 text-mz-text-dim pointer-events-none"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </svg>
+      <input
+        type="text"
+        class="mz-input pl-12 text-base"
+        autofocus
+        placeholder="Ex : Sarah, thomas@meetz.fr…"
+        (input)="onSearch($event)"
+      />
+    </div>
+
+    <!-- Résultats -->
+    @if (!hasQuery()) {
+      <div class="flex flex-col items-center text-center py-12">
+        <svg
+          width="64"
+          height="64"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.25"
+          class="text-mz-border mb-4"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <p class="text-mz-text-dim text-sm max-w-xs">
+          Saisissez au moins 2 caractères pour lancer la recherche.
+        </p>
+      </div>
+    } @else if (results().length === 0) {
+      <div class="flex flex-col items-center text-center py-12">
+        <svg
+          width="64"
+          height="64"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.25"
+          class="text-mz-border mb-4"
+          aria-hidden="true"
+        >
+          <path d="m13.5 8.5-5 5M8.5 8.5l5 5" />
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <p class="text-mz-text-muted font-medium">Aucun résultat</p>
+        <p class="text-mz-text-dim text-sm mt-1">
+          Aucun utilisateur correspondant à « {{ searchQuery() }} ».
+        </p>
+      </div>
+    } @else {
+      <p class="text-xs text-mz-text-dim mb-4">{{ results().length }} utilisateur(s) trouvé(s)</p>
+      <ul class="flex flex-col gap-3">
+        @for (result of results(); track trackResult($index, result)) {
+          <li class="mz-card p-4 flex items-center gap-4">
+            <!-- Avatar cliquable -->
+            <a [routerLink]="['/profile', result.user.id]" class="shrink-0">
+              <mz-avatar
+                [src]="result.user.avatarUrl"
+                [alt]="result.user.name"
+                [seed]="result.user.id"
+                [size]="48"
+                [online]="result.user.isOnline ?? false"
+              />
+            </a>
+
+            <div class="flex-1 min-w-0">
+              <!-- Nom cliquable -->
+              <a
+                [routerLink]="['/profile', result.user.id]"
+                class="font-mz-display font-semibold text-mz-text truncate block hover:text-mz-primary transition-colors"
+              >
+                {{ result.user.name }}
+              </a>
+              <div class="flex items-center gap-2 mt-1 flex-wrap">
+                <mz-role-badge [role]="result.user.role" />
+                @if (result.user.rating !== null) {
+                  <mz-star-rating [rating]="result.user.rating" [size]="12" />
+                }
+              </div>
+            </div>
+
+            <div class="shrink-0">
+              @switch (getRelation(result.user.id).status) {
+                @case ('friend') {
+                  <span
+                    class="inline-flex items-center gap-1.5 text-sm font-semibold text-mz-success px-4 py-2 rounded-mz-btn border border-mz-border"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                    Amis
+                  </span>
+                }
+                @case ('request_sent') {
+                  <div class="flex flex-col items-end gap-1">
+                    <button
+                      type="button"
+                      class="mz-btn-ghost text-sm"
+                      (click)="cancelRequest(getRelation(result.user.id).requestId!)"
+                    >
+                      Annuler
+                    </button>
+                    <span class="text-xs text-mz-text-dim">Demande envoyée</span>
+                  </div>
+                }
+                @case ('request_received') {
+                  <a
+                    [routerLink]="['/friends']"
+                    class="text-sm font-medium text-mz-text-muted hover:text-mz-text transition-colors"
+                  >
+                    Demande reçue
+                  </a>
+                }
+                @default {
+                  <button
+                    type="button"
+                    class="mz-btn-primary text-sm"
+                    (click)="sendRequest(result.user.id)"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Ajouter
+                  </button>
+                }
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>

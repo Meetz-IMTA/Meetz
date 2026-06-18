@@ -1,0 +1,111 @@
+<div class="max-w-4xl mx-auto w-full px-4 sm:px-6 py-6">
+  <!-- Breadcrumb -->
+  <a
+    routerLink="/community"
+    class="inline-flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-rose-700 transition-colors mb-4"
+  >
+    <span class="material-symbols-outlined" style="font-size: 18px">arrow_back</span>
+    Communautés
+  </a>
+
+  <!-- Category header -->
+  @if (category) {
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 mb-6 flex items-start gap-4">
+      <div class="w-14 h-14 rounded-xl bg-rose-50 flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-rose-700" style="font-size: 28px">{{
+          category.icon || 'forum'
+        }}</span>
+      </div>
+      <div class="min-w-0 flex-1">
+        <h1 class="text-xl font-black text-gray-900">{{ category.name }}</h1>
+        @if (category.description) {
+          <p class="text-sm text-gray-500 mt-1">{{ category.description }}</p>
+        }
+        <p class="text-xs text-gray-400 mt-2">
+          {{ category._count?.threads ?? 0 }} thread{{
+            (category._count?.threads ?? 0) !== 1 ? 's' : ''
+          }}
+        </p>
+      </div>
+      <a
+        routerLink="/community/create"
+        [queryParams]="{ categoryId: category.id }"
+        class="inline-flex items-center gap-2 py-2.5 px-4 bg-rose-700 text-white text-sm font-bold rounded-xl hover:bg-rose-800 transition-colors shrink-0"
+      >
+        <span class="material-symbols-outlined" style="font-size: 18px">edit</span>
+        <span class="hidden sm:inline">Nouveau thread</span>
+      </a>
+    </div>
+  }
+
+  <!-- Sort -->
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-lg font-bold text-gray-900">Threads</h2>
+    <div class="flex items-center bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <button
+        type="button"
+        (click)="setSort('recent')"
+        class="px-3 py-1.5 text-sm font-semibold transition-colors"
+        [class.bg-rose-700]="sort === 'recent'"
+        [class.text-white]="sort === 'recent'"
+        [class.text-gray-500]="sort !== 'recent'"
+      >
+        Récents
+      </button>
+      <button
+        type="button"
+        (click)="setSort('popular')"
+        class="px-3 py-1.5 text-sm font-semibold transition-colors"
+        [class.bg-rose-700]="sort === 'popular'"
+        [class.text-white]="sort === 'popular'"
+        [class.text-gray-500]="sort !== 'popular'"
+      >
+        Populaires
+      </button>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="space-y-5">
+      @for (s of skeletons; track s) {
+        <div class="h-32 bg-white border border-gray-100 rounded-2xl animate-pulse"></div>
+      }
+    </div>
+  } @else if (error) {
+    <div class="flex flex-col items-center justify-center py-16 gap-3">
+      <span class="material-symbols-outlined text-red-300" style="font-size: 40px"
+        >error_outline</span
+      >
+      <p class="text-sm text-gray-500">{{ error }}</p>
+      <button (click)="reload()" class="text-sm text-rose-700 underline">Réessayer</button>
+    </div>
+  } @else if (threads.length === 0) {
+    <div class="flex flex-col items-center justify-center py-16 gap-3 text-center">
+      <span class="material-symbols-outlined text-gray-200" style="font-size: 56px"
+        >chat_bubble</span
+      >
+      <p class="text-sm font-semibold text-gray-500">Aucun thread dans cette catégorie</p>
+      <a routerLink="/community/create" class="text-sm text-rose-700 underline"
+        >Lancer la première discussion</a
+      >
+    </div>
+  } @else {
+    <div class="space-y-5">
+      @for (thread of threads; track thread.id) {
+        <app-thread-card [thread]="thread" />
+      }
+    </div>
+    @if (page < totalPages) {
+      <div class="flex justify-center mt-5">
+        <button
+          type="button"
+          (click)="loadMore()"
+          [disabled]="isLoadingMore"
+          class="px-5 py-2.5 bg-white border border-gray-200 text-sm font-semibold text-gray-700 rounded-xl hover:border-rose-300 hover:text-rose-700 transition-colors disabled:opacity-50"
+        >
+          {{ isLoadingMore ? 'Chargement...' : 'Charger plus' }}
+        </button>
+      </div>
+    }
+  }
+</div>

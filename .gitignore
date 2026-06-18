@@ -36,3 +36,8 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+.idea/
+apps/backend/src/generated/
+
+# MariaDB encryption keyfile (secret — ne pas committer)
+docker/mariadb/encryption/keyfile

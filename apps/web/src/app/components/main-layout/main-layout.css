@@ -1,0 +1,50 @@
+/* ── Top nav ── */
+.top-nav-item {
+  color: #52525b;
+}
+
+.top-nav-item:hover {
+  background-color: #fff1f2;
+  color: #be123c;
+}
+
+.top-nav-active {
+  color: #be123c;
+  border-bottom: 2px solid #be123c;
+  border-radius: 0;
+}
+
+/* ── Bottom mobile nav ── */
+.bottom-nav-active {
+  color: #be123c;
+}
+.bottom-nav-active .material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* ── Side nav ── */
+.side-nav-item {
+  color: #52525b;
+}
+
+.side-nav-item:hover {
+  background-color: #f4f4f5;
+}
+
+.side-nav-active {
+  background-color: #fff1f2;
+  color: #be123c;
+  font-weight: 700;
+}
+
+.side-nav-active .side-nav-icon {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}

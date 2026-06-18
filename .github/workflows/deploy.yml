@@ -1,0 +1,308 @@
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  Meetz — Pipeline CI/CD                                                   ║
+# ║  Déclencheur : toute PR ciblant la branche `main`                         ║
+# ║  Runner      : self-hosted (LXC Debian 13 sur Proxmox, accès Internet)    ║
+# ║  Cible       : VM Debian 13 air-gapped (réseau local Proxmox uniquement)  ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+name: CI/CD — Tests & Déploiement
+
+on:
+  pull_request:
+    branches: [main]
+
+# ── Annulation intelligente ────────────────────────────────────────────────
+# Les tests sont annulables (économie de ressources sur nouvelles pushs).
+# Le déploiement, lui, est séquentialisé : on ne peut pas déployer deux versions
+# simultanément sur la même VM. cancel-in-progress: false y est imposé
+# directement sur le job via la concurrency group "deploy-main-singleton".
+
+jobs:
+  # ══════════════════════════════════════════════════════════════════════════
+  # JOB 1 ─ Tests, vérification des types, lint
+  # ══════════════════════════════════════════════════════════════════════════
+  test:
+    name: Tests & Qualité du code
+    runs-on: self-hosted
+
+    concurrency:
+      group: test-${{ github.ref }}
+      cancel-in-progress: true
+
+    env:
+      # La clé de chiffrement du chat est nécessaire aux tests unitaires
+      # (crypto.service.test.ts, chat.service.test.ts).
+      # Stocker dans : Settings → Secrets → Actions → CHAT_ENCRYPTION_KEY
+      CHAT_ENCRYPTION_KEY: ${{ secrets.CHAT_ENCRYPTION_KEY }}
+
+    steps:
+      - name: Pre-clean runner (avoid disk saturation)
+        run: |
+          echo "Cleaning old CI artifacts..."
+
+          # GitHub runner temp
+          rm -rf $HOME/actions-runner/_work/_temp/* || true
+          rm -rf $HOME/actions-runner/_diag/pages/* || true
+
+          # Docker
+          docker system prune -af --volumes || true
+
+          # npm cache (énorme gain)
+          npm cache clean --force || true
+
+          echo "Disk after cleanup:"
+          df -h
+
+      - name: Checkout du code source
+        uses: actions/checkout@v4
+
+      - name: Configuration de Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installation des dépendances (npm ci)
+        run: npm ci
+
+      # ── Génération du client Prisma ────────────────────────────────────
+      # Nécessaire avant le type-check et les tests : src/generated/prisma
+      # est gitignored et n'est jamais créé par npm ci seul.
+      # DATABASE_URL factice : prisma generate ne se connecte pas à la DB,
+      # il lit uniquement le schéma (même approche que docker/backend/Dockerfile).
+      - name: Génération du client Prisma
+        run: |
+          DATABASE_URL="mysql://dummy:dummy@localhost:3306/dummy" \
+            npx --prefix apps/backend prisma generate \
+            --schema=apps/backend/prisma/schema.prisma
+
+      # ── Qualité du code ────────────────────────────────────────────────
+      - name: Vérification du formatage (Prettier)
+        run: npx prettier --check "apps/**/*.{ts,html,css}"
+
+      - name: Vérification des types TypeScript (backend)
+        run: npx tsc --noEmit --project apps/backend/tsconfig.json
+
+      # ── Tests unitaires ────────────────────────────────────────────────
+      - name: Tests unitaires — Backend (Vitest)
+        run: npm test --workspace=backend
+        # Les tests mockent Prisma → aucune base de données requise.
+        # Seule CHAT_ENCRYPTION_KEY est nécessaire (injectée ci-dessus).
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # JOB 2 ─ Build Docker & Déploiement sur la VM isolée
+  # Ce job ne se lance QUE si Job 1 est vert (needs: test).
+  # ══════════════════════════════════════════════════════════════════════════
+  deploy:
+    name: Build Docker & Déploiement sur VM
+    needs: test
+    runs-on: self-hosted
+
+    # Un seul déploiement à la fois — les suivants attendent, ne sont pas annulés.
+    concurrency:
+      group: deploy-main-singleton
+      cancel-in-progress: false
+
+    env:
+      VM_HOST: ${{ secrets.VM_HOST }}           # IP locale de la VM (ex: 192.168.100.10)
+      VM_USER: ${{ secrets.VM_USER }}           # Utilisateur SSH sur la VM (ex: deploy)
+      DEPLOY_DIR: /opt/meetz                    # Répertoire de déploiement sur la VM
+      BACKEND_IMAGE: meetz-backend
+      WEB_IMAGE: meetz-web
+      IMAGE_TAG: ${{ github.sha }}              # Tag unique par commit
+
+    steps:
+      - name: Checkout du code source
+        uses: actions/checkout@v4
+
+      # ── Build des images Docker (sur le LXC, qui a Internet) ───────────
+      - name: Build image Docker — Backend (Node.js/TypeScript)
+        run: |
+          docker build \
+            --file docker/backend/Dockerfile \
+            --tag ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }} \
+            --tag ${{ env.BACKEND_IMAGE }}:latest \
+            --label "git.sha=${{ github.sha }}" \
+            --label "git.ref=${{ github.ref }}" \
+            --label "build.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            .
+
+      - name: Build image Docker — Web (Angular → Nginx)
+        run: |
+          docker build \
+            --file docker/web/Dockerfile \
+            --tag ${{ env.WEB_IMAGE }}:${{ env.IMAGE_TAG }} \
+            --tag ${{ env.WEB_IMAGE }}:latest \
+            --label "git.sha=${{ github.sha }}" \
+            .
+
+      # ── Export des images en archives compressées ──────────────────────
+      # La VM est air-gapped : impossible de faire `docker pull`.
+      # On exporte chaque image en .tar.gz, puis on les transfère via SCP.
+      - name: Export des images Docker en archives .tar.gz
+        run: |
+          mkdir -p /tmp/meetz-deploy
+
+          echo "→ Export backend..."
+          docker save ${{ env.BACKEND_IMAGE }}:${{ env.IMAGE_TAG }} \
+            | gzip -9 > /tmp/meetz-deploy/meetz-backend.tar.gz
+
+          echo "→ Export web..."
+          docker save ${{ env.WEB_IMAGE }}:${{ env.IMAGE_TAG }} \
+            | gzip -9 > /tmp/meetz-deploy/meetz-web.tar.gz
+
+          echo "Tailles des archives :"
+          du -sh /tmp/meetz-deploy/*.tar.gz
+
+      # ── Préparation de la connexion SSH vers la VM ─────────────────────
+      - name: Configuration de la clé SSH (temporaire)
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Écriture de la clé privée depuis le secret GitHub
+          printf '%s\n' "${{ secrets.VM_SSH_PRIVATE_KEY }}" > ~/.ssh/vm_deploy_key
+          chmod 600 ~/.ssh/vm_deploy_key
+
+          # Ajout du fingerprint SSH de la VM dans known_hosts
+          # Évite le prompt interactif "Are you sure you want to continue?"
+          ssh-keyscan -H "${{ env.VM_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      # ── Snapshot ROLLBACK : tag des images courantes en :previous ──────
+      # Avant de déployer la nouvelle version, on bascule les images actuelles
+      # vers le tag :previous. En cas de crash post-déploiement, le rollback
+      # est immédiat via scripts/rollback.sh (ou voir le step Health Check).
+      - name: Rollback snapshot — sauvegarde de la version actuelle
+        run: |
+          ssh -i ~/.ssh/vm_deploy_key \
+              -o StrictHostKeyChecking=no \
+              "${{ env.VM_USER }}@${{ env.VM_HOST }}" bash << 'ENDSSH'
+            set -euo pipefail
+
+            echo "=== [ROLLBACK-SNAPSHOT] Sauvegarde de l'état actuel ==="
+
+            if docker image inspect meetz-backend:latest &>/dev/null; then
+              docker tag meetz-backend:latest meetz-backend:previous
+              echo "✓ meetz-backend:previous sauvegardée"
+            else
+              echo "⚠ Pas d'image meetz-backend:latest existante (premier déploiement)."
+            fi
+
+            if docker image inspect meetz-web:latest &>/dev/null; then
+              docker tag meetz-web:latest meetz-web:previous
+              echo "✓ meetz-web:previous sauvegardée"
+            else
+              echo "⚠ Pas d'image meetz-web:latest existante (premier déploiement)."
+            fi
+          ENDSSH
+
+      # ── Transfert des archives & du compose vers la VM ────────────────
+      - name: Transfert SCP → VM (réseau local Proxmox)
+        run: |
+          scp -i ~/.ssh/vm_deploy_key \
+              -o StrictHostKeyChecking=no \
+              /tmp/meetz-deploy/meetz-backend.tar.gz \
+              /tmp/meetz-deploy/meetz-web.tar.gz \
+              docker-compose.prod.yml \
+              "${{ env.VM_USER }}@${{ env.VM_HOST }}:${{ env.DEPLOY_DIR }}/"
+
+          echo "✓ Transfert terminé."
+
+      # ── Déploiement sur la VM : chargement des images & redémarrage ───
+      - name: Déploiement sur la VM — load & docker compose up
+        run: |
+          ssh -i ~/.ssh/vm_deploy_key \
+              -o StrictHostKeyChecking=no \
+              "${{ env.VM_USER }}@${{ env.VM_HOST }}" bash << 'ENDSSH'
+            set -euo pipefail
+            cd /opt/meetz
+
+            echo "=== [DEPLOY] Chargement des images Docker ==="
+            docker load < meetz-backend.tar.gz
+            docker load < meetz-web.tar.gz
+            echo "✓ Images chargées."
+
+            echo "=== [DEPLOY] Tag des images chargées en :latest ==="
+            # docker save/load ne conservent que le tag explicitement sauvegardé
+            # (le SHA du commit) — docker-compose.prod.yml et l'étape de
+            # migrations référencent :latest, donc on le ré-applique ici.
+            docker tag meetz-backend:${{ env.IMAGE_TAG }} meetz-backend:latest
+            docker tag meetz-web:${{ env.IMAGE_TAG }} meetz-web:latest
+            echo "✓ Images taguées en :latest."
+
+            echo "=== [DEPLOY] Exécution des migrations Prisma ==="
+            # On lance le container backend en mode migration uniquement.
+            # La variable DATABASE_URL est lue depuis /opt/meetz/.env.prod.
+            # Échec bloquant intentionnel (set -e) : déployer une nouvelle
+            # version sans ses migrations applique du code contre un schéma
+            # obsolète, ce qui doit arrêter le déploiement, pas être ignoré.
+            docker run --rm \
+              --network meetz_meetz-net \
+              --env-file /opt/meetz/.env.prod \
+              meetz-backend:latest \
+              npx prisma migrate deploy
+
+            echo "=== [DEPLOY] Redémarrage des services ==="
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            echo "=== [DEPLOY] Nettoyage des archives temporaires ==="
+            rm -f meetz-backend.tar.gz meetz-web.tar.gz
+
+            echo "=== [DEPLOY] État des conteneurs ==="
+            docker compose -f docker-compose.prod.yml ps
+          ENDSSH
+
+      # ── Health Check & Rollback automatique si échec ──────────────────
+      - name: Health check — vérification et rollback si nécessaire
+        run: |
+          ssh -i ~/.ssh/vm_deploy_key \
+              -o StrictHostKeyChecking=no \
+              "${{ env.VM_USER }}@${{ env.VM_HOST }}" bash << 'ENDSSH'
+            set -euo pipefail
+            cd /opt/meetz
+
+            echo "=== [HEALTH] Attente du démarrage des conteneurs (20s)... ==="
+            sleep 20
+
+            # Le backend expose /api/v1 sur le réseau Docker interne.
+            # On teste depuis l'hôte VM sur le port mappé (3000).
+            BACKEND_OK=false
+            for i in 1 2 3; do
+              if docker exec meetz-backend curl -sf --max-time 5 http://localhost:3000/api/v1 > /dev/null; then
+                BACKEND_OK=true
+                break
+              fi
+              echo "Tentative $i/3 échouée, nouvelle tentative dans 10s..."
+              sleep 10
+            done
+
+            if [ "$BACKEND_OK" = "true" ]; then
+              echo "✓ Health check réussi — backend opérationnel."
+              # Nettoyage des anciennes images (garde 2 générations d'historique)
+              docker image prune -f --filter "until=168h" || true
+            else
+              echo "✗ HEALTH CHECK ÉCHOUÉ — Déclenchement du rollback automatique."
+
+              # Restauration des images :previous
+              docker tag meetz-backend:previous meetz-backend:latest 2>/dev/null || true
+              docker tag meetz-web:previous meetz-web:latest 2>/dev/null || true
+
+              # Redémarrage avec les images précédentes
+              docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+              echo "Rollback effectué. Logs du backend (dernières 50 lignes) :"
+              docker compose -f docker-compose.prod.yml logs --tail=50 meetz-backend
+
+              exit 1
+            fi
+          ENDSSH
+
+      # ── Nettoyage local (TOUJOURS exécuté, même en cas d'erreur) ──────
+      - name: Nettoyage local (clé SSH + archives)
+        if: always()
+        run: |
+          rm -f ~/.ssh/vm_deploy_key
+          rm -rf /tmp/meetz-deploy
+          # Suppression des dangling images sur le LXC runner
+          docker image prune -f || true
+          echo "✓ Nettoyage terminé."

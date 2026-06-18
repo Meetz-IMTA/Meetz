@@ -1,0 +1,600 @@
+<div class="min-h-screen bg-mz-bg text-mz-text">
+  @if (profile(); as p) {
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-6">
+      <!-- Bouton retour — uniquement sur la vue visiteur -->
+      @if (!isOwner()) {
+        <button
+          type="button"
+          (click)="goBack()"
+          class="inline-flex items-center gap-2 text-sm text-mz-text-muted hover:text-mz-text transition-colors mb-5"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+          Retour
+        </button>
+      }
+
+      <!-- Confirmation de signalement -->
+      @if (reportConfirmed()) {
+        <div class="mb-5 mz-card p-4 flex items-center gap-3 border-l-4 border-l-mz-success">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="text-mz-success shrink-0"
+            aria-hidden="true"
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <path d="m22 4-10 10-3-3" />
+          </svg>
+          <p class="text-sm text-mz-text">
+            Signalement envoyé. Un administrateur l'examinera prochainement.
+          </p>
+        </div>
+      }
+
+      <!-- ===== En-tête profil ===== -->
+      <header class="mz-card overflow-hidden mb-6">
+        <div class="h-32 bg-mz-surface-2 overflow-hidden">
+          @if (profile()?.bannerUrl) {
+            <img [src]="profile()!.bannerUrl" alt="Bannière" class="w-full h-full object-cover" />
+          }
+        </div>
+        <div class="px-5 pb-5">
+          <div class="flex items-start justify-between mb-4">
+            <div class="rounded-full ring-4 ring-mz-surface -mt-10">
+              <mz-avatar
+                [src]="p.avatarUrl"
+                [alt]="p.name"
+                [seed]="p.id"
+                [size]="80"
+                [online]="p.isOnline ?? false"
+              />
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-2 mt-2">
+              @if (isOwner()) {
+                <a
+                  [routerLink]="['/profile/edit']"
+                  class="inline-flex items-center gap-2 text-sm font-semibold bg-mz-surface-2 border border-mz-border text-mz-text hover:border-mz-border-hover hover:bg-mz-surface rounded-mz-btn px-4 py-2 transition-colors"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                  </svg>
+                  Modifier le profil
+                </a>
+              } @else {
+                @switch (relation().status) {
+                  @case ('friend') {
+                    <button
+                      type="button"
+                      class="text-sm font-semibold text-mz-danger bg-mz-danger/10 hover:bg-mz-danger/20 border border-mz-danger/30 rounded-mz-btn px-4 py-2 transition-colors"
+                      (click)="removeFriend()"
+                    >
+                      Retirer
+                    </button>
+                  }
+                  @case ('request_sent') {
+                    <button type="button" class="mz-btn-ghost text-sm" (click)="cancelRequest()">
+                      Annuler la demande
+                    </button>
+                  }
+                  @case ('request_received') {
+                    <!-- Accepter ET Refuser -->
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="mz-btn-primary text-sm"
+                        (click)="acceptRequest()"
+                      >
+                        Accepter
+                      </button>
+                      <button type="button" class="mz-btn-ghost text-sm" (click)="declineRequest()">
+                        Refuser
+                      </button>
+                    </div>
+                  }
+                  @default {
+                    <button type="button" class="mz-btn-primary text-sm" (click)="addFriend()">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M12 5v14M5 12h14" />
+                      </svg>
+                      Ajouter en ami
+                    </button>
+                  }
+                }
+
+                <!-- Coopter comme organisateur -->
+                @if (canCoopt()) {
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1.5 text-sm font-semibold text-mz-primary bg-mz-primary/10 hover:bg-mz-primary/20 border border-mz-primary/30 rounded-mz-btn px-4 py-2 transition-colors"
+                    (click)="openCoopt()"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M19 8v6M22 11h-6" />
+                    </svg>
+                    Coopter
+                  </button>
+                }
+
+                <!-- Bouton Signaler -->
+                <button
+                  type="button"
+                  aria-label="Signaler"
+                  class="grid place-items-center w-9 h-9 rounded-mz-btn bg-mz-surface-2 border border-mz-border text-mz-text-dim hover:bg-mz-danger/10 hover:text-mz-danger hover:border-mz-danger/40 transition-colors"
+                  (click)="openReport()"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                    <path d="M4 22v-7" />
+                  </svg>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Identité -->
+          <div class="flex items-center gap-3 flex-wrap">
+            <h1 class="font-mz-display font-bold text-2xl text-mz-text">{{ p.name }}</h1>
+            <mz-role-badge [role]="p.role" />
+          </div>
+
+          <div class="flex items-center gap-3 mt-2 flex-wrap">
+            @if (p.rating !== null) {
+              <mz-star-rating [rating]="p.rating" />
+            }
+            <span class="text-sm text-mz-text-dim"
+              >Membre depuis {{ memberSince(p.joinedAt) }}</span
+            >
+          </div>
+
+          @if (p.bio) {
+            <p class="text-sm text-mz-text-muted leading-relaxed mt-4 max-w-prose">{{ p.bio }}</p>
+          }
+
+          <!-- Stats -->
+          <div class="flex gap-6 mt-5 pt-5 border-t border-mz-border">
+            @if (isOwner()) {
+              <a [routerLink]="['/friends']" class="hover:text-mz-primary transition-colors group">
+                <p
+                  class="font-mz-display font-bold text-lg text-mz-text group-hover:text-mz-primary transition-colors"
+                >
+                  {{ p.friendsCount }}
+                </p>
+                <p class="text-xs text-mz-text-dim flex items-center gap-0.5">
+                  Amis
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </p>
+              </a>
+            } @else {
+              <div>
+                <p class="font-mz-display font-bold text-lg text-mz-text">{{ p.friendsCount }}</p>
+                <p class="text-xs text-mz-text-dim">Amis</p>
+              </div>
+            }
+            <div>
+              <p class="font-mz-display font-bold text-lg text-mz-text">{{ p.eventsCount }}</p>
+              <p class="text-xs text-mz-text-dim">Événements</p>
+            </div>
+            @if (isOwner() && isOrganizer() && p.cooptationsMax !== null) {
+              <div>
+                <p class="font-mz-display font-bold text-lg text-mz-text">
+                  {{ p.cooptationsUsed }}/{{ p.cooptationsMax }}
+                </p>
+                <p class="text-xs text-mz-text-dim">Cooptations</p>
+              </div>
+            }
+          </div>
+        </div>
+      </header>
+
+      <!-- ===== Mes amis (propriétaire uniquement) ===== -->
+      @if (isOwner() && friends().length > 0) {
+        <section class="mb-6">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="font-mz-display font-bold text-lg text-mz-text">Mes amis</h2>
+            <a
+              [routerLink]="['/friends']"
+              class="text-sm font-semibold text-mz-primary hover:underline"
+            >
+              Voir tous →
+            </a>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            @for (friend of friends().slice(0, 6); track trackFriend($index, friend)) {
+              <a
+                [routerLink]="['/profile', friend.user.id]"
+                class="mz-card p-3 flex items-center gap-3 hover:border-mz-border-hover transition-colors"
+              >
+                <mz-avatar
+                  [src]="friend.user.avatarUrl"
+                  [alt]="friend.user.name"
+                  [seed]="friend.user.id"
+                  [size]="36"
+                  [online]="friend.user.isOnline ?? false"
+                />
+                <span class="text-sm font-semibold text-mz-text truncate">
+                  {{ friend.user.name }}
+                </span>
+              </a>
+            }
+          </div>
+          @if (friends().length > 6) {
+            <p class="text-xs text-mz-text-dim mt-2 text-center">
+              et {{ friends().length - 6 }} autre(s) ami(s)
+            </p>
+          }
+        </section>
+      }
+
+      <!-- ===== Badges ===== -->
+      @if (p.badges.length > 0) {
+        <section class="mb-6">
+          <h2 class="font-mz-display font-bold text-lg text-mz-text mb-3">Badges</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            @for (badge of p.badges; track trackBadge($index, badge)) {
+              <div class="mz-card p-4 flex items-center gap-3">
+                <span
+                  class="grid place-items-center w-10 h-10 rounded-full bg-mz-surface-2 text-mz-primary shrink-0"
+                >
+                  @switch (badge.category) {
+                    @case ('participation') {
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <circle cx="12" cy="8" r="6" />
+                        <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+                      </svg>
+                    }
+                    @case ('social') {
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                      </svg>
+                    }
+                    @case ('cooptation') {
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M19 8v6M22 11h-6" />
+                      </svg>
+                    }
+                    @default {
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <circle cx="12" cy="8" r="7" />
+                        <path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.12" />
+                      </svg>
+                    }
+                  }
+                </span>
+                <div class="min-w-0">
+                  <p class="font-semibold text-sm text-mz-text truncate">{{ badge.label }}</p>
+                  <p class="text-xs text-mz-text-dim truncate">{{ badge.description }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- ===== Mes événements / Événements ===== -->
+      <section class="mb-6">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-mz-display font-bold text-lg text-mz-text">
+            {{ isOwner() ? 'Mes événements' : 'Événements' }}
+          </h2>
+          @if (isOwner() && canCreateEvents()) {
+            <a
+              [routerLink]="['/create-event']"
+              class="text-sm font-semibold text-mz-primary hover:underline"
+            >
+              + Créer
+            </a>
+          }
+        </div>
+
+        @if (profileEvents().length > 0) {
+          <ul class="flex flex-col gap-3">
+            @for (ev of profileEvents(); track trackMeetzEvent($index, ev)) {
+              <li>
+                <a
+                  [routerLink]="['/events', ev.id]"
+                  class="mz-card p-4 flex items-center gap-4 hover:border-mz-border-hover transition-colors"
+                >
+                  <div
+                    class="grid place-items-center w-12 h-12 rounded-mz-btn bg-mz-surface-2 shrink-0 overflow-hidden"
+                  >
+                    @if (ev.imageUrl) {
+                      <img [src]="ev.imageUrl" alt="" class="w-full h-full object-cover" />
+                    } @else {
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="text-mz-text-muted"
+                        aria-hidden="true"
+                      >
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                        <path d="M16 2v4M8 2v4M3 10h18" />
+                      </svg>
+                    }
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <p class="font-semibold text-mz-text truncate">{{ ev.name }}</p>
+                      @if (ev.isPrivate) {
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="text-mz-text-dim shrink-0"
+                          aria-label="Privé"
+                        >
+                          <rect x="3" y="11" width="18" height="11" rx="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                      }
+                    </div>
+                    <p class="text-xs text-mz-text-dim truncate">
+                      {{ ev.category }}{{ ev.location ? ' · ' + ev.location : '' }}
+                    </p>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <p class="text-sm font-medium text-mz-text">{{ eventDate(ev.date) }}</p>
+                    <span
+                      class="text-xs"
+                      [class.text-mz-success]="eventStatus(ev.date) === 'upcoming'"
+                      [class.text-mz-text-dim]="eventStatus(ev.date) === 'past'"
+                    >
+                      {{ eventStatus(ev.date) === 'upcoming' ? 'À venir' : 'Passé' }}
+                    </span>
+                  </div>
+                </a>
+              </li>
+            }
+          </ul>
+        } @else if (!eventsResource.isLoading()) {
+          <div class="mz-card p-6 text-center">
+            <p class="text-sm text-mz-text-muted">
+              {{
+                isOwner() ? "Vous n'avez pas encore créé d'événement." : 'Aucun événement public.'
+              }}
+            </p>
+            @if (isOwner() && canCreateEvents()) {
+              <a [routerLink]="['/create-event']" class="mz-btn-primary text-sm mt-4 inline-flex">
+                Créer un événement
+              </a>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- ===== Cooptations (propriétaire + créateur) ===== -->
+      @if (isOwner() && isOrganizer() && p.cooptations.length > 0) {
+        <section class="mb-6">
+          <h2 class="font-mz-display font-bold text-lg text-mz-text mb-3">Mes cooptations</h2>
+          <ul class="flex flex-col gap-3">
+            @for (c of p.cooptations; track trackCoopt($index, c)) {
+              <li class="mz-card p-4 flex items-center gap-4">
+                <a [routerLink]="['/profile', c.user.id]" class="shrink-0">
+                  <mz-avatar
+                    [src]="c.user.avatarUrl"
+                    [alt]="c.user.name"
+                    [seed]="c.user.id"
+                    [size]="40"
+                  />
+                </a>
+                <div class="flex-1 min-w-0">
+                  <a
+                    [routerLink]="['/profile', c.user.id]"
+                    class="font-semibold text-mz-text truncate block hover:text-mz-primary transition-colors"
+                  >
+                    {{ c.user.name }}
+                  </a>
+                  <p class="text-xs text-mz-text-dim">coopté le {{ eventDate(c.date) }}</p>
+                </div>
+                <a [routerLink]="['/profile', c.user.id]" class="mz-btn-ghost text-sm shrink-0"
+                  >Profil</a
+                >
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+
+    <!-- ===== Confirmation de cooptation ===== -->
+    @if (cooptOpen()) {
+      <div
+        class="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4"
+        (click)="closeCoopt()"
+      >
+        <div
+          class="mz-card w-full max-w-md p-6"
+          role="dialog"
+          aria-modal="true"
+          (click)="$event.stopPropagation()"
+        >
+          <h2 class="font-mz-display font-bold text-lg text-mz-text">
+            Coopter {{ p.name }} comme organisateur ?
+          </h2>
+          <p class="text-sm text-mz-text-muted leading-relaxed mt-3">
+            {{ p.name }} pourra créer des événements et coopter à son tour. Cette action est
+            <strong class="text-mz-text">définitive</strong> : elle ne peut pas être annulée et
+            décompte <strong class="text-mz-text">un point</strong> de votre quota de cooptations.
+          </p>
+          @if (cooptRemaining() !== null) {
+            <p class="text-xs text-mz-text-dim mt-2">
+              Il vous restera {{ cooptRemaining()! - 1 }} cooptation(s) après celle-ci.
+            </p>
+          }
+          <div class="flex items-center justify-end gap-2 mt-6">
+            <button
+              type="button"
+              class="mz-btn-ghost text-sm"
+              [disabled]="cooptLoading()"
+              (click)="closeCoopt()"
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              class="mz-btn-primary text-sm"
+              [disabled]="cooptLoading()"
+              (click)="confirmCoopt()"
+            >
+              {{ cooptLoading() ? 'Cooptation…' : 'Confirmer la cooptation' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <mz-report-dialog
+      [open]="reportOpen()"
+      [targetName]="p.name"
+      (closed)="closeReport()"
+      (submitted)="onReportSubmitted($event)"
+    />
+  } @else {
+    <div class="max-w-3xl mx-auto px-6 py-24 flex flex-col items-center text-center">
+      <svg
+        width="56"
+        height="56"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.25"
+        class="text-mz-border mb-4"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 8v4M12 16h.01" />
+      </svg>
+      <h1 class="font-mz-display font-bold text-xl text-mz-text">Profil introuvable</h1>
+      <p class="text-sm text-mz-text-muted mt-1">
+        Cet utilisateur n'existe pas ou n'est plus disponible.
+      </p>
+      <button type="button" (click)="goBack()" class="mz-btn-primary text-sm mt-6">Retour</button>
+    </div>
+  }
+</div>

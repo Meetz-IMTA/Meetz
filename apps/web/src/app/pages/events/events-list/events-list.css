@@ -1,0 +1,81 @@
+/* ── Sidebar nav ── */
+.sidebar-item {
+  color: #52525b;
+  background: transparent;
+}
+.sidebar-item:hover {
+  background: #f4f4f5;
+  color: #111827;
+}
+.sidebar-active {
+  background: #fff1f2;
+  color: #be123c;
+  font-weight: 700;
+}
+.sidebar-active .material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* ── View toggle ── */
+.view-active {
+  background: #fff1f2;
+  color: #be123c;
+}
+.view-inactive {
+  background: white;
+  color: #71717a;
+}
+.view-inactive:hover {
+  background: #f4f4f5;
+}
+
+/* ── Skeleton cards ── */
+.skeleton-card {
+  animation: skeleton-pulse 1.8s ease-in-out infinite;
+}
+.skeleton-bg {
+  background: #f3f4f6;
+}
+.skeleton-line {
+  background: #f3f4f6;
+  display: block;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin {
+  animation: spin 0.75s linear infinite;
+}
+
+/* ── Radius chips ── */
+.radius-active {
+  background: #be123c;
+  color: #fff;
+  border-color: #be123c;
+}
+.radius-inactive {
+  background: #fff;
+  color: #52525b;
+  border-color: #e4e4e7;
+}
+.radius-inactive:hover {
+  border-color: #be123c;
+  color: #be123c;
+}

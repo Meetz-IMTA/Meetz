@@ -1,0 +1,61 @@
+<article
+  [routerLink]="['/events', event.id]"
+  class="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-rose-300 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col"
+>
+  <!-- Image zone -->
+  <div class="relative h-44 w-full overflow-hidden bg-gray-100 shrink-0">
+    <img
+      [src]="event.imageUrl | eventImage: event.category"
+      [alt]="event.name"
+      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+    />
+    @if (event.category) {
+      <span class="badge absolute top-3 left-3" [ngClass]="'badge-' + event.category">{{
+        event.category
+      }}</span>
+    }
+    @if (event.isPrivate) {
+      <span
+        class="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm shadow flex items-center justify-center text-rose-700"
+        title="Événement privé — visible uniquement par les amis de l'organisateur"
+      >
+        <span class="material-symbols-outlined" style="font-size: 16px">lock</span>
+      </span>
+    }
+  </div>
+
+  <!-- Body -->
+  <div class="p-4 flex flex-col flex-1 gap-1.5">
+    <h3
+      class="font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-rose-700 transition-colors text-sm"
+    >
+      {{ event.name }}
+    </h3>
+
+    @if (event.description) {
+      <p class="text-xs text-gray-500 line-clamp-2">{{ event.description }}</p>
+    }
+
+    <!-- Footer -->
+    <div
+      class="mt-auto pt-3 border-t border-gray-100 flex items-center gap-3 text-xs text-gray-400 flex-wrap"
+    >
+      <span class="flex items-center gap-1">
+        <span class="material-symbols-outlined" style="font-size: 13px">calendar_today</span>
+        {{ formattedDate }}
+      </span>
+      <span class="flex items-center gap-1">
+        <span class="material-symbols-outlined" style="font-size: 13px">schedule</span>
+        {{ formattedTime }}
+      </span>
+      @if (event.location) {
+        <span class="flex items-center gap-1 min-w-0">
+          <span class="material-symbols-outlined text-rose-400 shrink-0" style="font-size: 13px"
+            >location_on</span
+          >
+          <span class="truncate">{{ shortLocation }}</span>
+        </span>
+      }
+    </div>
+  </div>
+</article>

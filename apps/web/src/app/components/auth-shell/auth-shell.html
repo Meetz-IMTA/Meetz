@@ -1,0 +1,124 @@
+<div class="flex flex-row items-stretch min-h-screen">
+  <!-- Colonne gauche : visuel -->
+  <section
+    class="hidden lg:flex flex-1 relative overflow-hidden vibrant-mesh border-r border-gray-100"
+  >
+    <div class="absolute inset-0 flex flex-col justify-center p-20 z-10">
+      <div class="mb-12 flex items-center gap-1">
+        <svg
+          width="28"
+          height="32"
+          viewBox="0 0 72 82"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M36 4C20.536 4 8 16.536 8 32C8 48 20 56 28 64C30.8 67.2 33.2 70.4 36 76C38.8 70.4 41.2 67.2 44 64C52 56 64 48 64 32C64 16.536 51.464 4 36 4Z"
+            fill="#BE123C"
+          />
+          <circle cx="27" cy="23" r="5.5" fill="white" />
+          <path
+            d="M18 41C18 35 22 32 27 32C32 32 34 35 34 38"
+            stroke="white"
+            stroke-width="3"
+            stroke-linecap="round"
+            fill="none"
+          />
+          <path d="M18 41H34" stroke="white" stroke-width="3" stroke-linecap="round" />
+          <circle cx="45" cy="23" r="5.5" fill="white" />
+          <path
+            d="M54 41C54 35 50 32 45 32C40 32 38 35 38 38"
+            stroke="white"
+            stroke-width="3"
+            stroke-linecap="round"
+            fill="none"
+          />
+          <path d="M54 41H38" stroke="white" stroke-width="3" stroke-linecap="round" />
+        </svg>
+        <span class="font-headline text-5xl font-extrabold text-primary tracking-tighter"
+          >Meetz</span
+        >
+      </div>
+      <h1
+        class="font-headline text-7xl font-extrabold leading-[1.1] text-gray-900 tracking-tight mb-8"
+      >
+        <ng-content select="[headline]" />
+      </h1>
+      <p class="text-xl text-gray-600 max-w-md font-medium leading-relaxed">{{ description }}</p>
+      @if (showMembers) {
+        <div class="mt-16 flex gap-4">
+          <div class="flex -space-x-4">
+            <img
+              src="https://i.pravatar.cc/48?img=5"
+              class="w-12 h-12 rounded-full border-4 border-white object-cover"
+              alt=""
+            />
+            <img
+              src="https://i.pravatar.cc/48?img=9"
+              class="w-12 h-12 rounded-full border-4 border-white object-cover"
+              alt=""
+            />
+            <img
+              src="https://i.pravatar.cc/48?img=8"
+              class="w-12 h-12 rounded-full border-4 border-white object-cover"
+              alt=""
+            />
+            <div
+              class="w-12 h-12 rounded-full border-4 border-white bg-primary flex items-center justify-center text-white font-bold text-sm"
+            >
+              +2k
+            </div>
+          </div>
+          <div class="flex flex-col justify-center">
+            <span class="text-sm font-bold text-gray-900">Rejoins 2,400+ membres</span>
+            <span class="text-xs text-gray-500">Activités en direct partout en France</span>
+          </div>
+        </div>
+      }
+    </div>
+    <div class="absolute top-[10%] right-[-5%] w-64 h-64 bg-primary/20 rounded-full blur-3xl"></div>
+    <div
+      class="absolute bottom-[20%] left-[10%] w-96 h-96 bg-amber-200/30 rounded-full blur-[100px]"
+    ></div>
+    <div class="absolute top-[40%] right-[15%]">
+      <div
+        class="relative w-32 h-32 bg-white/40 backdrop-blur-md border border-white/60 rounded-3xl rotate-12 flex items-center justify-center shadow-xl"
+      >
+        <span class="material-symbols-outlined text-4xl" [ngClass]="iconTopColor">{{
+          iconTop
+        }}</span>
+      </div>
+    </div>
+    <div class="absolute bottom-[10%] right-[20%]">
+      <div
+        class="relative w-40 h-40 bg-white/40 backdrop-blur-md border border-white/60 rounded-full -rotate-6 flex items-center justify-center shadow-xl"
+      >
+        <span class="material-symbols-outlined text-5xl" [ngClass]="iconBottomColor">{{
+          iconBottom
+        }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Colonne droite : formulaire -->
+  <main
+    class="w-full lg:w-125 flex flex-col justify-center bg-gray-50 px-8 lg:px-16 overflow-y-auto py-12"
+  >
+    <div class="max-w-md mx-auto w-full">
+      <div class="lg:hidden flex justify-center mb-10">
+        <span class="font-headline text-3xl font-extrabold text-primary tracking-tight">Meetz</span>
+      </div>
+
+      <ng-content />
+
+      <footer class="mt-16 text-center text-[11px] text-gray-400 font-medium">
+        <div class="flex justify-center gap-4 mb-2">
+          <a href="#" class="hover:text-gray-600 transition-colors">Confidentialité</a>
+          <a href="#" class="hover:text-gray-600 transition-colors">Conditions</a>
+          <a href="#" class="hover:text-gray-600 transition-colors">Aide</a>
+        </div>
+        © 2026 Meetz.
+      </footer>
+    </div>
+  </main>
+</div>

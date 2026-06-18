@@ -1,6 +1,9 @@
-<div class="flex h-[calc(100vh-4rem)]">
+<div class="flex h-[calc(100vh-8rem)] md:h-[calc(100vh-4rem)]">
   <!-- ═══ Left panel: conversation list ═══ -->
-  <div class="w-80 flex-shrink-0 border-r border-zinc-200 bg-white flex flex-col">
+  <div
+    class="w-full md:w-80 md:flex-shrink-0 md:flex border-r border-zinc-200 bg-white flex flex-col"
+    [class.hidden]="activeConversation() !== null"
+  >
     <!-- Header -->
     <div class="p-4 border-b border-zinc-200">
       <div class="flex items-center justify-between mb-3">
@@ -97,11 +100,19 @@
 
   <!-- ═══ Right panel: messages ═══ -->
   @if (activeConversation(); as conv) {
-    <div class="flex-1 flex flex-col min-w-0">
+    <div class="flex-1 flex flex-col min-w-0 w-full">
       <!-- Chat header -->
       <div
-        class="flex items-center gap-3 px-6 py-4 border-b border-zinc-200 bg-white flex-shrink-0"
+        class="flex items-center gap-2 px-3 md:px-6 py-3 md:py-4 border-b border-zinc-200 bg-white flex-shrink-0"
       >
+        <!-- Back button — mobile only -->
+        <button
+          type="button"
+          (click)="backToList()"
+          class="md:hidden p-1.5 -ml-1 rounded-full hover:bg-zinc-100 text-zinc-500 flex-shrink-0 transition-colors"
+        >
+          <span class="material-symbols-outlined" style="font-size: 22px">arrow_back</span>
+        </button>
         @if (getConversationAvatar(conv); as avatarUrl) {
           <img [src]="avatarUrl" class="h-9 w-9 rounded-full object-cover flex-shrink-0" alt="" />
         } @else {
@@ -111,10 +122,12 @@
             {{ getInitial(conv) }}
           </div>
         }
-        <div>
-          <h2 class="font-semibold text-zinc-800 leading-tight">{{ getDisplayName(conv) }}</h2>
+        <div class="min-w-0">
+          <h2 class="font-semibold text-zinc-800 leading-tight truncate">
+            {{ getDisplayName(conv) }}
+          </h2>
           @if (conv.type === 'EVENT_GROUP') {
-            <span class="text-xs text-zinc-400 truncate max-w-xs">{{
+            <span class="text-xs text-zinc-400 truncate block">{{
               getParticipantNames(conv)
             }}</span>
           }
@@ -122,7 +135,7 @@
       </div>
 
       <!-- Messages -->
-      <div #messagesContainer class="flex-1 overflow-y-auto p-6 space-y-2 bg-zinc-50">
+      <div #messagesContainer class="flex-1 overflow-y-auto p-3 md:p-6 space-y-2 bg-zinc-50">
         @for (msg of messages(); track msg.id) {
           <div class="flex gap-2" [class.flex-row-reverse]="isMe(msg)" (click)="closePopovers()">
             @if (!isMe(msg)) {
@@ -140,7 +153,7 @@
                 </div>
               }
             }
-            <div class="max-w-xs lg:max-w-md xl:max-w-lg">
+            <div class="max-w-[75%] md:max-w-xs lg:max-w-md xl:max-w-lg">
               @if (!isMe(msg)) {
                 <span class="text-xs text-zinc-400 mb-1 block pl-1">{{ msg.sender.name }}</span>
               }
@@ -462,8 +475,8 @@
       </div>
     </div>
   } @else {
-    <!-- Empty state -->
-    <div class="flex-1 flex items-center justify-center bg-zinc-50">
+    <!-- Empty state — desktop only -->
+    <div class="flex-1 hidden md:flex items-center justify-center bg-zinc-50">
       <div class="text-center text-zinc-400 px-8">
         <span class="material-symbols-outlined text-6xl block mb-4 text-zinc-300"
           >chat_bubble_outline</span
@@ -635,7 +648,7 @@
     (click)="closeNewChatDialog()"
   >
     <div
-      class="bg-white rounded-2xl shadow-2xl w-96 max-h-[480px] flex flex-col overflow-hidden"
+      class="bg-white rounded-2xl shadow-2xl w-full max-w-sm max-h-[480px] flex flex-col overflow-hidden"
       (click)="$event.stopPropagation()"
     >
       <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100">

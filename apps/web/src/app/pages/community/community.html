@@ -1,7 +1,16 @@
-<div class="flex h-[calc(100vh-4rem)] overflow-hidden">
+<div class="flex h-[calc(100vh-8rem)] md:h-[calc(100vh-4rem)] overflow-hidden">
+  <!-- Mobile backdrop -->
+  @if (mobileSidebarOpen) {
+    <div
+      class="fixed inset-x-0 top-16 bottom-16 bg-black/40 z-30 md:hidden"
+      (click)="mobileSidebarOpen = false"
+    ></div>
+  }
+
   <!-- ── Sidebar: categories ── -->
   <aside
-    class="w-72 bg-white border-r border-gray-200 flex flex-col h-full overflow-hidden shrink-0"
+    class="page-sidebar w-72 bg-white border-r border-gray-200 overflow-hidden md:h-full"
+    [class.sidebar-open]="mobileSidebarOpen"
   >
     <!-- Header -->
     <div class="p-4 border-b border-gray-100 space-y-3">
@@ -21,6 +30,37 @@
         <span class="material-symbols-outlined" style="font-size: 16px">edit</span>
         Nouveau thread
       </a>
+    </div>
+
+    <!-- Sort — mobile only, inside drawer -->
+    <div class="p-3 border-b border-gray-100 md:hidden">
+      <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1 mb-2">
+        Trier par
+      </p>
+      <div class="flex gap-1.5">
+        <button
+          type="button"
+          (click)="setSort('recent'); mobileSidebarOpen = false"
+          class="flex-1 px-3 py-2 text-sm font-semibold rounded-lg transition-colors"
+          [class.bg-rose-700]="sort === 'recent'"
+          [class.text-white]="sort === 'recent'"
+          [class.bg-gray-100]="sort !== 'recent'"
+          [class.text-gray-700]="sort !== 'recent'"
+        >
+          Récents
+        </button>
+        <button
+          type="button"
+          (click)="setSort('popular'); mobileSidebarOpen = false"
+          class="flex-1 px-3 py-2 text-sm font-semibold rounded-lg transition-colors"
+          [class.bg-rose-700]="sort === 'popular'"
+          [class.text-white]="sort === 'popular'"
+          [class.bg-gray-100]="sort !== 'popular'"
+          [class.text-gray-700]="sort !== 'popular'"
+        >
+          Populaires
+        </button>
+      </div>
     </div>
 
     <!-- Category search -->
@@ -202,8 +242,20 @@
   <!-- ── Main ── -->
   <main class="flex-1 flex flex-col overflow-hidden bg-gray-50">
     <!-- Toolbar -->
-    <div class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 shrink-0">
-      <div class="relative flex-1 max-w-sm">
+    <div
+      class="bg-white border-b border-gray-200 px-3 md:px-6 py-2.5 md:py-3 flex items-center gap-2 md:gap-3 shrink-0"
+    >
+      <!-- Mobile buttons -->
+      <button
+        type="button"
+        (click)="mobileSidebarOpen = !mobileSidebarOpen"
+        class="md:hidden flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors shrink-0"
+      >
+        <span class="material-symbols-outlined" style="font-size: 18px">tune</span>
+        Filtres
+      </button>
+
+      <div class="relative flex-1 min-w-0 md:max-w-sm">
         <span
           class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
           style="font-size: 18px"
@@ -218,8 +270,15 @@
         />
       </div>
 
+      <a
+        routerLink="/community/create"
+        class="md:hidden flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-white bg-rose-700 hover:bg-rose-800 rounded-lg transition-colors shrink-0"
+      >
+        <span class="material-symbols-outlined" style="font-size: 18px">edit</span>
+      </a>
+
       <div
-        class="flex items-center border border-gray-200 rounded-lg overflow-hidden shrink-0 ml-auto"
+        class="hidden md:flex items-center border border-gray-200 rounded-lg overflow-hidden shrink-0 ml-auto"
       >
         <button
           type="button"

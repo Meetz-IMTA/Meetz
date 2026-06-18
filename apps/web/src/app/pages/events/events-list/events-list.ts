@@ -44,6 +44,7 @@ export class EventsList implements OnInit, OnDestroy {
   locationFilter = '';
   privateOnly = false;
   viewMode: 'grid' | 'list' | 'map' = 'grid';
+  mobileSidebarOpen = false;
   isLoading = true;
   error = '';
 
@@ -155,6 +156,7 @@ export class EventsList implements OnInit, OnDestroy {
 
   selectCategory(value: string) {
     this.selectedCategory = value;
+    this.mobileSidebarOpen = false;
     this.applyFilters();
   }
 

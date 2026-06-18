@@ -23,6 +23,11 @@
 .btn-joined:hover {
   background-color: #bbf7d0;
 }
+.btn-full {
+  background-color: #f4f4f5;
+  color: #71717a;
+  border: 2px solid #e4e4e7;
+}
 
 /* Section titles */
 .section-title {

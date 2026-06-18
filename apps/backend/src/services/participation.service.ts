@@ -30,6 +30,14 @@ export const joinEvent = async (userId: number, eventId: number) => {
   const event = await prisma.event.findUnique({ where: { id: eventId } });
   if (!event) throw new Error("Événement non trouvé.");
 
+  // Refuser l'inscription si la capacité maximale est déjà atteinte.
+  if (event.maxAttendees != null) {
+    const count = await prisma.eventParticipation.count({ where: { eventId } });
+    if (count >= event.maxAttendees) {
+      throw new Error("Cet événement est complet.");
+    }
+  }
+
   let participation;
   try {
     participation = await prisma.eventParticipation.create({

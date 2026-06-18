@@ -146,6 +146,8 @@ export const createEvent = async (data: EventData, organizerId: number) => {
       imageUrl: data.imageUrl ?? null,
       isPrivate: toBool(data.isPrivate),
       organizerId,
+      // L'organisateur est inscrit d'office à son propre événement.
+      participations: { create: { userId: organizerId } },
     },
   });
 

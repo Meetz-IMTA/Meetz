@@ -133,10 +133,11 @@
             <button
               type="button"
               (click)="toggleJoin()"
-              [disabled]="isJoinLoading"
+              [disabled]="isJoinLoading || (isFull && !isJoined)"
               class="w-full py-3.5 rounded-xl font-bold text-sm transition-all disabled:cursor-not-allowed"
-              [class.btn-join]="!isJoined"
+              [class.btn-join]="!isJoined && !isFull"
               [class.btn-joined]="isJoined"
+              [class.btn-full]="isFull && !isJoined"
             >
               @if (isJoinLoading) {
                 <span class="flex items-center justify-center gap-2">
@@ -152,6 +153,15 @@
                     >check_circle</span
                   >
                   Inscrit · Se désinscrire
+                </span>
+              } @else if (isFull) {
+                <span class="flex items-center justify-center gap-2">
+                  <span
+                    class="material-symbols-outlined"
+                    style="font-size: 16px; font-variation-settings: 'FILL' 1"
+                    >block</span
+                  >
+                  Événement complet
                 </span>
               } @else {
                 Participer
@@ -349,6 +359,16 @@
                     <p class="text-xs text-zinc-400">Annuler ma participation</p>
                   </div>
                 </button>
+              </div>
+            } @else if (isFull) {
+              <div class="feature-item opacity-75 cursor-default">
+                <span class="material-symbols-outlined text-zinc-400" style="font-size: 20px"
+                  >block</span
+                >
+                <div>
+                  <p class="text-sm font-bold text-zinc-500">Événement complet</p>
+                  <p class="text-xs text-zinc-400">Plus de places disponibles</p>
+                </div>
               </div>
             } @else {
               <button

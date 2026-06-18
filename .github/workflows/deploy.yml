@@ -36,6 +36,23 @@ jobs:
       CHAT_ENCRYPTION_KEY: ${{ secrets.CHAT_ENCRYPTION_KEY }}
 
     steps:
+      - name: Pre-clean runner (avoid disk saturation)
+        run: |
+          echo "Cleaning old CI artifacts..."
+
+          # GitHub runner temp
+          rm -rf $HOME/actions-runner/_work/_temp/* || true
+          rm -rf $HOME/actions-runner/_diag/pages/* || true
+
+          # Docker
+          docker system prune -af --volumes || true
+
+          # npm cache (énorme gain)
+          npm cache clean --force || true
+
+          echo "Disk after cleanup:"
+          df -h
+
       - name: Checkout du code source
         uses: actions/checkout@v4
 

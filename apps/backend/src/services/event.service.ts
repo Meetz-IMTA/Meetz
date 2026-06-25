@@ -19,6 +19,8 @@ export interface EventFilters {
   organizerId?: number;
   privateOnly?: boolean;
   viewerId?: number;
+  // "upcoming" = à venir uniquement, "past" = historique, "all" = les deux.
+  timeframe?: "upcoming" | "past" | "all";
 }
 
 // Multipart form fields arrive as strings ("true"/"false"), JSON as booleans.
@@ -57,6 +59,12 @@ export const getEvents = async (filters: EventFilters = {}) =>
             organizerId: filters.organizerId,
           }),
           ...(filters.privateOnly && { isPrivate: true }),
+          // Un événement dont la date est passée n'apparaît plus dans la liste
+          // des événements ; il reste consultable via l'historique des profils.
+          ...(filters.timeframe === "upcoming" && {
+            date: { gte: new Date() },
+          }),
+          ...(filters.timeframe === "past" && { date: { lt: new Date() } }),
           ...(filters.search && {
             OR: [
               { name: { contains: filters.search } },

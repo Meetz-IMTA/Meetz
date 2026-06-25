@@ -130,6 +130,16 @@ export class CreateEvent implements OnInit, OnDestroy {
     return '';
   }
 
+  get timeError(): string {
+    if (!this.formTouched) return '';
+    if (!this.time) return "L'heure est obligatoire.";
+    // Date + heure (heure et minute) doivent être dans le futur : un événement
+    // prévu aujourd'hui à une heure déjà passée ne doit pas être accepté.
+    if (this.date && new Date(`${this.date}T${this.time}`) <= new Date())
+      return "L'heure doit être dans le futur.";
+    return '';
+  }
+
   get maxAttendeesError(): string {
     if (!this.formTouched || this.maxAttendees === null) return '';
     if (this.maxAttendees < 1) return 'Le nombre de participants doit être au moins 1.';
@@ -137,12 +147,12 @@ export class CreateEvent implements OnInit, OnDestroy {
   }
 
   get isFormValid(): boolean {
-    return (
-      this.title.trim().length >= 3 &&
-      !!this.date &&
-      new Date(this.date) >= new Date(new Date().toDateString()) &&
-      (this.maxAttendees === null || this.maxAttendees >= 1)
-    );
+    if (this.title.trim().length < 3) return false;
+    if (!this.date || !this.time) return false;
+    // Validation au datetime complet (heure + minute), pas seulement au jour.
+    const when = new Date(`${this.date}T${this.time}`);
+    if (Number.isNaN(when.getTime()) || when <= new Date()) return false;
+    return this.maxAttendees === null || this.maxAttendees >= 1;
   }
 
   selectCategory(value: string) {

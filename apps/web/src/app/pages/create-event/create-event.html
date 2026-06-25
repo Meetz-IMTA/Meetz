@@ -149,11 +149,20 @@
               </p>
             }
           </div>
-          <input
-            [(ngModel)]="time"
-            class="w-full rounded-lg p-3 text-sm text-gray-700"
-            type="time"
-          />
+          <div>
+            <input
+              [(ngModel)]="time"
+              class="w-full rounded-lg p-3 text-sm text-gray-700"
+              [class.input-error]="timeError"
+              type="time"
+            />
+            @if (timeError) {
+              <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                <span class="material-symbols-outlined" style="font-size: 14px">warning</span>
+                {{ timeError }}
+              </p>
+            }
+          </div>
         </div>
       </div>
 

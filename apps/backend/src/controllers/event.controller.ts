@@ -27,7 +27,7 @@ export const listFeaturedEvents = async (_req: Request, res: Response) => {
 
 export const listEvents = async (req: Request, res: Response) => {
   try {
-    const { category, search, organizerId } = req.query;
+    const { category, search, organizerId, timeframe } = req.query;
     const filters: EventFilters = {};
     if (req.userId != null) filters.viewerId = req.userId;
     if (typeof category === "string") filters.category = category;
@@ -35,6 +35,10 @@ export const listEvents = async (req: Request, res: Response) => {
     if (typeof organizerId === "string")
       filters.organizerId = Number(organizerId);
     if (req.query["private"] === "true") filters.privateOnly = true;
+    // Par défaut, la liste n'expose que les événements à venir ; l'historique
+    // (timeframe=past|all) est explicitement demandé par les profils.
+    filters.timeframe =
+      timeframe === "past" || timeframe === "all" ? timeframe : "upcoming";
     res.json(await getEvents(filters));
   } catch {
     res

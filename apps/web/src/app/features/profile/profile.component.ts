@@ -84,11 +84,25 @@ export class ProfileComponent {
           ? Number(params.userId)
           : null;
       if (organizerId == null) return Promise.resolve([]);
-      return firstValueFrom(this.eventService.getAll({ organizerId }));
+      // timeframe=all : on récupère aussi les événements passés pour
+      // alimenter la section « Historique ».
+      return firstValueFrom(this.eventService.getAll({ organizerId, timeframe: 'all' }));
     },
   });
 
   readonly profileEvents = computed(() => this.eventsResource.value() ?? []);
+
+  /** Événements à venir, affichés dans la section principale. */
+  readonly upcomingEvents = computed(() =>
+    this.profileEvents().filter((e) => this.eventStatus(e.date) === 'upcoming'),
+  );
+
+  /** Événements passés, affichés en historique (les plus récents d'abord). */
+  readonly pastEvents = computed(() =>
+    this.profileEvents()
+      .filter((e) => this.eventStatus(e.date) === 'past')
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+  );
 
   readonly isOwner = computed(() => {
     const id = this.routeId();

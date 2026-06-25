@@ -20,6 +20,8 @@ export interface EventFilters {
   search?: string;
   organizerId?: number;
   privateOnly?: boolean;
+  // "upcoming" (défaut côté API) = à venir, "past" = historique, "all" = les deux.
+  timeframe?: 'upcoming' | 'past' | 'all';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -57,6 +59,7 @@ export class EventService {
     if (filters?.organizerId != null)
       params = params.set('organizerId', String(filters.organizerId));
     if (filters?.privateOnly) params = params.set('private', 'true');
+    if (filters?.timeframe) params = params.set('timeframe', filters.timeframe);
 
     return this.http
       .get<MeetzEvent[]>(this.apiUrl, { params, headers: this.authHeader })

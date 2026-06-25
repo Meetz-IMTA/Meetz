@@ -402,9 +402,9 @@
           }
         </div>
 
-        @if (profileEvents().length > 0) {
+        @if (upcomingEvents().length > 0) {
           <ul class="flex flex-col gap-3">
-            @for (ev of profileEvents(); track trackMeetzEvent($index, ev)) {
+            @for (ev of upcomingEvents(); track trackMeetzEvent($index, ev)) {
               <li>
                 <a
                   [routerLink]="['/events', ev.id]"
@@ -475,9 +475,7 @@
         } @else if (!eventsResource.isLoading()) {
           <div class="mz-card p-6 text-center">
             <p class="text-sm text-mz-text-muted">
-              {{
-                isOwner() ? "Vous n'avez pas encore créé d'événement." : 'Aucun événement public.'
-              }}
+              {{ isOwner() ? "Vous n'avez aucun événement à venir." : 'Aucun événement à venir.' }}
             </p>
             @if (isOwner() && canCreateEvents()) {
               <a [routerLink]="['/create-event']" class="mz-btn-primary text-sm mt-4 inline-flex">
@@ -487,6 +485,83 @@
           </div>
         }
       </section>
+
+      <!-- ===== Historique (événements passés) ===== -->
+      @if (pastEvents().length > 0) {
+        <section class="mb-6">
+          <div class="flex items-center gap-2 mb-3">
+            <h2 class="font-mz-display font-bold text-lg text-mz-text">Historique</h2>
+            <span
+              class="text-xs font-semibold text-mz-text-dim bg-mz-surface-2 border border-mz-border rounded-full px-2 py-0.5"
+            >
+              {{ pastEvents().length }}
+            </span>
+          </div>
+          <ul class="flex flex-col gap-3">
+            @for (ev of pastEvents(); track trackMeetzEvent($index, ev)) {
+              <li>
+                <a
+                  [routerLink]="['/events', ev.id]"
+                  class="mz-card p-4 flex items-center gap-4 opacity-75 hover:opacity-100 hover:border-mz-border-hover transition-all"
+                >
+                  <div
+                    class="grid place-items-center w-12 h-12 rounded-mz-btn bg-mz-surface-2 shrink-0 overflow-hidden"
+                  >
+                    @if (ev.imageUrl) {
+                      <img [src]="ev.imageUrl" alt="" class="w-full h-full object-cover" />
+                    } @else {
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="text-mz-text-muted"
+                        aria-hidden="true"
+                      >
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                        <path d="M16 2v4M8 2v4M3 10h18" />
+                      </svg>
+                    }
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <p class="font-semibold text-mz-text truncate">{{ ev.name }}</p>
+                      @if (ev.isPrivate) {
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="text-mz-text-dim shrink-0"
+                          aria-label="Privé"
+                        >
+                          <rect x="3" y="11" width="18" height="11" rx="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                      }
+                    </div>
+                    <p class="text-xs text-mz-text-dim truncate">
+                      {{ ev.category }}{{ ev.location ? ' · ' + ev.location : '' }}
+                    </p>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <p class="text-sm font-medium text-mz-text">{{ eventDate(ev.date) }}</p>
+                    <span class="text-xs text-mz-text-dim">Passé</span>
+                  </div>
+                </a>
+              </li>
+            }
+          </ul>
+        </section>
+      }
 
       <!-- ===== Cooptations (propriétaire + créateur) ===== -->
       @if (isOwner() && isOrganizer() && p.cooptations.length > 0) {
